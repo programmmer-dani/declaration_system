@@ -1,4 +1,4 @@
-# DeclaratieApp – Secure Backend System
+# Declaration system – Secure Backend System
 
 ## Purpose
 
