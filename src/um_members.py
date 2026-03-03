@@ -1,4 +1,3 @@
-from auth import hash_password, verify_password
 from database import init_db
 
 

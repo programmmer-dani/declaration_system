@@ -1,14 +1,9 @@
-import hashlib
-import secrets
+import bcrypt
 
 
 def hash_password(password):
-    salt = secrets.token_hex()
-    key = hashlib.pbkdf2_hmac("sha256", password.encode(), salt.encode(), 100000)
-    return f"{salt}:{key.hex()}"
+    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
 
 def verify_password(password, stored_hash):
-    salt, hex_hash = stored_hash.split(":")
-    key = hashlib.pbkdf2_hmac("sha256", password.encode(), salt.encode(), 100000)
-    return secrets.compare_digest(key.hex(), hex_hash)
+    return bcrypt.checkpw(password.encode(), stored_hash.encode())
