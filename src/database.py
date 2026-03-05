@@ -1,8 +1,21 @@
 import os
 import sqlite3
 
+from auth import hash_username
 from config import DATABASE_PATH
 
+
+def find_user_by_username(conn, username):
+    # Update to with get_connection() as conn: (so connection is automatically closed)
+    lookup = hash_username(username)
+    cur = conn.execute(
+        "SELECT * FROM users WHERE username_lookup = ? AND is_active = 1",
+        (lookup,),
+    )
+    row = cur.fetchone()
+    if row is None:
+        return None
+    return row
 
 def get_connection():
     # always call with: with get_connection() as conn:
@@ -19,6 +32,7 @@ def init_db():
 
 
 def create_tables(conn: sqlite3.Connection):
+    # is_active value is not specefically required for users
     conn.executescript(
         """
         CREATE TABLE IF NOT EXISTS users (
