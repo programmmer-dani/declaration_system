@@ -2,15 +2,34 @@ import os
 import sqlite3
 
 from security.auth import hash_username
-from config import DATABASE_PATH
+from infrastructure.config import DATABASE_PATH
 
+
+def save_user(user):
+    # check if conn usage is correct
+    with get_connection() as conn:
+        conn.execute(
+            """INSERT INTO users (role, username_enc, username_lookup, password_hash, first_name_enc, last_name_enc, registration_date, is_active)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+            (
+                user["role"],
+                user["username_enc"],
+                user["username_lookup"],
+                user["password_hash"],
+                user["first_name_enc"],
+                user["last_name_enc"],
+                user["registration_date"],
+                user.get("is_active", 1),
+            ),
+        )
+        conn.commit()
 
 def username_exists(username):
     lookup = hash_username(username)
     with get_connection() as conn:
         cur = conn.execute(
             "SELECT 1 FROM users WHERE username_lookup = ? LIMIT 1",
-            (username,),
+            (lookup,),
         )
     return cur.fetchone() is not None
 

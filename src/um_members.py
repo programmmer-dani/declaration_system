@@ -1,8 +1,7 @@
-from database import init_db
-
+from application.orchestrator import app
 
 def main():
-    init_db()
+    app()
 
 if __name__ == "__main__":
     main()
