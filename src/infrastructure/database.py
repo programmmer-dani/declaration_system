@@ -1,8 +1,18 @@
 import os
 import sqlite3
 
-from auth import hash_username
+from security.auth import hash_username
 from config import DATABASE_PATH
+
+
+def username_exists(username):
+    lookup = hash_username(username)
+    with get_connection() as conn:
+        cur = conn.execute(
+            "SELECT 1 FROM users WHERE username_lookup = ? LIMIT 1",
+            (username,),
+        )
+    return cur.fetchone() is not None
 
 
 def find_user_by_username(conn, username):
