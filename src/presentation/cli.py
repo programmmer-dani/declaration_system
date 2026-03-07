@@ -8,6 +8,7 @@ def get_login_input():
 
 
 def get_create_user_input():
+    print("\nCreating new user...\n")
     return {
         "username": input("Username: "),
         "password": input("Password: "),
@@ -15,3 +16,6 @@ def get_create_user_input():
         "last_name": input("Last name: "),
         "role": input("Role (manager/employee): "),
     }
+
+def print_error(error):
+    print(f"\n-----------------\nError: {error}\n-----------------\n")
