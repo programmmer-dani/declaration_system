@@ -1,6 +1,8 @@
-from domain.utils import print_db_content, secure_user_data
+import datetime
+from datetime import UTC
+from domain.utils import print_db_content, secure_employee_data, secure_user_data
 from infrastructure.database import init_db, save_user, username_exists
-from presentation.cli import get_create_user_input, get_login_input, print_error
+from presentation.cli import get_employee_data, get_login_input, get_user_data, print_error
 
 def app():
     init_db()
@@ -8,16 +10,22 @@ def app():
 
 def login(credentials): 
     if credentials["username"] == "super_admin" and credentials["password"] == "Admin_123?":
-        try: create_user(get_create_user_input())
+        try: create_user(get_user_data())
         except ValueError as e:
             print_error(e)
 
 def create_user(user):
+    now = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%S")
     try:
         verify_existing_username(user["username"])
         secured_user_data = secure_user_data(user)
-        save_user(secured_user_data)
-        print_db_content()
+        if user["role"] == "employee":
+            employee_data = get_employee_data()
+            secured_employee_data = secure_employee_data(employee_data)
+            save_user(now,secured_user_data, secured_employee_data)
+            return
+        save_user(now, secured_user_data)
+        print_db_content() # For debugging
     except ValueError as e:
         return e
 
