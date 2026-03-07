@@ -5,10 +5,9 @@ from security.auth import hash_username
 from infrastructure.config import DATABASE_PATH
 
 
-def save_user(user):
-    # check if conn usage is correct
+def save_user(registration_date, user, employee_data=None):
     with get_connection() as conn:
-        conn.execute(
+        cur = conn.execute(
             """INSERT INTO users (role, username_enc, username_lookup, password_hash, first_name_enc, last_name_enc, registration_date, is_active)
                VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
             (
@@ -18,10 +17,35 @@ def save_user(user):
                 user["password_hash"],
                 user["first_name_enc"],
                 user["last_name_enc"],
-                user["registration_date"],
+                registration_date,
                 user.get("is_active", 1),
             ),
         )
+        user_id = cur.lastrowid
+        if user["role"] == "employee":
+            if not employee_data:
+                raise ValueError("Employee data is required for employee users")
+            conn.execute(
+                """INSERT INTO employees (user_id, first_name_enc, last_name_enc, birthday_enc, gender_enc, street_name_enc, house_number_enc, zip_code_enc, city_enc, email_enc, mobile_phone_enc, id_doc_type_enc, id_doc_number_enc, bsn_enc, registration_date)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (
+                    user_id,
+                    employee_data["first_name_enc"],
+                    employee_data["last_name_enc"],
+                    employee_data["birthday_enc"],
+                    employee_data["gender_enc"],
+                    employee_data["street_name_enc"],
+                    employee_data["house_number_enc"],
+                    employee_data["zip_code_enc"],
+                    employee_data["city_enc"],
+                    employee_data["email_enc"],
+                    employee_data["mobile_phone_enc"],
+                    employee_data["id_doc_type_enc"],
+                    employee_data["id_doc_number_enc"],
+                    employee_data["bsn_enc"],
+                    registration_date,
+                ),
+            )
         conn.commit()
 
 def username_exists(username):

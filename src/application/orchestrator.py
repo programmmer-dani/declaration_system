@@ -14,14 +14,14 @@ def login(credentials):
 
 def create_user(user):
     try:
-        verify_username(user["username"])
+        verify_existing_username(user["username"])
         secured_user_data = secure_user_data(user)
         save_user(secured_user_data)
         print_db_content()
     except ValueError as e:
         return e
 
-def verify_username(username): 
+def verify_existing_username(username): 
     if username_exists(username):
         raise ValueError("Username already exists")
 

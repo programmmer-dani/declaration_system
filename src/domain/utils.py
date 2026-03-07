@@ -5,7 +5,6 @@ from security.encryption import decrypt_value, encrypt_value
 
 
 def secure_user_data(user):
-    now = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%S")
     return {
         "role": user["role"],
         "username_enc": encrypt_value(user["username"]),
@@ -13,10 +12,25 @@ def secure_user_data(user):
         "password_hash": hash_password(user["password"]),
         "first_name_enc": encrypt_value(user["first_name"]),
         "last_name_enc": encrypt_value(user["last_name"]),
-        "registration_date": now,
         "is_active": 1,
     }
-
+    
+def secure_employee_data(employee):
+    return {
+        "first_name_enc": encrypt_value(employee["first_name"]),
+        "last_name_enc": encrypt_value(employee["last_name"]),
+        "birthday_enc": encrypt_value(employee["birthday"]),
+        "gender_enc": encrypt_value(employee["gender"]),
+        "street_name_enc": encrypt_value(employee["street_name"]),
+        "house_number_enc": encrypt_value(employee["house_number"]),
+        "zip_code_enc": encrypt_value(employee["zip_code"]),
+        "city_enc": encrypt_value(employee["city"]),
+        "email_enc": encrypt_value(employee["email"]),
+        "mobile_phone_enc": encrypt_value(employee["mobile_phone"]),
+        "id_doc_type_enc": encrypt_value(employee["id_doc_type"]),
+        "id_doc_number_enc": encrypt_value(employee["id_doc_number"]),
+        "bsn_enc": encrypt_value(employee["bsn"]),
+    }
 
 def _decrypt_row(row_dict, enc_columns):
     out = dict(row_dict)
