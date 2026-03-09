@@ -4,35 +4,43 @@ from security.auth import hash_password, hash_username
 from security.encryption import decrypt_value, encrypt_value
 
 
-def secure_user_data(user):
-    return {
-        "role": user["role"],
-        "username_enc": encrypt_value(user["username"]),
-        "username_lookup": hash_username(user["username"]),
-        "password_hash": hash_password(user["password"]),
-        "first_name_enc": encrypt_value(user["first_name"]),
-        "last_name_enc": encrypt_value(user["last_name"]),
-        "is_active": 1,
-    }
+def secure_user_data(user_data):
+    try:
+        secured_user_data = {
+            "role": user_data["role"],
+            "username_enc": encrypt_value(user_data["username"]),
+            "username_lookup": hash_username(user_data["username"]),
+            "password_hash": hash_password(user_data["password"]),
+            "first_name_enc": encrypt_value(user_data["first_name"]),
+            "last_name_enc": encrypt_value(user_data["last_name"]),
+            "is_active": 1,
+        }
+    except ValueError as e:
+        raise ValueError(f"Error securing basic user data: {e}")
+    try:
+        if user_data["role"] == "employee":
+            secured_user_data.update(secure_employee_data(user_data))
+    except ValueError as e:
+        raise ValueError(f"Error securing extra employee data: {e}")
+    return secured_user_data
     
-def secure_employee_data(employee):
+def secure_employee_data(employee_data):
     return {
-        "first_name_enc": encrypt_value(employee["first_name"]),
-        "last_name_enc": encrypt_value(employee["last_name"]),
-        "birthday_enc": encrypt_value(employee["birthday"]),
-        "gender_enc": encrypt_value(employee["gender"]),
-        "street_name_enc": encrypt_value(employee["street_name"]),
-        "house_number_enc": encrypt_value(employee["house_number"]),
-        "zip_code_enc": encrypt_value(employee["zip_code"]),
-        "city_enc": encrypt_value(employee["city"]),
-        "email_enc": encrypt_value(employee["email"]),
-        "mobile_phone_enc": encrypt_value(employee["mobile_phone"]),
-        "id_doc_type_enc": encrypt_value(employee["id_doc_type"]),
-        "id_doc_number_enc": encrypt_value(employee["id_doc_number"]),
-        "bsn_enc": encrypt_value(employee["bsn"]),
+        "birthday_enc": encrypt_value(employee_data["birthday"]),
+        "gender_enc": encrypt_value(employee_data["gender"]),
+        "street_name_enc": encrypt_value(employee_data["street_name"]),
+        "house_number_enc": encrypt_value(employee_data["house_number"]),
+        "zip_code_enc": encrypt_value(employee_data["zip_code"]),
+        "city_enc": encrypt_value(employee_data["city"]),
+        "email_enc": encrypt_value(employee_data["email"]),
+        "mobile_phone_enc": encrypt_value(employee_data["mobile_phone"]),
+        "id_doc_type_enc": encrypt_value(employee_data["id_doc_type"]),
+        "id_doc_number_enc": encrypt_value(employee_data["id_doc_number"]),
+        "bsn_enc": encrypt_value(employee_data["bsn"]),
     }
 
 def _decrypt_row(row_dict, enc_columns):
+    #AI generated func, outputting DB data for debugging purposes
     out = dict(row_dict)
     for col in enc_columns:
         if col in out and out[col] is not None:

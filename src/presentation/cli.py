@@ -9,20 +9,21 @@ def get_login_input():
 
 def get_user_data():
     print("\nCreating new user...\n")
-    return {
+    user_data = {
         "username": input("Username: "),
         "password": input("Password: "),
         "first_name": input("First name: "),
         "last_name": input("Last name: "),
         "role": input("Role (manager/employee): "),
     }
+    if user_data["role"] == "employee":
+        employee_data = get_employee_data()
+        return {**user_data, **employee_data}
+    else:
+        return user_data
     
-def get_employee_data():
-    print("\nCreating new employee...\n")
-    
+def get_employee_data():    
     return {
-        "first_name": input("First name: "),
-        "last_name": input("Last name: "),
         "birthday": input("Birthday: "),
         "gender": input("Gender: "),
         "street_name": input("Street name: "),

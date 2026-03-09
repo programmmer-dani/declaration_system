@@ -14,18 +14,12 @@ def login(credentials):
         except ValueError as e:
             print_error(e)
 
-def create_user(user):
+def create_user(user_data):
     now = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%S")
     try:
-        verify_existing_username(user["username"])
-        secured_user_data = secure_user_data(user)
-        if user["role"] == "employee":
-            employee_data = get_employee_data()
-            secured_employee_data = secure_employee_data(employee_data)
-            save_user(now,secured_user_data, secured_employee_data)
-            return
+        verify_existing_username(user_data["username"])
+        secured_user_data = secure_user_data(user_data) 
         save_user(now, secured_user_data)
-        print_db_content() # For debugging
     except ValueError as e:
         return e
 
