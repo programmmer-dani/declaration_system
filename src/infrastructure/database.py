@@ -56,17 +56,14 @@ def username_exists(username):
     return cur.fetchone() is not None
 
 
-def find_user_by_username(conn, username):
-    # Update to with get_connection() as conn: (so connection is automatically closed)
+def find_user_by_username(username):
     lookup = hash_username(username)
-    cur = conn.execute(
-        "SELECT * FROM users WHERE username_lookup = ? AND is_active = 1",
-        (lookup,),
-    )
-    row = cur.fetchone()
-    if row is None:
-        return None
-    return row
+    with get_connection() as conn:
+        cur = conn.execute(
+            "SELECT * FROM users WHERE username_lookup = ? AND is_active = 1",
+            (lookup,),
+        )
+    return cur.fetchone()
 
 def get_connection():
     # always call with: with get_connection() as conn:
