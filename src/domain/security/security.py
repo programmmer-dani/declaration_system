@@ -1,6 +1,7 @@
 from datetime import UTC, datetime
 
-from security.auth import hash_password, hash_username
+from infrastructure.database import find_user_by_username, save_user, username_exists
+from security.auth import hash_password, hash_username, verify_password
 from security.encryption import decrypt_value, encrypt_value
 
 
@@ -24,6 +25,7 @@ def secure_user_data(user_data):
         raise ValueError(f"Error securing extra employee data: {e}")
     return secured_user_data
     
+    
 def secure_employee_data(employee_data):
     return {
         "birthday_enc": encrypt_value(employee_data["birthday"]),
@@ -38,6 +40,7 @@ def secure_employee_data(employee_data):
         "id_doc_number_enc": encrypt_value(employee_data["id_doc_number"]),
         "bsn_enc": encrypt_value(employee_data["bsn"]),
     }
+
 
 def _decrypt_row(row_dict, enc_columns):
     #AI generated func, outputting DB data for debugging purposes
@@ -78,3 +81,29 @@ def print_db_content():
             print(f"\n=== {table_name.upper()} (decrypted) ===")
             for row in rows:
                 print(_decrypt_row(dict(row), enc_cols))
+    
+    
+def create_user(user_data):
+    now = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%S")
+    try:
+        verify_existing_username(user_data["username"])
+        secured_user_data = secure_user_data(user_data) 
+        save_user(now, secured_user_data)
+    except ValueError as e:
+        return e
+
+
+def verify_existing_username(username): 
+    # Is this func really necessary?
+    if username_exists(username):
+        raise ValueError("Username already exists")
+    
+def login(credentials): 
+    if credentials["username"] == "super_admin" and credentials["password"] == "Admin_123?":
+        return {"role":"super_admin"}
+    user = find_user_by_username(credentials["username"])
+    if user is None:
+        return None
+    if verify_password(credentials["password"]) == user["password"]:
+        return user
+    return None

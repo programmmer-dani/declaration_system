@@ -13,3 +13,4 @@ def hash_password(password):
 
 def verify_password(password, stored_hash):
     return bcrypt.checkpw(password.encode(), stored_hash.encode())
+
