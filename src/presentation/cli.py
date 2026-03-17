@@ -1,6 +1,9 @@
 # Add input validation
 
 
+from domain.security.security import is_authorized
+
+
 def get_login_input():
     username = input("Username: ")
     password = input("Password: ")
@@ -40,69 +43,61 @@ def get_employee_data():
 
 def print_error(error):
     print(f"\n-----------------\nError: {error}\n-----------------\n")
-    
-def superadmin_menu(): pass
-# 1. Login using hardcoded credentials (super_admin / Admin_123?)
 
-# 2. Generate a restore code for a specific manager
-#    - create one-time restore code
-#    - store hashed restore code in database
-#    - associate it with the manager
+def _run_menu(title, options, session):
+    """Display menu and loop until user picks the last option (logout/exit). options: list of (label, callable or None)."""
+    while True:
+        print(f"\n--- {title} ---")
+        for i, (label, _) in enumerate(options, 1):
+            print(f"  {i}. {label}")
+        choice = input("Choice: ").strip() # create seperate menu input functionality
+        if not choice.isdigit() or int(choice) < 1 or int(choice) > len(options):
+            print("Invalid option.")
+            continue
+        idx = int(choice) - 1
+        if idx == len(options) - 1: # last function is always log out or exit
+            return # Logout should be handled differently then exit tho
+        execute_option = options[idx][1]
+        if execute_option:
+            execute_option(session)
+        else:
+            print("Not implemented yet.")
 
-# 3. Restore database from backup
-#    - manager provides restore code
-#    - system verifies restore code
-#    - restore backup database file
 
-# 4. View restore code status
-#    - check if restore code was used or revoked
+def superadmin_menu(session):
+    if session["role"] != "admin":
+        return Exception("Unauthorized access")
+    _run_menu("Super Admin", [
+        ("Create manager account", None),
+        ("Generate restore code for manager", None),
+        ("Restore database from backup", None),
+        ("View restore code status", None),
+        ("Revoke restore code", None),
+        ("Exit system", None),
+    ], session)
 
-# 5. Revoke restore code
-#    - mark restore code as revoked in database
 
-# 6. Exit system
+def manager_menu(session):
+    if session["role"] != "manager":
+        return Exception("Unauthorized access")
+    _run_menu("Manager", [
+        ("Create employee account", None),
+        ("View employee list", None),
+        ("View claims submitted by employees", None),
+        ("Approve claim", None),
+        ("Reject claim", None),
+        ("Generate database backup", None),
+        ("Logout", None),
+    ], session)
 
-def manager_menu(): pass
-# 1. Create employee account
-#    - enter login credentials
-#    - enter employee personal data
-#    - insert into users table
-#    - insert into employees table
 
-# 2. View employee list
-#    - show registered employees
-
-# 3. View claims submitted by employees
-#    - list claims with status
-
-# 4. Approve claim
-#    - set claim status to Approved
-#    - set salary_batch
-
-# 5. Reject claim
-#    - set claim status to Rejected
-#    - set salary_batch
-
-# 6. Generate database backup
-#    - create backup of database
-#    - store backup file
-
-# 7. Logout
-
-def employee_menu(): pass
-# 1. Submit new claim
-#    - choose claim type (Travel / Home Office)
-#    - enter required claim fields
-#    - store claim with status Pending
-
-# 2. View own claims
-#    - show claims submitted by employee
-
-# 3. Edit claim
-#    - only allowed if salary_batch is NULL
-#    - update claim fields
-
-# 4. Delete claim
-#    - only allowed if salary_batch is NULL
-
-# 5. Logout
+def employee_menu(session):
+    if session["role"] != "employee":
+        return Exception("Unauthorized access")
+    _run_menu("Employee", [
+        ("Submit new claim", None),
+        ("View own claims", None),
+        ("Edit claim", None),
+        ("Delete claim", None),
+        ("Logout", None),
+    ], session)

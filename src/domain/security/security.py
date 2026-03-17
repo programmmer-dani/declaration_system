@@ -1,9 +1,8 @@
 from datetime import UTC, datetime
-
 from infrastructure.database import find_user_by_username, save_user, username_exists
+from presentation.cli import employee_menu, manager_menu, superadmin_menu
 from security.auth import hash_password, hash_username, verify_password
 from security.encryption import decrypt_value, encrypt_value
-
 
 def secure_user_data(user_data):
     try:
@@ -100,10 +99,19 @@ def verify_existing_username(username):
     
 def login(credentials): 
     if credentials["username"] == "super_admin" and credentials["password"] == "Admin_123?":
-        return {"role":"super_admin"}
+        return {"role":"admin"}
     user = find_user_by_username(credentials["username"])
     if user is None:
         return None
     if verify_password(credentials["password"]) == user["password"]:
         return user
     return None
+
+def verify_user_menu(session):
+    if session["role"] == "admin":
+        return superadmin_menu
+    elif session["role"] == "manager":
+        return manager_menu
+    elif session["role"] == "employee":
+        return employee_menu
+    raise Exception("Invalid role")
