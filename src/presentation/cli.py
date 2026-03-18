@@ -1,9 +1,5 @@
 # Add input validation
-
-
-from domain.security.security import is_authorized
-
-
+# 
 def get_login_input():
     username = input("Username: ")
     password = input("Password: ")

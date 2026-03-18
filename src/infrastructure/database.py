@@ -1,7 +1,7 @@
 import os
 import sqlite3
 
-from security.auth import hash_username
+from domain.security.auth import hash_username
 from infrastructure.config import DATABASE_PATH
 
 

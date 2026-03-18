@@ -1,8 +1,8 @@
 from datetime import UTC, datetime
 from infrastructure.database import find_user_by_username, save_user, username_exists
 from presentation.cli import employee_menu, manager_menu, superadmin_menu
-from security.auth import hash_password, hash_username, verify_password
-from security.encryption import decrypt_value, encrypt_value
+from domain.security.auth import hash_password, hash_username, verify_password
+from domain.security.encryption import decrypt_value, encrypt_value
 
 def secure_user_data(user_data):
     try:
