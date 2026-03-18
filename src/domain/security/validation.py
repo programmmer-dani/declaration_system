@@ -1,0 +1,1 @@
+# Create input func that first validates input and then returns this validated input, in CLI only use that function and not the standard input()
