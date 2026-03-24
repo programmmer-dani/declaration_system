@@ -1,5 +1,5 @@
 import re
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 
 VALID_CITIES = {
     "Rotterdam",
@@ -16,7 +16,6 @@ VALID_CITIES = {
 
 
 def _ok(s):
-    """Input is a non-empty string with no null byte."""
     return isinstance(s, str) and "\x00" not in s and len(s) > 0
 
 
@@ -39,14 +38,10 @@ def validate_password(s):
     return False
 
 
-def validate_first_name(s):
+def validate_name(s):
     if _ok(s) and len(s) <= 100 and re.match(r"^[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ '\-]{0,99}$", s):
         return True
     return False
-
-
-def validate_last_name(s):
-    return validate_first_name(s)
 
 
 def validate_role(s):
@@ -55,9 +50,24 @@ def validate_role(s):
     return False
 
 
+def _valid_calendar_ymd(s):
+    if not _ok(s):
+        return False
+    try:
+        datetime.strptime(s, "%Y-%m-%d")
+        return True
+    except (ValueError, TypeError):
+        return False
+
+
 def validate_birthday(s):
     today_str = date.today().isoformat()
-    if _ok(s) and re.match(r"^\d{4}-\d{2}-\d{2}$", s) and s <= today_str:
+    if (
+        _ok(s)
+        and re.match(r"^\d{4}-\d{2}-\d{2}$", s)
+        and _valid_calendar_ymd(s)
+        and s <= today_str
+    ):
         return True
     return False
 
@@ -132,7 +142,12 @@ def validate_claim_date(s):
     today = date.today()
     low = (today - timedelta(days=60)).isoformat()
     high = (today + timedelta(days=14)).isoformat()
-    if _ok(s) and re.match(r"^\d{4}-\d{2}-\d{2}$", s) and low <= s <= high:
+    if (
+        _ok(s)
+        and re.match(r"^\d{4}-\d{2}-\d{2}$", s)
+        and _valid_calendar_ymd(s)
+        and low <= s <= high
+    ):
         return True
     return False
 
@@ -162,13 +177,7 @@ def validate_restore_code(s):
 
 
 def validate_backup_filename(s):
-    if (
-        _ok(s)
-        and ".." not in s
-        and "/" not in s
-        and "\\" not in s
-        and re.match(r"^[A-Za-z0-9_.\-]+$", s)
-    ):
+    if _ok(s) and re.match(r"^(?!.*\.\.)[A-Za-z0-9_.\-]+$", s):
         return True
     return False
 
