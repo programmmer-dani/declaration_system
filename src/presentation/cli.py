@@ -1,19 +1,44 @@
-# Add input validation
-# 
+from domain.security.validation import (
+    validate_birthday,
+    validate_bsn,
+    validate_city,
+    validate_email,
+    validate_gender,
+    validate_house_number,
+    validate_id_doc_number,
+    validate_id_doc_type,
+    validate_mobile_phone,
+    validate_name,
+    validate_password,
+    validate_role,
+    validate_street_name,
+    validate_username,
+    validate_zip_code,
+)
+
+
+def _go_validate(input_message, validator):
+    while True:
+        value = input(input_message)
+        if validator(value):
+            return value
+        print("Invalid input, try again.")
+
+
 def get_login_input():
-    username = input("Username: ")
-    password = input("Password: ")
+    username = _go_validate("Username: ", validate_username)
+    password = _go_validate("Password: ", validate_password)
     return {"username": username, "password": password}
 
 
 def get_user_data():
     print("\nCreating new user...\n")
     user_data = {
-        "username": input("Username: "),
-        "password": input("Password: "),
-        "first_name": input("First name: "),
-        "last_name": input("Last name: "),
-        "role": input("Role (manager/employee): "),
+        "username": _go_validate("Username: ", validate_username),
+        "password": _go_validate("Password: ", validate_password),
+        "first_name": _go_validate("First name: ", validate_name),
+        "last_name": _go_validate("Last name: ", validate_name),
+        "role": _go_validate("Role (manager/employee): ", validate_role),
     }
     if user_data["role"] == "employee":
         employee_data = get_employee_data()
@@ -23,17 +48,17 @@ def get_user_data():
     
 def get_employee_data():    
     return {
-        "birthday": input("Birthday: "),
-        "gender": input("Gender: "),
-        "street_name": input("Street name: "),
-        "house_number": input("House number: "),
-        "zip_code": input("Zip code: "),
-        "city": input("City: "),
-        "email": input("Email: "),
-        "mobile_phone": input("Mobile phone: "),
-        "id_doc_type": input("ID doc type: "),
-        "id_doc_number": input("ID doc number: "),
-        "bsn": input("BSN: "),
+        "birthday": _go_validate("Birthday (YYYY-MM-DD): ", validate_birthday),
+        "gender": _go_validate("Gender (male/female): ", validate_gender),
+        "street_name": _go_validate("Street name: ", validate_street_name),
+        "house_number": _go_validate("House number: ", validate_house_number),
+        "zip_code": _go_validate("Zip code: ", validate_zip_code),
+        "city": _go_validate("City: ", validate_city),
+        "email": _go_validate("Email: ", validate_email),
+        "mobile_phone": _go_validate("Mobile phone (8 digits): ", validate_mobile_phone),
+        "id_doc_type": _go_validate("ID doc type (Passport/ID-Card): ", validate_id_doc_type),
+        "id_doc_number": _go_validate("ID doc number: ", validate_id_doc_number),
+        "bsn": _go_validate("BSN: ", validate_bsn),
     }
 
 
@@ -41,7 +66,6 @@ def print_error(error):
     print(f"\n-----------------\nError: {error}\n-----------------\n")
 
 def _run_menu(title, options, session):
-    """Display menu and loop until user picks the last option (logout/exit). options: list of (label, callable or None)."""
     while True:
         print(f"\n--- {title} ---")
         for i, (label, _) in enumerate(options, 1):
@@ -49,15 +73,15 @@ def _run_menu(title, options, session):
         choice = input("Choice: ").strip() # create seperate menu input functionality
         if not choice.isdigit() or int(choice) < 1 or int(choice) > len(options):
             print("Invalid option.")
-            continue
-        idx = int(choice) - 1
-        if idx == len(options) - 1: # last function is always log out or exit
-            return # Logout should be handled differently then exit tho
-        execute_option = options[idx][1]
-        if execute_option:
-            execute_option(session)
         else:
-            print("Not implemented yet.")
+            idx = int(choice) - 1
+            if idx == len(options) - 1: # last function is always log out or exit
+                return # Logout should be handled differently then exit tho
+            execute_option = options[idx][1]
+            if execute_option:
+                execute_option(session)
+            else:
+                print("Not implemented yet.")
 
 
 def superadmin_menu(session):
