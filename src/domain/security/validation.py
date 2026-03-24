@@ -26,8 +26,8 @@ def validate_username(s):
 
 
 def validate_password(s):
-    allowed_pattern = r"^[A-Za-z0-9~!@#$%&_\-+=`|\\(){}$begin:math:display$$end:math:display$:;'<>,.?/]{12,50}$"
-    special_pattern = r"[~!@#$%&_\-+=`|\\(){}\[\]:;'<>,.?/]"
+    allowed_pattern = r"^[A-Za-z0-9~!@#$%&_\-+=`|\\(){}\[\]:;'<>,.?/]{12,50}$"
+    special_pattern = r"[~!@#$%&_\-+=`|\\(){}$begin:math:display$$end:math:display$:;'<>,.?/]"
 
     if (
         _ok(s)
@@ -94,7 +94,7 @@ def validate_house_number(s):
 
 
 def validate_zip_code(s):
-    if _ok(s) and re.match(r"^\d{4}[A-Z]{2}$", s.replace(" ", "").upper()):
+    if _ok(s) and re.match(r"^\d{4}[A-Z]{2}$", s.replace(" ", "").upper()): # check if this is allowed and not a vuln.
         return True
     return False
 

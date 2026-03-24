@@ -65,12 +65,12 @@ def get_employee_data():
 def print_error(error):
     print(f"\n-----------------\nError: {error}\n-----------------\n")
 
-def _run_menu(title, options, session):
+def _run_menu(title, options, session): # check if returned exceptions are being handled correctly
     while True:
         print(f"\n--- {title} ---")
         for i, (label, _) in enumerate(options, 1):
             print(f"  {i}. {label}")
-        choice = input("Choice: ").strip() # create seperate menu input functionality
+        choice = input("Choice: ").strip() # create seperate menu input functionality !!!!!!!!!!!!!!!!!!!!!!!
         if not choice.isdigit() or int(choice) < 1 or int(choice) > len(options):
             print("Invalid option.")
         else:
