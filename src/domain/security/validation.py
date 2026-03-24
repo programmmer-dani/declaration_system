@@ -16,7 +16,7 @@ VALID_CITIES = {
 
 
 def _ok(s):
-    return isinstance(s, str) and "\x00" not in s and len(s) > 0
+    return isinstance(s, str) and re.match(r"^[ -~À-ÿ]+$", s) is not None and len(s.strip()) > 0
 
 
 def validate_username(s):
@@ -26,13 +26,16 @@ def validate_username(s):
 
 
 def validate_password(s):
+    allowed_pattern = r"^[A-Za-z0-9~!@#$%&_\-+=`|\\(){}$begin:math:display$$end:math:display$:;'<>,.?/]{12,50}$"
+    special_pattern = r"[~!@#$%&_\-+=`|\\(){}\[\]:;'<>,.?/]"
+
     if (
         _ok(s)
-        and 12 <= len(s) <= 50
+        and re.match(allowed_pattern, s)
         and re.search(r"[a-z]", s)
         and re.search(r"[A-Z]", s)
         and re.search(r"\d", s)
-        and re.search(r"[^A-Za-z0-9]", s)
+        and re.search(special_pattern, s)
     ):
         return True
     return False
@@ -103,7 +106,11 @@ def validate_city(s):
 
 
 def validate_email(s):
-    if _ok(s) and len(s) <= 254 and re.match(r"^[^\s@]+@[^\s@]+\.[^\s@]+$", s):
+    if (
+        _ok(s)
+        and len(s) <= 254
+        and re.match(r"^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$", s)
+    ):
         return True
     return False
 
@@ -177,7 +184,6 @@ def validate_restore_code(s):
 
 
 def validate_backup_filename(s):
-    if _ok(s) and re.match(r"^(?!.*\.\.)[A-Za-z0-9_.\-]+$", s):
+    if _ok(s) and re.match(r"^[A-Za-z0-9_-][A-Za-z0-9_.\-]{0,99}\.zip$", s):
         return True
     return False
-
