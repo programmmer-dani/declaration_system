@@ -7,6 +7,7 @@ from domain.security.validation import (
     validate_house_number,
     validate_id_doc_number,
     validate_id_doc_type,
+    validate_menu_choice,
     validate_mobile_phone,
     validate_name,
     validate_password,
@@ -22,7 +23,14 @@ def _go_validate(input_message, validator):
         value = input(input_message)
         if validator(value):
             return value
-        print("Invalid input, try again.")
+        print_error("Invalid input, try again.")
+        
+def _go_validate_menu_choice(input_message, validator, number_of_choices):
+    while True:
+        value = input(input_message)
+        if validator(value, number_of_choices):
+            return value
+        print_error("Invalid input, try again.")
 
 
 def get_login_input():
@@ -65,34 +73,41 @@ def get_employee_data():
 def print_error(error):
     print(f"\n-----------------\nError: {error}\n-----------------\n")
 
-def _run_menu(title, options, session): # check if returned exceptions are being handled correctly
+def _run_menu(title, options, session):
     while True:
         print(f"\n--- {title} ---")
         for i, (label, _) in enumerate(options, 1):
             print(f"  {i}. {label}")
-        choice = input("Choice: ").strip() # create seperate menu input functionality !!!!!!!!!!!!!!!!!!!!!!!
-        if not choice.isdigit() or int(choice) < 1 or int(choice) > len(options):
-            print("Invalid option.")
-        else:
-            idx = int(choice) - 1
-            if idx == len(options) - 1: # last function is always log out or exit
-                return # Logout should be handled differently then exit tho
-            execute_option = options[idx][1]
-            if execute_option:
+        choice = _go_validate_menu_choice("Choice: ", validate_menu_choice, len(options))
+        if choice is None:
+            _run_menu(choice, options, session)
+        idx = int(choice) - 1
+        if idx == len(options) - 2:  # logout
+            session = None
+            return "logout"
+        if idx == len(options) - 1:  # exit system
+            return "exit"
+        execute_option = options[idx][1]
+        if execute_option:
+            try: 
                 execute_option(session)
-            else:
-                print("Not implemented yet.")
-
+            except Exception as e:
+                print_error(e)
+                _run_menu(title, options, session)
+        else:
+            print("Not implemented yet.")
+        
 
 def superadmin_menu(session):
     if session["role"] != "admin":
         return Exception("Unauthorized access")
-    _run_menu("Super Admin", [
+    return _run_menu("Super Admin", [
         ("Create manager account", None),
         ("Generate restore code for manager", None),
         ("Restore database from backup", None),
         ("View restore code status", None),
         ("Revoke restore code", None),
+        ("Logout", None),
         ("Exit system", None),
     ], session)
 
@@ -100,7 +115,7 @@ def superadmin_menu(session):
 def manager_menu(session):
     if session["role"] != "manager":
         return Exception("Unauthorized access")
-    _run_menu("Manager", [
+    return _run_menu("Manager", [
         ("Create employee account", None),
         ("View employee list", None),
         ("View claims submitted by employees", None),
@@ -108,16 +123,18 @@ def manager_menu(session):
         ("Reject claim", None),
         ("Generate database backup", None),
         ("Logout", None),
+        ("Exit system", None),
     ], session)
 
 
 def employee_menu(session):
     if session["role"] != "employee":
         return Exception("Unauthorized access")
-    _run_menu("Employee", [
+    return _run_menu("Employee", [
         ("Submit new claim", None),
         ("View own claims", None),
         ("Edit claim", None),
         ("Delete claim", None),
         ("Logout", None),
+        ("Exit system", None),
     ], session)

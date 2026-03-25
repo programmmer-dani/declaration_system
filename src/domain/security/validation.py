@@ -19,7 +19,21 @@ def _ok(s):
     return isinstance(s, str) and re.match(r"^[ -~À-ÿ]+$", s) is not None and len(s.strip()) > 0
 
 
+def validate_menu_choice(s, number_of_choices):
+    if (
+        isinstance(number_of_choices, int)
+        and number_of_choices >= 1
+        and _ok(s)
+        and re.match(r"^\d{1,2}$", s)
+        and 1 <= int(s) <= number_of_choices
+    ):
+        return True
+    return False
+
+
 def validate_username(s):
+    if s == "super_admin":
+        return True # ASSIGNMENT REQUIREMENT HARDCODED EXCEPTION
     if _ok(s) and " " not in s and re.match(r"^[A-Za-z_][A-Za-z0-9_'.]{7,9}$", s):
         return True
     return False
@@ -28,6 +42,9 @@ def validate_username(s):
 def validate_password(s):
     allowed_pattern = r"^[A-Za-z0-9~!@#$%&_\-+=`|\\(){}\[\]:;'<>,.?/]{12,50}$"
     special_pattern = r"[~!@#$%&_\-+=`|\\(){}$begin:math:display$$end:math:display$:;'<>,.?/]"
+    
+    if s == "Admin_123?":
+        return True # ASSIGNMENT REQUIREMENT HARDCODED EXCEPTION
 
     if (
         _ok(s)
@@ -48,7 +65,7 @@ def validate_name(s):
 
 
 def validate_role(s):
-    if isinstance(s, str) and s in ("manager", "employee"):
+    if _ok(s) and s in ("manager", "employee"):
         return True
     return False
 
@@ -59,7 +76,7 @@ def _valid_calendar_ymd(s):
     try:
         datetime.strptime(s, "%Y-%m-%d")
         return True
-    except (ValueError, TypeError):
+    except Exception:
         return False
 
 

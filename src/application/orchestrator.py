@@ -16,8 +16,16 @@ def app():
         session = None
         print_error(e)
         app()
-    if menu and session: # whitelisting instead of blacklisting
-        menu(session)
-        exit()
-        
-    app()
+    while menu and session:
+        try: running = menu(session)
+        except Exception as e:
+            print_error(e)
+            session = None
+            app()
+        if running == "logout":
+            session = None
+            app()
+        if running == "exit":
+            exit()
+
+    exit()
