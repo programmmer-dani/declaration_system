@@ -1,8 +1,11 @@
-from operator import indexOf
-from turtle import back
 from domain.core_functionality import list_backups
-from domain.security.validation import validate_menu_choice
+from domain.security.validation import validate_menu_choice, validate_password, validate_username
 
+
+def get_login_input():
+    username = go_validate("Username: ", validate_username)
+    password = go_validate("Password: ", validate_password)
+    return {"username": username, "password": password}
 
 def print_error(error):
     print(f"\n-----------------\nError: {error}\n-----------------\n")
@@ -22,20 +25,19 @@ def go_validate_menu_choice(input_message, validator, number_of_choices):
         print_error("Invalid input, try again.")
         
 def view_all_backups(backup_names):
-    for name in backup_names:
-        i = indexOf(name)+1
-        print(f"{i}. name")
-        
+    for i, name in enumerate(backup_names, 1):
+        print(f"{i}. {name}")
+
+
 def select_backup():
     backups = list_backups()
+    if not backups:
+        print_error("No backups available.")
+        return None
     view_all_backups(backups)
-    
-    try: 
-        backup_name = backups[go_validate_menu_choice("Choose backup to restore: ", validate_menu_choice, backups.length())]
-    except Exception as e: 
-        print_error(e)
-        
-    if backup_name: 
-        return backup_name
-    
+    choice = go_validate_menu_choice(
+        "Choose backup to restore: ", validate_menu_choice, len(backups)
+    )
+    return backups[int(choice) - 1]
+
     

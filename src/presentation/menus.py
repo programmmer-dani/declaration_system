@@ -18,12 +18,6 @@ from domain.security.validation import (
 )
 from presentation.helpers import go_validate, go_validate_menu_choice, print_error
 
-def get_login_input():
-    username = go_validate("Username: ", validate_username)
-    password = go_validate("Password: ", validate_password)
-    return {"username": username, "password": password}
-
-
 def get_user_data():
     print("\nCreating new user...\n")
     user_data = {
@@ -70,8 +64,12 @@ def _run_menu(title, options, session):
             return "exit"
         execute_option = options[idx][1]
         if execute_option:
-            try: 
-                execute_option(session)
+            try:
+                result = execute_option(session)
+                if result == "logout":
+                    return "logout"
+                if result == "exit":
+                    return "exit"
             except Exception as e:
                 print_error(e)
                 _run_menu(title, options, session)
@@ -79,13 +77,19 @@ def _run_menu(title, options, session):
             print("Not implemented yet.")
         
 
+def _restore_database_action(session):
+    from domain.core_functionality import restore_backup
+
+    return restore_backup(session)
+
+
 def superadmin_menu(session):
     if session["role"] != "admin":
         return Exception("Unauthorized access")
     return _run_menu("Super Admin", [
         ("Create manager account", None),
         ("Generate restore code for manager", None),
-        ("Restore database from backup", None),
+        ("Restore database from backup", _restore_database_action),
         ("View restore code status", None),
         ("Revoke restore code", None),
         ("Logout", None),
