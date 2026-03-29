@@ -1,3 +1,4 @@
+import hashlib
 from datetime import UTC, datetime
 from infrastructure.database import find_user_by_username, save_user, username_exists
 from presentation.menus import employee_menu, manager_menu, superadmin_menu
@@ -52,7 +53,6 @@ def _decrypt_row(row_dict, enc_columns):
 
 def print_db_content():
     #AI generated func, outputting DB data for debugging purposes
-    import sqlite3
     from infrastructure.database import get_connection
 
     tables = [
@@ -68,7 +68,6 @@ def print_db_content():
         ]),
     ]
     with get_connection() as conn:
-        conn.row_factory = sqlite3.Row
         for table_name, enc_cols in tables:
             cur = conn.execute(f"SELECT * FROM {table_name}")
             rows = cur.fetchall()
@@ -103,7 +102,7 @@ def login(credentials):
     user = find_user_by_username(credentials["username"])
     if user is None:
         return None
-    if verify_password(credentials["password"]) == user["password"]:
+    if verify_password(credentials["password"], user["password_hash"]):
         return user
     return None
 
@@ -115,3 +114,6 @@ def verify_user_menu(session):
     elif session["role"] == "employee":
         return employee_menu
     raise Exception("Invalid role")
+
+def hash_backup_restore_code(code):
+    return hashlib.sha256(code.encode()).hexdigest()

@@ -1,4 +1,5 @@
-from domain.core_functionality import list_backups
+
+from domain.backup_logic import list_backups
 from domain.security.validation import validate_menu_choice, validate_password, validate_username
 
 
@@ -23,21 +24,10 @@ def go_validate_menu_choice(input_message, validator, number_of_choices):
         if validator(value, number_of_choices):
             return value
         print_error("Invalid input, try again.")
-        
-def view_all_backups(backup_names):
-    for i, name in enumerate(backup_names, 1):
-        print(f"{i}. {name}")
 
-
-def select_backup():
-    backups = list_backups()
-    if not backups:
-        print_error("No backups available.")
-        return None
-    view_all_backups(backups)
-    choice = go_validate_menu_choice(
-        "Choose backup to restore: ", validate_menu_choice, len(backups)
-    )
-    return backups[int(choice) - 1]
-
+def print_and_select_from_list(list):
+    for i, item in enumerate(list, 1):
+        print(f"{i}. {item}")
+    choice = go_validate_menu_choice("Choose item: ", validate_menu_choice, len(list))
+    return list[int(choice) - 1]
     

@@ -5,6 +5,22 @@ from domain.security.auth import hash_username
 from infrastructure.config import DATABASE_PATH
 
 
+def fetch_all_managers():
+    with get_connection() as conn:
+        cur = conn.execute("SELECT * FROM users WHERE role = 'manager'")
+        managers = cur.fetchall()
+        return managers
+
+
+def save_assigned_backup(manager_user_id, backup_name, restore_code_hash):
+    with get_connection() as conn:
+        cur = conn.execute(
+            """INSERT INTO restore_codes (manager_user_id, backup_filename, code_hash)
+               VALUES (?, ?, ?)""",
+            (manager_user_id, backup_name, restore_code_hash),
+        )
+        conn.commit()
+
 def save_user(registration_date, user,):
     with get_connection() as conn:
         cur = conn.execute(
@@ -53,7 +69,7 @@ def username_exists(username):
             "SELECT 1 FROM users WHERE username_lookup = ? LIMIT 1",
             (lookup,),
         )
-    return cur.fetchone() is not None
+        return cur.fetchone() is not None
 
 
 def find_user_by_username(username):
@@ -63,12 +79,13 @@ def find_user_by_username(username):
             "SELECT * FROM users WHERE username_lookup = ? AND is_active = 1",
             (lookup,),
         )
-    return cur.fetchone()
+        return cur.fetchone()
 
 def get_connection():
     # always call with: with get_connection() as conn:
     # this will close the connection after usage
     conn = sqlite3.connect(DATABASE_PATH)
+    conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
     return conn
 
@@ -140,8 +157,6 @@ def create_tables(conn: sqlite3.Connection):
             code_hash TEXT NOT NULL UNIQUE,
             is_used INTEGER NOT NULL DEFAULT 0 CHECK (is_used IN (0, 1)),
             is_revoked INTEGER NOT NULL DEFAULT 0 CHECK (is_revoked IN (0, 1)),
-            created_at TEXT NOT NULL,
-            used_at TEXT
         );
 
         CREATE INDEX IF NOT EXISTS idx_claims_employee_id ON claims(employee_id);

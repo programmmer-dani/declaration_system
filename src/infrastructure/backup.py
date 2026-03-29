@@ -7,14 +7,16 @@ from infrastructure.config import BACKUPS_DIR, DATABASE_PATH
 def create_backup():
     os.makedirs(BACKUPS_DIR, exist_ok=True)
 
-    stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    stamp = datetime.now().strftime("%Y%m%d_%H%M%S") # what if 2 backups are created simultaniously
     zip_name = f"database_backup_{stamp}.zip"
     zip_path = os.path.join(BACKUPS_DIR, zip_name)
 
     arcname = os.path.basename(DATABASE_PATH)
 
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
-        zf.write(DATABASE_PATH, arcname=arcname) # arcname is usefull but check if its really necessary
+        zf.write(DATABASE_PATH, arcname=arcname)
+        
+    return zip_path
 
 def fetch_all_backups():
     if not os.path.exists(BACKUPS_DIR):

@@ -1,3 +1,4 @@
+from domain.backup_logic import assign_backup, restore_any_backup
 from domain.security.validation import (
     validate_birthday,
     validate_bsn,
@@ -16,7 +17,7 @@ from domain.security.validation import (
     validate_username,
     validate_zip_code,
 )
-from presentation.helpers import go_validate, go_validate_menu_choice, print_error
+from presentation.helpers import call_to_create_backup, go_validate, go_validate_menu_choice, print_error
 
 def get_user_data():
     print("\nCreating new user...\n")
@@ -78,9 +79,7 @@ def _run_menu(title, options, session):
         
 
 def _restore_database_action(session):
-    from domain.core_functionality import restore_backup
-
-    return restore_backup(session)
+    return restore_any_backup(session)
 
 
 def superadmin_menu(session):
@@ -88,10 +87,11 @@ def superadmin_menu(session):
         return Exception("Unauthorized access")
     return _run_menu("Super Admin", [
         ("Create manager account", None),
-        ("Generate restore code for manager", None),
+        ("Backup system", call_to_create_backup),
+        ("Generate restore code for manager", assign_backup),
         ("Restore database from backup", _restore_database_action),
-        ("View restore code status", None),
-        ("Revoke restore code", None),
+        ("View restore code status", None), # This next
+        ("Revoke restore code", None), # This next
         ("Logout", None),
         ("Exit system", None),
     ], session)
@@ -102,11 +102,12 @@ def manager_menu(session):
         return Exception("Unauthorized access")
     return _run_menu("Manager", [
         ("Create employee account", None),
+        ("Backup system", call_to_create_backup),
+        ("Restore backup with code", None), # This next
         ("View employee list", None),
         ("View claims submitted by employees", None),
         ("Approve claim", None),
         ("Reject claim", None),
-        ("Generate database backup", None),
         ("Logout", None),
         ("Exit system", None),
     ], session)
