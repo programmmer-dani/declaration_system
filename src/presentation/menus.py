@@ -88,7 +88,7 @@ def superadmin_menu(session):
         ("Create manager account", None),
         ("Backup system", call_to_create_backup),
         ("Generate restore code for manager", assign_backup),
-        ("Restore any backup", restore_any_backup),
+        ("Restore any backup", restore_any_backup), # add visual feedback for completing task (optional)
         ("View restore code status", view_restore_code_status),
         ("Revoke restore code", revoke_restore_code),
         ("Logout", None),
@@ -102,7 +102,7 @@ def manager_menu(session):
     return _run_menu("Manager", [
         ("Create employee account", None),
         ("Backup system", call_to_create_backup),
-        ("Restore backup with code", restore_backup_with_code),
+        ("Restore backup with code", restore_backup_with_code), # untested
         ("View employee list", None),
         ("View claims submitted by employees", None),
         ("Approve claim", None),

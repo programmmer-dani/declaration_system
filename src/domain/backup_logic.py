@@ -8,7 +8,7 @@ from presentation.helpers import display_restorecode_status, input_restore_code,
 
 def restore_any_backup(session):
     backups = fetch_all_backups()
-    name = print_and_select_from_list(backups, "Choose backup to restore: ")
+    name = print_and_select_from_list(backups)
     if not name:
         return None
     overwrite_db(name)
