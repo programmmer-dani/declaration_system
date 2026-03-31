@@ -50,32 +50,33 @@ def get_employee_data():
     }
 
 def _run_menu(title, options, session):
-    while True:
-        print(f"\n--- {title} ---")
-        for i, (label, _) in enumerate(options, 1):
-            print(f"  {i}. {label}")
-        choice = go_validate_menu_choice("Choice: ", validate_menu_choice, len(options))
-        if choice is None:
-            _run_menu(choice, options, session)
-        idx = int(choice) - 1
-        if idx == len(options) - 2:  # logout
-            session = None
-            return "logout"
-        if idx == len(options) - 1:  # exit system
-            return "exit"
-        execute_option = options[idx][1]
-        if execute_option:
-            try:
-                result = execute_option(session)
-                if result == "logout":
-                    return "logout"
-                if result == "exit":
-                    return "exit"
-            except Exception as e:
-                print_error(e)
-                _run_menu(title, options, session)
-        else:
-            print("Not implemented yet.")
+    print(f"\n--- {title} ---")
+    for i, (label, _) in enumerate(options, 1):
+        print(f"  {i}. {label}")
+    choice = go_validate_menu_choice("Choice: ", validate_menu_choice, len(options))
+    if choice is None:
+        #_run_menu(choice, options, session) # Maybe switch to a print error and return avoiding weird recursion
+        print_error("Invalid choice")
+        return
+    idx = int(choice) - 1
+    if idx == len(options) - 2:  # logout
+        session = None
+        return "logout"
+    if idx == len(options) - 1:  # exit system
+        return "exit"
+    execute_option = options[idx][1]
+    if execute_option:
+        try:
+            result = execute_option(session)
+            if result == "logout":
+                return "logout"
+            if result == "exit":
+                return "exit"
+        except Exception as e:
+            print_error(e)
+            #_run_menu(title, options, session)
+    else:
+        print("Not implemented yet.")
         
 
 ### ALL MENU FUNCTIONALITIES NEED SESSION PARAMETER, FIX THIS (so that they expect this parameter)

@@ -40,7 +40,7 @@ def validate_restore_code(s):
 def validate_username(s):
     if s == "super_admin":
         return True # ASSIGNMENT REQUIREMENT HARDCODED EXCEPTION
-    if _ok(s) and " " not in s and re.match(r"^[A-Za-z_][A-Za-z0-9_'.]{7,9}$", s): # blacklisting by: adn " " not in s fix this
+    if _ok(s) and " " not in s and re.match(r"^[A-Za-z_][A-Za-z0-9_'.]{7,9}$", s): # blacklisting by: and " " not in s fix this
         return True
     return False
 
