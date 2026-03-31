@@ -1,7 +1,8 @@
 import os
 import sqlite3
 
-from domain.security.auth import hash_username
+
+from domain.security.hashing import hash_username
 from infrastructure.config import DATABASE_PATH
 
 
@@ -11,6 +12,24 @@ def fetch_all_managers():
         managers = cur.fetchall()
         return managers
 
+
+def fetch_all_restore_codes():
+    with get_connection() as conn:
+        cur = conn.execute("SELECT * FROM restore_codes")
+        restore_codes = cur.fetchall()
+        return restore_codes
+    
+def fetch_restore_code_by_manager_id(manager_id):
+    with get_connection() as conn:
+        cur = conn.execute("SELECT * FROM restore_codes WHERE manager_user_id = ?", (manager_id,))
+        restore_code = cur.fetchone()
+        return restore_code
+    
+def fetch_unrevoked_unused_restore_codes():
+    with get_connection() as conn:
+        cur = conn.execute("SELECT * FROM restore_codes WHERE is_revoked = 0 AND is_used = 0")
+        restore_codes = cur.fetchall()
+        return restore_codes
 
 def save_assigned_backup(manager_user_id, backup_name, restore_code_hash):
     with get_connection() as conn:

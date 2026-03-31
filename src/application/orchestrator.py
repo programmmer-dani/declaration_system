@@ -1,6 +1,7 @@
 from domain.security.security import login, verify_user_menu
 from infrastructure.database import init_db
-from presentation.menus import get_login_input, print_error
+from presentation.helpers import get_login_input, print_error
+
 
 def app():
     init_db()

@@ -31,10 +31,16 @@ def validate_menu_choice(s, number_of_choices):
     return False
 
 
+def validate_restore_code(s):
+    if _ok(s) and re.match(r"^[A-Za-z0-9_\-]{22}$", s):
+        return True
+    return False
+
+
 def validate_username(s):
     if s == "super_admin":
         return True # ASSIGNMENT REQUIREMENT HARDCODED EXCEPTION
-    if _ok(s) and " " not in s and re.match(r"^[A-Za-z_][A-Za-z0-9_'.]{7,9}$", s):
+    if _ok(s) and " " not in s and re.match(r"^[A-Za-z_][A-Za-z0-9_'.]{7,9}$", s): # blacklisting by: adn " " not in s fix this
         return True
     return False
 

@@ -3,6 +3,7 @@ import zipfile
 from datetime import datetime
 
 from infrastructure.config import BACKUPS_DIR, DATABASE_PATH
+from infrastructure.database import get_connection
 
 def create_backup():
     os.makedirs(BACKUPS_DIR, exist_ok=True)
@@ -23,7 +24,7 @@ def fetch_all_backups():
         return None
     return os.listdir(BACKUPS_DIR)
 
-def overwrite_db(db):
+def overwrite_db(db): # db is local file that gets overwritten by locally overwriting the db
     backup_zip_path = os.path.join(BACKUPS_DIR, db)
 
     if not os.path.exists(backup_zip_path):
@@ -37,3 +38,8 @@ def overwrite_db(db):
     if os.path.exists(DATABASE_PATH):
         os.remove(DATABASE_PATH)
     os.rename(temp_extract_path, DATABASE_PATH)
+    
+def set_restore_code_revoked(restore_code_object):
+    with get_connection() as conn:
+        cur = conn.execute("UPDATE restore_codes SET is_revoked = 1 WHERE id = ?", (restore_code_object["id"],))
+        conn.commit()

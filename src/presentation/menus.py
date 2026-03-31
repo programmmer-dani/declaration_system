@@ -1,4 +1,4 @@
-from domain.backup_logic import assign_backup, restore_any_backup
+from domain.backup_logic import assign_backup, restore_any_backup, restore_backup_with_code, revoke_restore_code, view_restore_code_status
 from domain.security.validation import (
     validate_birthday,
     validate_bsn,
@@ -78,9 +78,7 @@ def _run_menu(title, options, session):
             print("Not implemented yet.")
         
 
-def _restore_database_action(session):
-    return restore_any_backup(session)
-
+### ALL MENU FUNCTIONALITIES NEED SESSION PARAMETER, FIX THIS (so that they expect this parameter)
 
 def superadmin_menu(session):
     if session["role"] != "admin":
@@ -89,9 +87,9 @@ def superadmin_menu(session):
         ("Create manager account", None),
         ("Backup system", call_to_create_backup),
         ("Generate restore code for manager", assign_backup),
-        ("Restore database from backup", _restore_database_action),
-        ("View restore code status", None), # This next
-        ("Revoke restore code", None), # This next
+        ("Restore any backup", restore_any_backup),
+        ("View restore code status", view_restore_code_status),
+        ("Revoke restore code", revoke_restore_code),
         ("Logout", None),
         ("Exit system", None),
     ], session)
@@ -103,7 +101,7 @@ def manager_menu(session):
     return _run_menu("Manager", [
         ("Create employee account", None),
         ("Backup system", call_to_create_backup),
-        ("Restore backup with code", None), # This next
+        ("Restore backup with code", restore_backup_with_code),
         ("View employee list", None),
         ("View claims submitted by employees", None),
         ("Approve claim", None),
