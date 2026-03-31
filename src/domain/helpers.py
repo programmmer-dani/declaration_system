@@ -6,6 +6,8 @@ from domain.security.encryption import decrypt_value
 
 def select_manager():
     managers = fetch_all_managers()
+    if not managers:
+        raise Exception("No managers found")
     managers_names = [decrypt_value(manager) for manager in managers]
     manager = print_and_select_from_list(managers_names)
     index = managers_names.index(manager)
@@ -13,6 +15,8 @@ def select_manager():
 
 def select_backup():
     backups = fetch_all_backups()
+    if not backups:
+        raise Exception("No backups found")
     backup = print_and_select_from_list(backups)
     return backup
 

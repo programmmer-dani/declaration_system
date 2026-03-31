@@ -30,7 +30,7 @@ def print_and_select_from_list(list):
     choice = go_validate_menu_choice("Choose item: ", validate_menu_choice, len(list))
     return list[int(choice) - 1]
     
-def call_to_create_backup():
+def call_to_create_backup(session):
     print("Creating backup...")
     backup_path = create_backup() # presentation layer shouldn't make this call, domain logic should
     print(f"Backup created at {backup_path}")

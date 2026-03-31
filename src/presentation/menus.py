@@ -74,7 +74,7 @@ def _run_menu(title, options, session):
                 return "exit"
         except Exception as e:
             print_error(e)
-            #_run_menu(title, options, session)
+            return
     else:
         print("Not implemented yet.")
         
