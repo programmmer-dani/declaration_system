@@ -16,5 +16,5 @@ def verify_password(password, stored_hash):
 def hash_restore_code(code):
     return hashlib.sha256(code.encode()).hexdigest()
 
-def verify_restore_code(code, stored_hash):
+def verify_restore_code(code, stored_hash): # now its deterministic (brute forcing is hard since its already a random code)
     return hash_restore_code(code) == stored_hash

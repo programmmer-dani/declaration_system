@@ -1,6 +1,7 @@
-from domain.security.security import login, verify_user_menu
+from domain.security.security import login
 from infrastructure.database import init_db
 from presentation.helpers import get_login_input, print_error
+from presentation.menus import employee_menu, manager_menu, superadmin_menu
 
 
 def app():
@@ -30,3 +31,13 @@ def app():
             exit()
 
     exit()
+    
+    
+def verify_user_menu(session):
+    if session["role"] == "admin":
+        return superadmin_menu
+    elif session["role"] == "manager":
+        return manager_menu
+    elif session["role"] == "employee":
+        return employee_menu
+    raise Exception("Invalid role")

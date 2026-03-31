@@ -1,7 +1,6 @@
 import secrets
 from domain.helpers import select_backup, select_manager, select_restore_code
-from domain.security.hashing import verify_restore_code
-from domain.security.security import hash_backup_restore_code
+from domain.security.hashing import hash_restore_code, verify_restore_code
 from infrastructure.backup_infrastructure import fetch_all_backups, overwrite_db, set_restore_code_revoked
 from infrastructure.database import fetch_restore_code_by_manager_id, save_assigned_backup
 from presentation.helpers import display_restorecode_status, input_restore_code, print_and_select_from_list
@@ -30,7 +29,7 @@ def generate_backup_restore_code():
 
 def assign_backup():
     restore_code = generate_backup_restore_code()
-    restore_code_hash = hash_backup_restore_code(restore_code)
+    restore_code_hash = hash_restore_code(restore_code)
     manager = select_manager()
     backup_name = select_backup() # string of name refering to on disk file, backupfile is not in db, so handle errors correctely
     save_assigned_backup(manager["user_id"], backup_name, restore_code_hash) # check if backupname also needs filepath included

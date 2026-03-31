@@ -175,7 +175,7 @@ def create_tables(conn: sqlite3.Connection):
             backup_filename TEXT NOT NULL,
             code_hash TEXT NOT NULL UNIQUE,
             is_used INTEGER NOT NULL DEFAULT 0 CHECK (is_used IN (0, 1)),
-            is_revoked INTEGER NOT NULL DEFAULT 0 CHECK (is_revoked IN (0, 1)),
+            is_revoked INTEGER NOT NULL DEFAULT 0 CHECK (is_revoked IN (0, 1))
         );
 
         CREATE INDEX IF NOT EXISTS idx_claims_employee_id ON claims(employee_id);

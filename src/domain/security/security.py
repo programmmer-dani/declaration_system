@@ -1,4 +1,3 @@
-import hashlib
 from datetime import UTC, datetime
 from infrastructure.database import find_user_by_username, save_user, username_exists
 from presentation.menus import employee_menu, manager_menu, superadmin_menu
@@ -106,15 +105,3 @@ def login(credentials):
     if verify_password(credentials["password"], user["password_hash"]):
         return user
     return None
-
-def verify_user_menu(session):
-    if session["role"] == "admin":
-        return superadmin_menu
-    elif session["role"] == "manager":
-        return manager_menu
-    elif session["role"] == "employee":
-        return employee_menu
-    raise Exception("Invalid role")
-
-def hash_backup_restore_code(code):
-    return hashlib.sha256(code.encode()).hexdigest()
