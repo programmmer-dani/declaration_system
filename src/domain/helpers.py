@@ -5,7 +5,7 @@ from presentation.helpers import input_restore_code, print_and_select_from_list
 from domain.security.encryption import decrypt_value
 
 def select_manager():
-    managers = fetch_all_managers()
+    managers = request_managers()
     if not managers:
         raise Exception("No managers found")
     managers_names = [decrypt_value(manager) for manager in managers]
@@ -28,3 +28,6 @@ def select_restore_code():
         if verify_restore_code(inputted_restore_code, code["restore_code_hash"]):
             return matching_restorecode_object
     return None
+
+def request_managers():
+    return fetch_all_managers()
