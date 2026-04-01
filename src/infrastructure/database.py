@@ -40,6 +40,13 @@ def save_assigned_backup(manager_user_id, backup_name, restore_code_hash):
         )
         conn.commit()
 
+
+def set_restore_code_used(restore_code_id):
+    with get_connection() as conn:
+        cur = conn.execute("UPDATE restore_codes SET is_used = 1 WHERE restore_code_id = ?", (restore_code_id,))
+        conn.commit()
+
+
 def save_user(registration_date, user,):
     with get_connection() as conn:
         cur = conn.execute(

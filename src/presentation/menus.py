@@ -55,8 +55,7 @@ def _run_menu(title, options, session):
         print(f"  {i}. {label}")
     choice = go_validate_menu_choice("Choice: ", validate_menu_choice, len(options))
     if choice is None:
-        #_run_menu(choice, options, session) # Maybe switch to a print error and return avoiding weird recursion
-        print_error("Invalid choice")
+        print_error("Invalid choice") # dead code
         return
     idx = int(choice) - 1
     if idx == len(options) - 2:  # logout
@@ -87,10 +86,10 @@ def superadmin_menu(session):
     return _run_menu("Super Admin", [
         ("Create manager account", None),
         ("Backup system", call_to_create_backup),
-        ("Generate restore code for manager", assign_backup),
+        ("Generate restore code for manager", assign_backup), # NEEDS TESTING
         ("Restore any backup", restore_any_backup), # add visual feedback for completing task (optional)
-        ("View restore code status", view_restore_code_status),
-        ("Revoke restore code", revoke_restore_code),
+        ("View restore code status", view_restore_code_status), # NEEDS TESTING
+        ("Revoke restore code", revoke_restore_code), # NEEDS TESTING
         ("Logout", None),
         ("Exit system", None),
     ], session)
@@ -102,9 +101,9 @@ def manager_menu(session):
     return _run_menu("Manager", [
         ("Create employee account", None),
         ("Backup system", call_to_create_backup),
-        ("Restore backup with code", restore_backup_with_code), # untested
-        ("View employee list", None),
-        ("View claims submitted by employees", None),
+        ("Restore backup with code", restore_backup_with_code), # NEEDS TESTING
+        ("View employee list", None), # do next
+        ("View claims submitted by employees", None), # do next
         ("Approve claim", None),
         ("Reject claim", None),
         ("Logout", None),

@@ -2,8 +2,8 @@ import secrets
 from domain.helpers import select_backup, select_manager, select_restore_code
 from domain.security.hashing import hash_restore_code, verify_restore_code
 from infrastructure.backup_infrastructure import fetch_all_backups, overwrite_db, set_restore_code_revoked
-from infrastructure.database import fetch_restore_code_by_manager_id, save_assigned_backup
-from presentation.helpers import display_restorecode_status, input_restore_code, print_and_select_from_list
+from infrastructure.database import fetch_restore_code_by_manager_id, save_assigned_backup, set_restore_code_used
+from presentation.helpers import display_restorecode_status, input_restore_code, print_and_select_from_list, print_error
 
 
 def restore_any_backup(session):
@@ -20,7 +20,14 @@ def restore_backup_with_code(session):
     restore_code_objects = fetch_restore_code_by_manager_id(manager_id)
     for restore_code_object in restore_code_objects:
         if verify_restore_code(inputted_restore_code, restore_code_object["restore_code_hash"]):
-            overwrite_db(restore_code_object["backup_filename"]) # test if needs to be filename or complete path + filename
+            if restore_code_object["is_used"] == 1:
+                return Exception("Restore code already used.")
+            if restore_code_object["is_revoked"] == 1:
+                return Exception("Restore code revoked.")
+            try: overwrite_db(restore_code_object["backup_filename"]) # test if needs to be filename or complete path + filename
+            except Exception as e:
+                return Exception("Failed to restore backup.")
+            set_restore_code_used(restore_code_object["id"])
             return "logout"
     raise Exception("Invalid restore code.")
 
