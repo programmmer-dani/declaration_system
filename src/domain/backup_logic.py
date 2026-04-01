@@ -3,7 +3,7 @@ from domain.helpers import request_managers, select_backup, select_manager, sele
 from domain.security.hashing import hash_restore_code, verify_restore_code
 from infrastructure.backup_infrastructure import fetch_all_backups, overwrite_db, set_restore_code_revoked
 from infrastructure.database import fetch_restore_code_by_manager_id, save_assigned_backup, set_restore_code_used
-from presentation.helpers import display_restorecode_status, input_restore_code, print_and_select_from_list, print_error
+from presentation.helpers import display_restorecode_status, input_restore_code, print_and_select_from_list
 
 
 def restore_any_backup(session):
@@ -31,10 +31,12 @@ def restore_backup_with_code(session):
             managers = request_managers()
             for manager in managers:
                 if manager["user_id"] == restore_code_object["manager_user_id"]:
-                    if fetch_restore_code_by_manager_id(manager["user_id"]):
-                        set_restore_code_used(restore_code_object["id"])
-                        return "logout"
-            return "logout"
+                    codes = fetch_restore_code_by_manager_id(manager["user_id"])
+                    for code in codes:
+                        if code["id"] == restore_code_object["id"]:
+                            set_restore_code_used(code["id"])
+                            return "logout"
+            return Exception("Invalid restore code.")
     raise Exception("Invalid restore code.")
 
 def generate_backup_restore_code():
