@@ -118,6 +118,11 @@ def find_user_by_username(username):
             (lookup,),
         )
         return cur.fetchone()
+    
+def save_log(ts, username_enc, activity_desc_enc, is_suspicious, additional_info_enc=None):
+    with get_connection() as conn:
+        cur = conn.execute("INSERT INTO logs (created_at, username_enc, activity_desc_enc, is_suspicious, additional_info_enc) VALUES (?, ?, ?, ?, ?)", (ts, username_enc, activity_desc_enc, is_suspicious, additional_info_enc))
+        conn.commit()
 
 def get_connection():
     # always call with: with get_connection() as conn:
@@ -195,6 +200,16 @@ def create_tables(conn: sqlite3.Connection):
             code_hash TEXT NOT NULL UNIQUE,
             is_used INTEGER NOT NULL DEFAULT 0 CHECK (is_used IN (0, 1)),
             is_revoked INTEGER NOT NULL DEFAULT 0 CHECK (is_revoked IN (0, 1))
+        );
+        
+        CREATE TABLE IF NOT EXISTS logs (
+            log_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            created_at TEXT NOT NULL,
+            username_enc BLOB,
+            activity_desc_enc BLOB NOT NULL,
+            additional_info_enc BLOB,
+            is_suspicious INTEGER NOT NULL DEFAULT 0 CHECK (is_suspicious IN (0, 1)),
+            is_read INTEGER NOT NULL DEFAULT 0 CHECK (is_read IN (0, 1))
         );
 
         CREATE INDEX IF NOT EXISTS idx_claims_employee_id ON claims(employee_id);
