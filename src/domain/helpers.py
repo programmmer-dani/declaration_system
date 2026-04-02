@@ -23,8 +23,9 @@ def create_user(session):
             verify_existing_username(user_data["username"])
             secured_user_data = secure_user_data(user_data) 
             save_user(now, secured_user_data)
+            return
         except ValueError as e:
-            return e
+            raise Exception(e)
     raise Exception("Invalid role")
 
     # optionally add visual feedback
