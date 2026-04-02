@@ -12,6 +12,11 @@ def fetch_all_managers():
         managers = cur.fetchall()
         return managers
 
+def fetch_unread_logs():
+    with get_connection() as conn:
+        cur = conn.execute("SELECT * FROM logs WHERE is_read = 0")
+        logs = cur.fetchall()
+        return logs
 
 def fetch_all_employees():
     with get_connection() as conn:

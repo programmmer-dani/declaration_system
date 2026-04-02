@@ -1,7 +1,7 @@
 from domain.security.hashing import verify_restore_code
 from infrastructure.backup_infrastructure import fetch_all_backups
 from infrastructure.database import fetch_all_claims, fetch_all_employees, fetch_all_managers, fetch_all_restore_codes
-from presentation.helpers import input_restore_code, print_and_select_from_list, print_claim_list, print_employee_list, print_list
+from presentation.helpers import input_restore_code, print_and_select_from_list, print_claim_list, print_employee_list
 from domain.security.encryption import decrypt_value
 
 def select_manager():

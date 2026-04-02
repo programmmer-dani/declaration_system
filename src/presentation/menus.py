@@ -1,6 +1,7 @@
 from domain.backup_logic import assign_backup, restore_any_backup, restore_backup_with_code, revoke_restore_code, view_restore_code_status
 from domain.helpers import view_employee_list, view_employees_claims
 from domain.security.validation import validate_menu_choice
+from logging_system import uread_log_count
 from presentation.helpers import call_to_create_backup, go_validate_menu_choice, print_error
 
 def _run_menu(title, options, session):
@@ -37,7 +38,8 @@ def _run_menu(title, options, session):
 def superadmin_menu(session):
     if session["role"] != "admin":
         return Exception("Unauthorized access")
-    return _run_menu("Super Admin", [
+    unread_logs = uread_log_count()
+    return _run_menu(f"Super Admin ({unread_logs} unread logs)", [
         ("Create manager account", None),
         ("Backup system", call_to_create_backup),
         ("Generate restore code for manager", assign_backup), # NEEDS TESTING
@@ -52,7 +54,8 @@ def superadmin_menu(session):
 def manager_menu(session):
     if session["role"] != "manager":
         return Exception("Unauthorized access")
-    return _run_menu("Manager", [
+    unread_logs = uread_log_count()
+    return _run_menu(f"Manager ({unread_logs} unread logs)", [
         ("Create employee account", None),
         ("Backup system", call_to_create_backup),
         ("Restore backup with code", restore_backup_with_code), # NEEDS TESTING
