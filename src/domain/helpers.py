@@ -3,8 +3,8 @@ from datetime import datetime
 from domain.security.hashing import verify_restore_code
 from domain.security.security import secure_user_data, verify_existing_username
 from infrastructure.backup_infrastructure import fetch_all_backups
-from infrastructure.database import fetch_all_claims, fetch_all_employees, fetch_all_managers, fetch_all_restore_codes, save_user
-from presentation.helpers import get_user_data, input_restore_code, print_and_select_from_list, print_claim_list, print_employee_list
+from infrastructure.database import fetch_all_claims, fetch_all_employees, fetch_all_managers, fetch_all_restore_codes, fetch_employees_claims, save_user
+from presentation.helpers import get_user_data, input_restore_code, print_and_select_from_list, print_claim_list, print_employee_list, view_all
 from domain.security.encryption import decrypt_value
 
 
@@ -27,7 +27,6 @@ def create_user(session):
         except ValueError as e:
             raise Exception(e)
     raise Exception("Invalid role")
-
     # optionally add visual feedback
 
 def select_manager():
@@ -55,6 +54,12 @@ def select_restore_code():
             return matching_restorecode_object
     return None
 
+def request_employees_claims(session):
+    employee_id = session["user_id"]
+    claims = fetch_employees_claims(employee_id)
+    if not claims:
+        raise Exception("No claims found")
+    view_all(claims)
 
 def request_managers():
     return fetch_all_managers()

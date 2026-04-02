@@ -48,6 +48,12 @@ def fetch_unrevoked_unused_restore_codes():
         restore_codes = cur.fetchall()
         return restore_codes
 
+def fetch_employees_claims(employee_id):
+    with get_connection() as conn:
+        cur = conn.execute("SELECT * FROM claims WHERE employee_id = ?", (employee_id,))
+        claims = cur.fetchall()
+        return claims
+
 def save_assigned_backup(manager_user_id, backup_name, restore_code_hash):
     with get_connection() as conn:
         cur = conn.execute(

@@ -1,5 +1,5 @@
 from domain.backup_logic import assign_backup, restore_any_backup, restore_backup_with_code, revoke_restore_code, view_restore_code_status
-from domain.helpers import create_user, view_employee_list, view_employees_claims
+from domain.helpers import create_user, request_employees_claims, view_employee_list, view_employees_claims
 from domain.security.validation import validate_menu_choice
 from logging_system import uread_log_count
 from presentation.helpers import call_to_create_backup, go_validate_menu_choice, print_error
@@ -74,7 +74,7 @@ def employee_menu(session):
         return Exception("Unauthorized access")
     return _run_menu("Employee", [
         ("Submit new claim", None),
-        ("View own claims", None),
+        ("View own claims", request_employees_claims), # NEEDS TESTING
         ("Edit claim", None),
         ("Delete claim", None),
         ("Logout", None),

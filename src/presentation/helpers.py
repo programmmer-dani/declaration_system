@@ -9,6 +9,10 @@ def get_login_input():
 def print_error(error):
     print(f"\n-----------------\nError: {error}\n-----------------\n")
     
+def view_all(items):
+    for i, item in enumerate(items, 1):
+        print(f"{i}. {item}")
+    
 def go_validate(input_message, validator):
     while True:
         value = input(input_message)
