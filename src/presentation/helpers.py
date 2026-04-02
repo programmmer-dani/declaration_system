@@ -28,6 +28,15 @@ def print_and_select_from_list(list):
         print(f"{i}. {item}")
     choice = go_validate_menu_choice("Choose item: ", validate_menu_choice, len(list))
     return list[int(choice) - 1]
+
+def print_employee_list(employees):
+    for i, employee in employees:
+        print(f"{i}. {employee['name']}")
+        
+def print_claim_list(claims, employee_name):
+    print(f"Claims for {employee_name}:")
+    for i, claim in claims:
+        print(f"ID {claim['claim_id']} : {claim['claim_date']} - {claim['claim_amount']} - {claim['claim_status']}")
     
 def call_to_create_backup(session):
     print("Creating backup...")

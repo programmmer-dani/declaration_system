@@ -19,7 +19,11 @@ def fetch_all_employees():
         employees = cur.fetchall()
         return employees
 
-
+def fetch_all_claims(employee_id):
+    with get_connection() as conn:
+        cur = conn.execute("SELECT * FROM claims WHERE employee_id = ?", (employee_id,))
+        claims = cur.fetchall()
+        return claims
 
 def fetch_all_restore_codes():
     with get_connection() as conn:
