@@ -1,6 +1,4 @@
-from datetime import UTC, datetime
-from infrastructure.database import find_user_by_username, save_user, username_exists
-from presentation.menus import employee_menu, manager_menu, superadmin_menu
+from infrastructure.database import find_user_by_username, username_exists
 from domain.security.encryption import decrypt_value, encrypt_value
 from domain.security.hashing import hash_password, hash_username, verify_password
 
@@ -79,17 +77,6 @@ def print_db_content():
             print(f"\n=== {table_name.upper()} (decrypted) ===")
             for row in rows:
                 print(_decrypt_row(dict(row), enc_cols))
-    
-    
-def create_user(user_data):
-    now = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%S")
-    try:
-        verify_existing_username(user_data["username"])
-        secured_user_data = secure_user_data(user_data) 
-        save_user(now, secured_user_data)
-    except ValueError as e:
-        return e
-
 
 def verify_existing_username(username): 
     # Is this func really necessary?
@@ -97,6 +84,7 @@ def verify_existing_username(username):
         raise ValueError("Username already exists")
     
 def login(credentials): 
+    print_db_content() # DONT FORGET TO REMOVE
     if credentials["username"] == "super_admin" and credentials["password"] == "Admin_123?":
         return {"role":"admin"} # ASSIGNMENT REQUIREMENT HARDCODED EXCEPTION
     user = find_user_by_username(credentials["username"])

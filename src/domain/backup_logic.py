@@ -18,6 +18,8 @@ def restore_backup_with_code(session):
     inputted_restore_code = input_restore_code()
     manager_id = session["user_id"]
     restore_code_objects = fetch_restore_code_by_manager_id(manager_id)
+    if restore_code_objects is None or len(restore_code_objects) < 1:
+        raise Exception("No restore codes found.")
     for restore_code_object in restore_code_objects:
         if verify_restore_code(inputted_restore_code, restore_code_object["restore_code_hash"]):
             if restore_code_object["is_used"] == 1:

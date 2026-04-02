@@ -59,14 +59,14 @@ def display_restorecode_status(used, revoked):
     else:
         print(f"Revoked: No")
         
-def get_user_data():
+def get_user_data(role):
     print("\nCreating new user...\n")
     user_data = {
         "username": go_validate("Username: ", validate_username),
         "password": go_validate("Password: ", validate_password),
         "first_name": go_validate("First name: ", validate_name),
         "last_name": go_validate("Last name: ", validate_name),
-        "role": go_validate("Role (manager/employee): ", validate_role),
+        "role": role,
     }
     if user_data["role"] == "employee":
         employee_data = get_employee_data()

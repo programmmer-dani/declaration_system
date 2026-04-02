@@ -1,5 +1,5 @@
 from domain.backup_logic import assign_backup, restore_any_backup, restore_backup_with_code, revoke_restore_code, view_restore_code_status
-from domain.helpers import view_employee_list, view_employees_claims
+from domain.helpers import create_user, view_employee_list, view_employees_claims
 from domain.security.validation import validate_menu_choice
 from logging_system import uread_log_count
 from presentation.helpers import call_to_create_backup, go_validate_menu_choice, print_error
@@ -34,13 +34,14 @@ def _run_menu(title, options, session):
         
 
 ### ALL MENU FUNCTIONALITIES NEED SESSION PARAMETER, FIX THIS (so that they expect this parameter)
+### LOGGING FUNCTIONALITY MADE BUT NEEDS TO BE CALLED ON THE APPROPRIATE PLACES
 
 def superadmin_menu(session):
     if session["role"] != "admin":
         return Exception("Unauthorized access")
     unread_logs = uread_log_count()
-    return _run_menu(f"Super Admin ({unread_logs} unread logs)", [
-        ("Create manager account", None),
+    return _run_menu(f"Super Admin ({unread_logs} unread suspicious logs)", [
+        ("Create manager account", create_user),
         ("Backup system", call_to_create_backup),
         ("Generate restore code for manager", assign_backup), # NEEDS TESTING
         ("Restore any backup", restore_any_backup), # add visual feedback for completing task (optional)
@@ -55,8 +56,8 @@ def manager_menu(session):
     if session["role"] != "manager":
         return Exception("Unauthorized access")
     unread_logs = uread_log_count()
-    return _run_menu(f"Manager ({unread_logs} unread logs)", [
-        ("Create employee account", None),
+    return _run_menu(f"Manager ({unread_logs} unread suspicious logs)", [ # Check if count updates automatically (I think it does)
+        ("Create employee account", create_user),
         ("Backup system", call_to_create_backup),
         ("Restore backup with code", restore_backup_with_code), # NEEDS TESTING
         ("View employee list", view_employee_list), # NEEDS TESTING

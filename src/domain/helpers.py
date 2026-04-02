@@ -1,8 +1,33 @@
+import datetime
+from datetime import datetime
 from domain.security.hashing import verify_restore_code
+from domain.security.security import secure_user_data, verify_existing_username
 from infrastructure.backup_infrastructure import fetch_all_backups
-from infrastructure.database import fetch_all_claims, fetch_all_employees, fetch_all_managers, fetch_all_restore_codes
-from presentation.helpers import input_restore_code, print_and_select_from_list, print_claim_list, print_employee_list
+from infrastructure.database import fetch_all_claims, fetch_all_employees, fetch_all_managers, fetch_all_restore_codes, save_user
+from presentation.helpers import get_user_data, input_restore_code, print_and_select_from_list, print_claim_list, print_employee_list
 from domain.security.encryption import decrypt_value
+
+
+def create_user(session):
+    session_role = session["role"]
+    if session_role in ["manager", "admin"]:
+        if session_role == "admin":
+            role = "manager"
+        elif session_role == "manager":
+            role = "employee"
+        else:
+            raise Exception("Invalid role to assign to user")
+        user_data = get_user_data(role)
+        now = datetime.now().strftime("%Y%m%d_%H%M%S")
+        try:
+            verify_existing_username(user_data["username"])
+            secured_user_data = secure_user_data(user_data) 
+            save_user(now, secured_user_data)
+        except ValueError as e:
+            return e
+    raise Exception("Invalid role")
+
+    # optionally add visual feedback
 
 def select_manager():
     managers = request_managers()
