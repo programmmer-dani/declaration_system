@@ -13,6 +13,14 @@ def fetch_all_managers():
         return managers
 
 
+def fetch_all_employees():
+    with get_connection() as conn:
+        cur = conn.execute("SELECT * FROM users WHERE role = 'employee'")
+        employees = cur.fetchall()
+        return employees
+
+
+
 def fetch_all_restore_codes():
     with get_connection() as conn:
         cur = conn.execute("SELECT * FROM restore_codes")

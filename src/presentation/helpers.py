@@ -1,7 +1,6 @@
 from domain.security.validation import validate_menu_choice, validate_password, validate_restore_code, validate_username
 from infrastructure.backup_infrastructure import create_backup
 
-
 def get_login_input():
     username = go_validate("Username: ", validate_username)
     password = go_validate("Password: ", validate_password)
@@ -36,7 +35,7 @@ def call_to_create_backup(session):
     print(f"Backup created at {backup_path}")
     
     
-def  input_restore_code():
+def input_restore_code():
     restore_code = go_validate("Restore code: ", validate_restore_code)
     return restore_code
     

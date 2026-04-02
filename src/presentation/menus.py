@@ -1,4 +1,5 @@
 from domain.backup_logic import assign_backup, restore_any_backup, restore_backup_with_code, revoke_restore_code, view_restore_code_status
+from domain.helpers import view_employee_list
 from domain.security.validation import (
     validate_birthday,
     validate_bsn,
@@ -102,7 +103,7 @@ def manager_menu(session):
         ("Create employee account", None),
         ("Backup system", call_to_create_backup),
         ("Restore backup with code", restore_backup_with_code), # NEEDS TESTING
-        ("View employee list", None), # do next
+        ("View employee list", view_employee_list), # NEEDS TESTING
         ("View claims submitted by employees", None), # do next
         ("Approve claim", None),
         ("Reject claim", None),
