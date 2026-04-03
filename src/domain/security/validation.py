@@ -180,6 +180,10 @@ def validate_claim_date(s):
         return True
     return False
 
+def validate_salary_batch(s):
+    if _ok(s) and re.fullmatch(r"\d{4}-(0[1-9]|1[0-2])", s):
+        return True
+    return False
 
 def validate_claim_search_term(s):
     if _ok(s) and re.fullmatch(r"[A-Za-z0-9 .'\-]{1,50}", s) and len(s) <= 200:

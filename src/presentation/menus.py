@@ -9,6 +9,7 @@ from domain.helpers import (
     reject_claim,
     request_employees_claims,
     search_claims,
+    set_claims_salary_batch,
     update_password,
     view_employee_list,
     view_employees_claims,
@@ -70,13 +71,14 @@ def manager_menu(session):
         return Exception("Unauthorized access")
     unread_logs = uread_log_count()
     return _run_menu(f"Manager ({unread_logs} unread suspicious logs)", [ # Check if count updates automatically (I think it does)
+        ("Search claim", search_claims),
         ("Create employee account", create_user),
         ("Backup system", call_to_create_backup),
         ("Restore backup with code", restore_backup_with_code), # NEEDS TESTING
         ("View employee list", view_employee_list), # NEEDS TESTING
         ("View claims submitted by employees", view_employees_claims), # NEEDS TESTING
         ("Edit claims project/travel distance", edit_claim_as_manager), # NEEDS TESTING
-        ("Assign claim to salary-batch", None), # NEEDS TESTING
+        ("Assign claim to salary-batch", set_claims_salary_batch), # NEEDS TESTING
         ("Approve claim", approve_claim), # NEEDS TESTING
         ("Reject claim", reject_claim), # NEEDS TESTING
         ("Update my password", update_password), # NEEDS TESTING

@@ -2,7 +2,7 @@ import datetime
 from datetime import datetime
 from domain.security.hashing import hash_password, verify_restore_code
 from domain.security.security import login, secure_claim_data, secure_user_data, verify_existing_username
-from domain.security.validation import validate_password
+from domain.security.validation import validate_password, validate_salary_batch
 from infrastructure.backup_infrastructure import fetch_all_backups
 from infrastructure.database import (
     delete_claim_from_db,
@@ -10,6 +10,7 @@ from infrastructure.database import (
     fetch_all_employees,
     fetch_all_managers,
     fetch_all_restore_codes,
+    fetch_claims_without_salary_batch,
     fetch_employees_claims,
     fetch_employees_claims_with_travel,
     fetch_pending_claims,
@@ -38,7 +39,6 @@ from domain.security.encryption import decrypt_value, encrypt_value
 def _normalize_search_text(s):
     return " ".join((s or "").lower().split())
 
-
 def _claim_row_matches_partial_search(row, needle_normalized):
     parts = [
         str(row["claim_date"] or ""),
@@ -60,18 +60,35 @@ def _claim_row_matches_partial_search(row, needle_normalized):
     return needle_normalized in haystack
 
 
-def search_claims(session):
-    if session["role"] == "employee":
-        rows = fetch_employees_claims_with_travel(session["user_id"])
-        if not rows:
+def set_claims_salary_batch(session):
+    if session["role"] == "manager":
+        claims = fetch_claims_without_salary_batch() # maybe only fetch unaproved claims
+        if not claims:
             raise Exception("No claims found")
-        needle = _normalize_search_text(input_claim_search_term())
-        matched = [r for r in rows if _claim_row_matches_partial_search(r, needle)]
-        if not matched:
-            print_error("No claims match that search.")
-            return
-        print_claim_list(matched)
+        formatted_claims = format_claim_list(claims)
+        claim = print_and_select_from_list(formatted_claims, "Select claim to assign to salary-batch: ")
+        salary_batch = go_validate("Enter salary-batch (YYYY-MM): ", validate_salary_batch)
+        save_claim_edit(claim["claim_id"], "salary_batch_enc",  encrypt_value(salary_batch))
         return
+    raise Exception("Unauthorized access")
+
+def search_claims(session):
+    if session["role"] in ["employee", "manager"]:
+        if session["role"] == "employee":
+            rows = fetch_employees_claims_with_travel(session["user_id"])
+        elif session["role"] == "manager":
+            rows = fetch_all_claims()
+            if not rows:
+                raise Exception("No claims found")
+            needle = _normalize_search_text(input_claim_search_term())
+            matched = [r for r in rows if _claim_row_matches_partial_search(r, needle)]
+            if not matched:
+                print_error("No claims match that search.")
+                return
+            print_claim_list(matched)
+            return
+        else:
+            raise Exception("Invalid role")
     raise Exception("Unauthorized access")
 
 
