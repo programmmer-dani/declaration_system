@@ -6,6 +6,12 @@ from domain.security.hashing import hash_username
 from infrastructure.config import DATABASE_PATH
 
 
+def fetch_all_logs():
+    with get_connection() as conn:
+        cur = conn.execute("SELECT * FROM logs")
+        logs = cur.fetchall()
+        return logs
+
 def fetch_all_managers():
     with get_connection() as conn:
         cur = conn.execute("SELECT * FROM users WHERE role = 'manager'")

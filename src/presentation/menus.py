@@ -89,6 +89,7 @@ def manager_menu(session):
         ("Assign claim to salary-batch", set_claims_salary_batch), # NEEDS TESTING
         ("Approve claim", approve_claim), # NEEDS TESTING
         ("Reject claim", reject_claim), # NEEDS TESTING
+        ("View logs", view_logs),
         ("Update my password", update_password), # NEEDS TESTING
         ("Update my account", edit_manager_account), # NEEDS TESTING
         ("Delete my account", delete_manager_account), # NEEDS TESTING

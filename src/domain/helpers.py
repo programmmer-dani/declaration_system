@@ -9,6 +9,7 @@ from infrastructure.database import (
     delete_employee_from_db,
     fetch_all_claims,
     fetch_all_employees,
+    fetch_all_logs,
     fetch_all_managers,
     fetch_all_restore_codes,
     fetch_claims_without_salary_batch,
@@ -71,6 +72,15 @@ def _claim_row_matches_partial_search(row, needle_normalized):
     haystack = _normalize_search_text(" ".join(parts))
     return needle_normalized in haystack
 
+
+def view_logs(session):
+    if session["role"] == "manager":
+        logs = fetch_all_logs()
+        if not logs:
+            raise Exception("No logs found")
+        # print_log_list(logs) logging needs further implementation to display logs in a readable format
+        return
+    raise Exception("Unauthorized access")
 
 def edit_employee_account(session):
     if session["role"] == "manager":
