@@ -61,6 +61,25 @@ def fetch_employees_claims(user_id):
         return claims
 
 
+def fetch_employees_claims_with_travel(user_id):
+    with get_connection() as conn:
+        cur = conn.execute(
+            """
+            SELECT c.*,
+                   tc.travel_distance_enc,
+                   tc.from_zip_enc,
+                   tc.from_house_number_enc,
+                   tc.to_zip_enc,
+                   tc.to_house_number_enc
+            FROM claims c
+            LEFT JOIN travel_claims tc ON tc.claim_id = c.claim_id
+            WHERE c.user_id = ?
+            """,
+            (user_id,),
+        )
+        return cur.fetchall()
+
+
 def save_approved_claim(claim_id, approved_by_user_id):
     with get_connection() as conn:
         cur = conn.execute("UPDATE claims SET status = 'Approved', approved_by_user_id = ? WHERE claim_id = ?", (approved_by_user_id, claim_id))

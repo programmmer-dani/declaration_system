@@ -11,6 +11,7 @@ from infrastructure.database import (
     fetch_all_managers,
     fetch_all_restore_codes,
     fetch_employees_claims,
+    fetch_employees_claims_with_travel,
     fetch_pending_claims,
     save_approved_claim,
     save_claim,
@@ -19,8 +20,59 @@ from infrastructure.database import (
     save_rejected_claim,
     save_user,
 )
-from presentation.helpers import get_claim_data, get_login_input, get_user_data, go_validate, input_restore_code, print_and_select_from_list, print_claim_list, print_employee_list, print_error, view_all
+from presentation.helpers import (
+    get_claim_data,
+    get_login_input,
+    get_user_data,
+    go_validate,
+    input_claim_search_term,
+    input_restore_code,
+    print_and_select_from_list,
+    print_claim_list,
+    print_employee_list,
+    print_error,
+)
 from domain.security.encryption import decrypt_value, encrypt_value
+
+
+def _normalize_search_text(s):
+    return " ".join((s or "").lower().split())
+
+
+def _claim_row_matches_partial_search(row, needle_normalized):
+    parts = [
+        str(row["claim_date"] or ""),
+        str(row["claim_type"] or ""),
+        str(row["status"] or ""),
+        decrypt_value(row["project_number_enc"]),
+    ]
+    if row["claim_type"] == "Travel":
+        for key in (
+            "travel_distance_enc",
+            "from_zip_enc",
+            "from_house_number_enc",
+            "to_zip_enc",
+            "to_house_number_enc",
+        ):
+            blob = row[key]
+            parts.append(decrypt_value(blob) if blob is not None else "")
+    haystack = _normalize_search_text(" ".join(parts))
+    return needle_normalized in haystack
+
+
+def search_claims(session):
+    if session["role"] == "employee":
+        rows = fetch_employees_claims_with_travel(session["user_id"])
+        if not rows:
+            raise Exception("No claims found")
+        needle = _normalize_search_text(input_claim_search_term())
+        matched = [r for r in rows if _claim_row_matches_partial_search(r, needle)]
+        if not matched:
+            print_error("No claims match that search.")
+            return
+        print_claim_list(matched)
+        return
+    raise Exception("Unauthorized access")
 
 
 def update_password(session):
@@ -208,7 +260,7 @@ def request_employees_claims(session):
         claims = fetch_employees_claims(session["user_id"])
         if not claims:
             raise Exception("No claims found")
-        view_all(claims)
+        print_claim_list(claims)
         return
     raise Exception("Unauthorized access")
 

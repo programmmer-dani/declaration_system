@@ -2,6 +2,7 @@ from domain.security.validation import validate_birthday, validate_bsn, validate
 from infrastructure.backup_infrastructure import create_backup
 from domain.security.validation import (
     validate_claim_date,
+    validate_claim_search_term,
     validate_claim_type,
     validate_project_number,
     validate_travel_distance,
@@ -17,10 +18,7 @@ def get_login_input():
 
 def print_error(error):
     print(f"\n-----------------\nError: {error}\n-----------------\n")
-    
-def view_all(items):
-    for i, item in enumerate(items, 1):
-        print(f"{i}. {item}")
+
     
 def go_validate(input_message, validator):
     while True:
@@ -46,8 +44,8 @@ def print_employee_list(employees):
     for i, employee in employees:
         print(f"{i}. {employee['name']}")
         
-def print_claim_list(claims, employee_name): # is this the correct data to display
-    print(f"Claims for {employee_name}:")
+def print_claim_list(claims): # is this the correct data to display
+    print("Your claims: ")
     for claim in claims:
         print(
             f"ID {claim['claim_id']} : {claim['claim_date']} — "
@@ -64,6 +62,13 @@ def call_to_create_backup(session):
     
     
     
+def input_claim_search_term():
+    return go_validate(
+        "Search claim: ",
+        validate_claim_search_term,
+    )
+
+
 def input_restore_code():
     restore_code = go_validate("Restore code: ", validate_restore_code)
     return restore_code

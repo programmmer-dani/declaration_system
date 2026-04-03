@@ -18,7 +18,6 @@ VALID_CITIES = {
 def _ok(s):
     return isinstance(s, str) and re.match(r"^[ -~À-ÿ]+$", s) is not None and len(s.strip()) > 0
 
-
 def validate_menu_choice(s, number_of_choices):
     if (
         isinstance(number_of_choices, int)
@@ -178,6 +177,12 @@ def validate_claim_date(s):
         and _valid_calendar_ymd(s)
         and low <= s <= high
     ):
+        return True
+    return False
+
+
+def validate_claim_search_term(s):
+    if _ok(s) and re.fullmatch(r"[A-Za-z0-9 .'\-]{1,50}", s) and len(s) <= 200:
         return True
     return False
 
