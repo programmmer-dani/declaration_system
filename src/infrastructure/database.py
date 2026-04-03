@@ -121,6 +121,16 @@ def save_claim_edit(claim_id, key_to_update, updated_value):
         cur = conn.execute(f"UPDATE claims SET ? = ? WHERE claim_id = ?", (key_to_update, updated_value, claim_id))
         conn.commit()
         
+def save_employee_edit(employee_id, key_to_update, updated_value):
+    with get_connection() as conn:
+        cur = conn.execute(f"UPDATE employees SET ? = ? WHERE user_id = ?", (key_to_update, updated_value, employee_id))
+        conn.commit()
+
+def delete_employee_from_db(employee_id):
+    with get_connection() as conn:
+        cur = conn.execute("DELETE FROM employees WHERE user_id = ?", (employee_id,))
+        conn.commit()
+
 def delete_claim_from_db(claim_id):
     with get_connection() as conn:
         cur = conn.execute("DELETE FROM claims WHERE claim_id = ?", (claim_id,))

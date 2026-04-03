@@ -6,6 +6,7 @@ from domain.security.validation import validate_password, validate_salary_batch
 from infrastructure.backup_infrastructure import fetch_all_backups
 from infrastructure.database import (
     delete_claim_from_db,
+    delete_employee_from_db,
     fetch_all_claims,
     fetch_all_employees,
     fetch_all_managers,
@@ -17,6 +18,7 @@ from infrastructure.database import (
     save_approved_claim,
     save_claim,
     save_claim_edit,
+    save_employee_edit,
     save_new_password,
     save_rejected_claim,
     save_user,
@@ -69,6 +71,24 @@ def _claim_row_matches_partial_search(row, needle_normalized):
     haystack = _normalize_search_text(" ".join(parts))
     return needle_normalized in haystack
 
+
+def edit_employee_account(session):
+    if session["role"] == "manager":
+        employees = fetch_all_employees()
+        if not employees:
+            raise Exception("No employees found")
+        formatted_employees = format_employee_list(employees)
+        employee = print_and_select_from_list(formatted_employees, "Select employee to edit: ")
+        employee_id = employee["user_id"]
+        keys = ["first_name", "last_name", "email", "mobile_phone", "birthday", "bsn", "street_name", "house_number", "zip_code", "city"]
+        key_to_update = print_and_select_from_list(keys, "Select key to update: ")
+        updated_value = go_validate(f"Enter new value for {key_to_update}: ", find_validator(key_to_update))
+        if is_key_value_encrypted(key_to_update):
+            updated_value = encrypt_value(updated_value)
+            key_to_update = key_to_update + "_enc"
+        save_employee_edit(employee_id, key_to_update, updated_value)
+        return
+    raise Exception("Unauthorized access")
 
 def set_claims_salary_batch(session):
     if session["role"] == "manager":
@@ -124,6 +144,18 @@ def update_password(session):
             return "logout"
         password = go_validate("Enter new password: ", validate_password)
         save_new_password(session["user_id"], hash_password(password))
+        return
+    raise Exception("Unauthorized access")
+
+def delete_employee_account(session):
+    if session["role"] == "manager":
+        employees = fetch_all_employees()
+        if not employees:
+            raise Exception("No employees found")
+        formatted_employees = format_employee_list(employees)
+        employee = print_and_select_from_list(formatted_employees, "Select employee to delete: ")
+        employee_id = employee["user_id"]
+        delete_employee_from_db(employee_id)
         return
     raise Exception("Unauthorized access")
 
@@ -204,7 +236,7 @@ def find_validator(key_to_update):
     return validators[key_to_update]
     
 def is_key_value_encrypted(key_to_update):
-    if key_to_update in ["travel_distance", "from_zip_code", "to_zip_code"]:
+    if key_to_update in ["travel_distance", "from_zip_code", "to_zip_code", "first_name", "last_name", "email", "mobile_phone", "birthday", "bsn", "street_name", "house_number", "zip_code", "city"]:
         return True
     else:
         return False

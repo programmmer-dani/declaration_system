@@ -4,8 +4,10 @@ from domain.helpers import (
     create_claim,
     create_user,
     delete_claim,
+    delete_employee_account,
     edit_claim,
     edit_claim_as_manager,
+    edit_employee_account,
     reject_claim,
     request_employees_claims,
     search_claims,
@@ -75,6 +77,8 @@ def manager_menu(session):
         ("Search claim", search_claims),
         ("Search employee", search_employees),
         ("Create employee account", create_user),
+        ("Edit employee account", edit_employee_account),
+        ("Delete employee account", delete_employee_account),
         ("Backup system", call_to_create_backup),
         ("Restore backup with code", restore_backup_with_code), # NEEDS TESTING
         ("View employee list", view_employee_list), # NEEDS TESTING
