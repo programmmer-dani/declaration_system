@@ -1,7 +1,8 @@
 import datetime
 from datetime import datetime
-from domain.security.hashing import verify_restore_code
-from domain.security.security import secure_claim_data, secure_user_data, verify_existing_username
+from domain.security.hashing import hash_password, verify_restore_code
+from domain.security.security import login, secure_claim_data, secure_user_data, verify_existing_username
+from domain.security.validation import validate_password
 from infrastructure.backup_infrastructure import fetch_all_backups
 from infrastructure.database import (
     delete_claim_from_db,
@@ -14,12 +15,24 @@ from infrastructure.database import (
     save_approved_claim,
     save_claim,
     save_claim_edit,
+    save_new_password,
     save_rejected_claim,
     save_user,
 )
-from presentation.helpers import get_claim_data, get_user_data, go_validate, input_restore_code, print_and_select_from_list, print_claim_list, print_employee_list, view_all
+from presentation.helpers import get_claim_data, get_login_input, get_user_data, go_validate, input_restore_code, print_and_select_from_list, print_claim_list, print_employee_list, print_error, view_all
 from domain.security.encryption import decrypt_value, encrypt_value
 
+
+def update_password(session):
+    if session["role"] in ["employee", "manager"]:
+        valid_user = login(get_login_input())
+        if valid_user is None:
+            print_error("Authentication failed, user logged out")
+            return "logout"
+        password = go_validate("Enter new password: ", validate_password)
+        save_new_password(session["user_id"], hash_password(password))
+        return
+    raise Exception("Unauthorized access")
 
 def delete_claim(session):
     if session["role"] == "employee":

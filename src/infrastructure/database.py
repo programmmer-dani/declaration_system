@@ -80,6 +80,10 @@ def save_assigned_backup(manager_user_id, backup_name, restore_code_hash):
         )
         conn.commit()
 
+def save_new_password(user_id, hashed_password):
+    with get_connection() as conn:
+        cur = conn.execute("UPDATE users SET password_hash = ? WHERE user_id = ?", (hashed_password, user_id))
+        conn.commit()
 
 def set_restore_code_used(restore_code_id):
     with get_connection() as conn:

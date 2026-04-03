@@ -1,5 +1,5 @@
 from domain.backup_logic import assign_backup, restore_any_backup, restore_backup_with_code, revoke_restore_code, view_restore_code_status
-from domain.helpers import approve_claim, create_claim, create_user, delete_claim, edit_claim, reject_claim, request_employees_claims, view_employee_list, view_employees_claims
+from domain.helpers import approve_claim, create_claim, create_user, delete_claim, edit_claim, reject_claim, request_employees_claims, update_password, view_employee_list, view_employees_claims
 from domain.security.validation import validate_menu_choice
 from logging_system import uread_log_count
 from presentation.helpers import call_to_create_backup, go_validate_menu_choice, print_error
@@ -64,6 +64,7 @@ def manager_menu(session):
         ("View claims submitted by employees", view_employees_claims), # NEEDS TESTING current output: <sqlite3.Row object at 0x1045cc910>
         ("Approve claim", approve_claim), # NEEDS TESTING
         ("Reject claim", reject_claim), # NEEDS TESTING
+        ("Update my password", update_password),
         ("Logout", None),
         ("Exit system", None),
     ], session)
@@ -77,6 +78,7 @@ def employee_menu(session):
         ("View own claims", request_employees_claims), # NEEDS TESTING
         ("Edit my claim", edit_claim),
         ("Delete my claim", delete_claim),
+        ("Update my password", update_password),
         ("Logout", None),
         ("Exit system", None),
     ], session)
