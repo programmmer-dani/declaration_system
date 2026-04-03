@@ -4,6 +4,7 @@ from domain.security.hashing import verify_restore_code
 from domain.security.security import secure_claim_data, secure_user_data, verify_existing_username
 from infrastructure.backup_infrastructure import fetch_all_backups
 from infrastructure.database import (
+    delete_claim_from_db,
     fetch_all_claims,
     fetch_all_employees,
     fetch_all_managers,
@@ -19,6 +20,15 @@ from infrastructure.database import (
 from presentation.helpers import get_claim_data, get_user_data, go_validate, input_restore_code, print_and_select_from_list, print_claim_list, print_employee_list, view_all
 from domain.security.encryption import decrypt_value, encrypt_value
 
+
+def delete_claim(session):
+    claims = fetch_employees_claims(session["user_id"])
+    if not claims:
+        raise Exception("No claims found")
+    formatted_claims = format_claim_list(claims)
+    claim = print_and_select_from_list(formatted_claims, "Select claim to delete: ")
+    claim_id = claim["claim_id"]
+    delete_claim_from_db(claim_id)
 
 def edit_claim(session): # EXTENSIVELY TEST THIS FUNCTION
     claims = fetch_employees_claims(session["user_id"])

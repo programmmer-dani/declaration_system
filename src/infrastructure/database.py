@@ -91,6 +91,11 @@ def save_claim_edit(claim_id, key_to_update, updated_value):
     with get_connection() as conn:
         cur = conn.execute(f"UPDATE claims SET ? = ? WHERE claim_id = ?", (key_to_update, updated_value, claim_id))
         conn.commit()
+        
+def delete_claim_from_db(claim_id):
+    with get_connection() as conn:
+        cur = conn.execute("DELETE FROM claims WHERE claim_id = ?", (claim_id,))
+        conn.commit()
 
 def save_claim(claim):
     with get_connection() as conn:

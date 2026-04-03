@@ -76,7 +76,7 @@ def employee_menu(session):
         ("Submit new claim", create_claim),
         ("View own claims", request_employees_claims), # NEEDS TESTING
         ("Edit my claim", edit_claim),
-        ("Delete my claim", None),
+        ("Delete my claim", delete_claim),
         ("Logout", None),
         ("Exit system", None),
     ], session)
