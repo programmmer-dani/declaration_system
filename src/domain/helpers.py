@@ -147,6 +147,23 @@ def update_password(session):
         return
     raise Exception("Unauthorized access")
 
+def edit_manager_account(session):
+    if session["role"] == "manager":
+        keys = ["first_name", "last_name"]
+        key_to_update = print_and_select_from_list(keys, "Select key to update: ")
+        updated_value = go_validate(f"Enter new value for {key_to_update}: ", find_validator(key_to_update))
+        updated_value = encrypt_value(updated_value)
+        key_to_update = key_to_update + "_enc"
+        save_employee_edit(session["user_id"], key_to_update, updated_value)
+        return
+    raise Exception("Unauthorized access")
+
+def delete_manager_account(session):
+    if session["role"] == "manager":
+        delete_employee_from_db(session["user_id"])
+        return "logout"
+    raise Exception("Unauthorized access")
+
 def delete_employee_account(session):
     if session["role"] == "manager":
         employees = fetch_all_employees()
@@ -216,6 +233,7 @@ def find_validator(key_to_update):
         validate_travel_distance,
         validate_zip_code,
         validate_house_number,
+        validate_name,
     )
 
     validators = {
@@ -229,6 +247,8 @@ def find_validator(key_to_update):
         "to_house_number": validate_house_number,
         "project_number": validate_project_number,
         "travel_distance": validate_travel_distance,
+        "first_name": validate_name,
+        "last_name": validate_name,
     }
 
     if key_to_update not in validators:

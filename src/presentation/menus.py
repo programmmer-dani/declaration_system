@@ -5,9 +5,11 @@ from domain.helpers import (
     create_user,
     delete_claim,
     delete_employee_account,
+    delete_manager_account,
     edit_claim,
     edit_claim_as_manager,
     edit_employee_account,
+    edit_manager_account,
     reject_claim,
     request_employees_claims,
     search_claims,
@@ -88,6 +90,8 @@ def manager_menu(session):
         ("Approve claim", approve_claim), # NEEDS TESTING
         ("Reject claim", reject_claim), # NEEDS TESTING
         ("Update my password", update_password), # NEEDS TESTING
+        ("Update my account", edit_manager_account), # NEEDS TESTING
+        ("Delete my account", delete_manager_account), # NEEDS TESTING
         ("Logout", None),
         ("Exit system", None),
     ], session)
