@@ -1,5 +1,5 @@
 from domain.backup_logic import assign_backup, restore_any_backup, restore_backup_with_code, revoke_restore_code, view_restore_code_status
-from domain.helpers import approve_claim, create_claim, create_user, edit_claim, reject_claim, request_employees_claims, view_employee_list, view_employees_claims
+from domain.helpers import approve_claim, create_claim, create_user, delete_claim, edit_claim, reject_claim, request_employees_claims, view_employee_list, view_employees_claims
 from domain.security.validation import validate_menu_choice
 from logging_system import uread_log_count
 from presentation.helpers import call_to_create_backup, go_validate_menu_choice, print_error
@@ -80,3 +80,8 @@ def employee_menu(session):
         ("Logout", None),
         ("Exit system", None),
     ], session)
+    
+    
+# NEXT STEPS:
+# - IMPLEMENT COMPLETE LOGGING WHERE NEEDED (functionality already made)
+# - TEST ALL FUNCTIONALITY EXTENSIVELY

@@ -22,30 +22,35 @@ from domain.security.encryption import decrypt_value, encrypt_value
 
 
 def delete_claim(session):
-    claims = fetch_employees_claims(session["user_id"])
-    if not claims:
-        raise Exception("No claims found")
-    formatted_claims = format_claim_list(claims)
-    claim = print_and_select_from_list(formatted_claims, "Select claim to delete: ")
-    claim_id = claim["claim_id"]
-    delete_claim_from_db(claim_id)
+    if session["role"] == "employee":
+        claims = fetch_employees_claims(session["user_id"])
+        if not claims:
+            raise Exception("No claims found")
+        formatted_claims = format_claim_list(claims)
+        claim = print_and_select_from_list(formatted_claims, "Select claim to delete: ")
+        claim_id = claim["claim_id"]
+        delete_claim_from_db(claim_id)
+        return
+    raise Exception("Unauthorized access")
 
 def edit_claim(session): # EXTENSIVELY TEST THIS FUNCTION
-    claims = fetch_employees_claims(session["user_id"])
-    if not claims:
-        raise Exception("No claims found")
+    if session["role"] == "employee":
+        claims = fetch_employees_claims(session["user_id"])
+        if not claims:
+            raise Exception("No claims found")
 
-    formatted_claims = format_claim_list(claims)
-    claim = print_and_select_from_list(formatted_claims, "Select claim to edit: ")
-    claim_id = claim["claim_id"]
-    keys = get_keys_to_update(claim["claim_type"])
-    key_to_update = print_and_select_from_list(keys, "Select key to update: ")
-    updated_value = go_validate(f"Enter new value for {key_to_update}: ", find_validator(key_to_update))
-    if is_key_value_encrypted(key_to_update):
-        updated_value = encrypt_value(updated_value)
-        key_to_update = key_to_update + "_enc"
-    save_claim_edit(claim_id, key_to_update, updated_value)
-
+        formatted_claims = format_claim_list(claims)
+        claim = print_and_select_from_list(formatted_claims, "Select claim to edit: ")
+        claim_id = claim["claim_id"]
+        keys = get_keys_to_update(claim["claim_type"])
+        key_to_update = print_and_select_from_list(keys, "Select key to update: ")
+        updated_value = go_validate(f"Enter new value for {key_to_update}: ", find_validator(key_to_update))
+        if is_key_value_encrypted(key_to_update):
+            updated_value = encrypt_value(updated_value)
+            key_to_update = key_to_update + "_enc"
+        save_claim_edit(claim_id, key_to_update, updated_value)
+        return
+    raise Exception("Unauthorized access")
     
 def find_validator(key_to_update):
     from domain.security.validation import (
@@ -99,20 +104,26 @@ def get_keys_to_update(claim_type):
         ]
 
 def approve_claim(session):
-    claims = fetch_pending_claims()
-    if not claims:
-        raise Exception("No claims found")
-    formatted_claims = format_claim_list(claims)
-    claim = print_and_select_from_list(formatted_claims, "Select claim to approve: ")
-    save_approved_claim(claim["claim_id"], session["user_id"])
+    if session["role"] == "manager":
+        claims = fetch_pending_claims()
+        if not claims:
+            raise Exception("No claims found")
+        formatted_claims = format_claim_list(claims)
+        claim = print_and_select_from_list(formatted_claims, "Select claim to approve: ")
+        save_approved_claim(claim["claim_id"], session["user_id"])
+        return
+    raise Exception("Unauthorized access")
     
 def reject_claim(session):
-    claims = fetch_pending_claims()
-    if not claims:
-        raise Exception("No claims found")
-    formatted_claims = format_claim_list(claims)
-    claim = print_and_select_from_list(formatted_claims, "Select claim to reject: ")
-    save_rejected_claim(claim["claim_id"], session["user_id"])
+    if session["role"] == "manager":
+        claims = fetch_pending_claims()
+        if not claims:
+            raise Exception("No claims found")
+        formatted_claims = format_claim_list(claims)
+        claim = print_and_select_from_list(formatted_claims, "Select claim to reject: ")
+        save_rejected_claim(claim["claim_id"], session["user_id"])
+        return
+    raise Exception("Unauthorized access")
     
 def format_claim_list(claims): # is this the correct data to display
     return [
@@ -126,10 +137,12 @@ def format_claim_list(claims): # is this the correct data to display
     ]
 
 def create_claim(session):
-    claim_data = get_claim_data()
-    
-    secured_claim_data = secure_claim_data(session, claim_data)
-    save_claim(secured_claim_data)
+    if session["role"] == "employee":
+        claim_data = get_claim_data()
+        secured_claim_data = secure_claim_data(session, claim_data)
+        save_claim(secured_claim_data)
+        return
+    raise Exception("Unauthorized access")
 
 def create_user(session):
     session_role = session["role"]
@@ -178,10 +191,13 @@ def select_restore_code():
     return None
 
 def request_employees_claims(session):
-    claims = fetch_employees_claims(session["user_id"])
-    if not claims:
-        raise Exception("No claims found")
-    view_all(claims)
+    if session["role"] == "employee":
+        claims = fetch_employees_claims(session["user_id"])
+        if not claims:
+            raise Exception("No claims found")
+        view_all(claims)
+        return
+    raise Exception("Unauthorized access")
 
 def request_managers():
     return fetch_all_managers()
@@ -196,24 +212,29 @@ def format_employee_list(employees):
     return [{"name": f"{decrypt_value(employee['username_enc'])} : {decrypt_value(employee['first_name_enc'])} {decrypt_value(employee['last_name_enc'])}"} for employee in employees]
 
 def view_employee_list(session):
-    employees = request_employees()
-    if not employees:
-        raise Exception("No employees found")
-    employees_list = format_employee_list(employees)    
-    print_employee_list(employees_list)
+    if session["role"] == "manager":
+        employees = request_employees()
+        if not employees:
+            raise Exception("No employees found")
+        employees_list = format_employee_list(employees)    
+        print_employee_list(employees_list)
+        return
+    raise Exception("Unauthorized access")
 
 def view_employees_claims(session):
-    employees = request_employees()
-    
-    if not employees:
-        raise Exception("No employees found")
-    
-    formatted_employees = format_employee_list(employees)
-    employee = print_and_select_from_list(formatted_employees)
-    index = formatted_employees.index(employee)
-    claims = request_claims(employees[index]["user_id"])
-    
-    if not claims:
-        raise Exception("No claims found")
-    
-    return print_claim_list(claims, employee["name"])
+    if session["role"] == "manager":
+        employees = request_employees()
+        
+        if not employees:
+            raise Exception("No employees found")
+        
+        formatted_employees = format_employee_list(employees)
+        employee = print_and_select_from_list(formatted_employees)
+        index = formatted_employees.index(employee)
+        claims = request_claims(employees[index]["user_id"])
+        
+        if not claims:
+            raise Exception("No claims found")
+        
+        return print_claim_list(claims, employee["name"])
+    raise Exception("Unauthorized access")

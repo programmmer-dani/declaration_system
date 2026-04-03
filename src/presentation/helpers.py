@@ -55,9 +55,13 @@ def print_claim_list(claims, employee_name): # is this the correct data to displ
         )
     
 def call_to_create_backup(session):
-    print("Creating backup...")
-    backup_path = create_backup() # presentation layer shouldn't make this call, domain logic should
-    print(f"Backup created at {backup_path}")
+    if session["role"] in ["admin", "manager"]:
+        print("Creating backup...")
+        backup_path = create_backup() # presentation layer shouldn't make this call, domain logic should
+        print(f"Backup created at {backup_path}")
+        return
+    raise Exception("Unauthorized access")
+    
     
     
 def input_restore_code():
