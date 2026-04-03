@@ -24,7 +24,7 @@ def fetch_all_employees():
         employees = cur.fetchall()
         return employees
 
-def fetch_all_claims(user_id):
+def fetch_all_claims(user_id): # bad naming
     with get_connection() as conn:
         cur = conn.execute("SELECT * FROM claims WHERE user_id = ?", (user_id,))
         claims = cur.fetchall()
@@ -48,11 +48,28 @@ def fetch_unrevoked_unused_restore_codes():
         restore_codes = cur.fetchall()
         return restore_codes
 
+def fetch_pending_claims():
+    with get_connection() as conn:
+        cur = conn.execute("SELECT * FROM claims WHERE status = 'Pending'")
+        claims = cur.fetchall()
+        return claims
+
 def fetch_employees_claims(user_id):
     with get_connection() as conn:
         cur = conn.execute("SELECT * FROM claims WHERE user_id = ?", (user_id,))
         claims = cur.fetchall()
         return claims
+
+
+def save_approved_claim(claim_id):
+    with get_connection() as conn:
+        cur = conn.execute("UPDATE claims SET status = 'Approved' WHERE claim_id = ?", (claim_id,))
+        conn.commit()
+
+def save_rejected_claim(claim_id):
+    with get_connection() as conn:
+        cur = conn.execute("UPDATE claims SET status = 'Rejected' WHERE claim_id = ?", (claim_id,))
+        conn.commit()
 
 def save_assigned_backup(manager_user_id, backup_name, restore_code_hash):
     with get_connection() as conn:

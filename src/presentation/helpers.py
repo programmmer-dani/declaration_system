@@ -36,10 +36,10 @@ def go_validate_menu_choice(input_message, validator, number_of_choices):
             return value
         print_error("Invalid input, try again.")
 
-def print_and_select_from_list(list):
+def print_and_select_from_list(list, message="Choose item: "):
     for i, item in enumerate(list, 1):
         print(f"{i}. {item}")
-    choice = go_validate_menu_choice("Choose item: ", validate_menu_choice, len(list))
+    choice = go_validate_menu_choice(message, validate_menu_choice, len(list))
     return list[int(choice) - 1]
 
 def print_employee_list(employees):

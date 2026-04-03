@@ -9,12 +9,34 @@ from infrastructure.database import (
     fetch_all_managers,
     fetch_all_restore_codes,
     fetch_employees_claims,
+    fetch_pending_claims,
+    save_approved_claim,
     save_claim,
+    save_rejected_claim,
     save_user,
 )
 from presentation.helpers import get_claim_data, get_user_data, input_restore_code, print_and_select_from_list, print_claim_list, print_employee_list, view_all
 from domain.security.encryption import decrypt_value
 
+
+def approve_claim(session):
+    claims = fetch_pending_claims()
+    if not claims:
+        raise Exception("No claims found")
+    formatted_claims = format_claim_list(claims)
+    claim = print_and_select_from_list(formatted_claims, "Select claim to approve: ")
+    save_approved_claim(claim["claim_id"])
+    
+def reject_claim(session):
+    claims = fetch_pending_claims()
+    if not claims:
+        raise Exception("No claims found")
+    formatted_claims = format_claim_list(claims)
+    claim = print_and_select_from_list(formatted_claims, "Select claim to reject: ")
+    save_rejected_claim(claim["claim_id"])
+    
+def format_claim_list(claims):
+    return [{"claim_id": claim["claim_id"], "claim_date": claim["claim_date"], "claim_amount": claim["claim_amount"], "claim_type": claim["claim_type"], "claim_status": claim["claim_status"]} for claim in claims]
 
 def create_claim(session):
     claim_data = get_claim_data()
