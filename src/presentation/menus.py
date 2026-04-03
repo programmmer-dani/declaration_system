@@ -9,6 +9,7 @@ from domain.helpers import (
     reject_claim,
     request_employees_claims,
     search_claims,
+    search_employees,
     set_claims_salary_batch,
     update_password,
     view_employee_list,
@@ -72,6 +73,7 @@ def manager_menu(session):
     unread_logs = uread_log_count()
     return _run_menu(f"Manager ({unread_logs} unread suspicious logs)", [ # Check if count updates automatically (I think it does)
         ("Search claim", search_claims),
+        ("Search employee", search_employees),
         ("Create employee account", create_user),
         ("Backup system", call_to_create_backup),
         ("Restore backup with code", restore_backup_with_code), # NEEDS TESTING
