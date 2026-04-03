@@ -115,3 +115,5 @@ This project explicitly implements and demonstrates the following topics:
 This README is temporary and will be updated as development progresses.
 
 The system is currently under development.
+
+Note to developers: delete whole data folder in order to have a clean system

@@ -1,12 +1,26 @@
 import datetime
 from datetime import datetime
 from domain.security.hashing import verify_restore_code
-from domain.security.security import secure_user_data, verify_existing_username
+from domain.security.security import secure_claim_data, secure_user_data, verify_existing_username
 from infrastructure.backup_infrastructure import fetch_all_backups
-from infrastructure.database import fetch_all_claims, fetch_all_employees, fetch_all_managers, fetch_all_restore_codes, fetch_employees_claims, save_user
-from presentation.helpers import get_user_data, input_restore_code, print_and_select_from_list, print_claim_list, print_employee_list, view_all
+from infrastructure.database import (
+    fetch_all_claims,
+    fetch_all_employees,
+    fetch_all_managers,
+    fetch_all_restore_codes,
+    fetch_employees_claims,
+    save_claim,
+    save_user,
+)
+from presentation.helpers import get_claim_data, get_user_data, input_restore_code, print_and_select_from_list, print_claim_list, print_employee_list, view_all
 from domain.security.encryption import decrypt_value
 
+
+def create_claim(session):
+    claim_data = get_claim_data()
+    
+    secured_claim_data = secure_claim_data(session, claim_data)
+    save_claim(secured_claim_data)
 
 def create_user(session):
     session_role = session["role"]
@@ -55,8 +69,7 @@ def select_restore_code():
     return None
 
 def request_employees_claims(session):
-    employee_id = session["user_id"]
-    claims = fetch_employees_claims(employee_id)
+    claims = fetch_employees_claims(session["user_id"])
     if not claims:
         raise Exception("No claims found")
     view_all(claims)
@@ -67,8 +80,8 @@ def request_managers():
 def request_employees():
     return fetch_all_employees()
 
-def request_claims(employee_id):
-    return fetch_all_claims(employee_id)
+def request_claims(user_id):
+    return fetch_all_claims(user_id)
 
 def format_employee_list(employees):
     return [{"name": f"{decrypt_value(employee['username_enc'])} : {decrypt_value(employee['first_name_enc'])} {decrypt_value(employee['last_name_enc'])}"} for employee in employees]
@@ -89,7 +102,7 @@ def view_employees_claims(session):
     formatted_employees = format_employee_list(employees)
     employee = print_and_select_from_list(formatted_employees)
     index = formatted_employees.index(employee)
-    claims = request_claims(employees[index]["employee_id"])
+    claims = request_claims(employees[index]["user_id"])
     
     if not claims:
         raise Exception("No claims found")

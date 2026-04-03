@@ -3,6 +3,28 @@ from domain.security.encryption import decrypt_value, encrypt_value
 from domain.security.hashing import hash_password, hash_username, verify_password
 
 
+def secure_claim_data(session, claim_data):
+    secured_claim = {
+        "user_id": session["user_id"],
+        "claim_date": claim_data["claim_date"],
+        "project_number_enc": encrypt_value(claim_data["project_number"]),
+        "claim_type": claim_data["claim_type"],
+        "status": "Pending",
+        "approved_by_user_id": None,
+        "salary_batch_enc": None,
+    }
+
+    if claim_data["claim_type"] == "Travel":
+        secured_claim.update({
+            "travel_distance_enc": encrypt_value(claim_data["travel_distance"]),
+            "from_zip_enc": encrypt_value(claim_data["from_zip_code"]),
+            "from_house_number_enc": encrypt_value(claim_data["from_house_number"]),
+            "to_zip_enc": encrypt_value(claim_data["to_zip_code"]),
+            "to_house_number_enc": encrypt_value(claim_data["to_house_number"]),
+        })
+
+    return secured_claim
+
 def secure_user_data(user_data):
     try:
         secured_user_data = {
@@ -83,7 +105,7 @@ def verify_existing_username(username):
     if username_exists(username):
         raise ValueError("Username already exists")
     
-def login(credentials): 
+def login(credentials):
     print_db_content() # DONT FORGET TO REMOVE
     if credentials["username"] == "super_admin" and credentials["password"] == "Admin_123?":
         return {"role":"admin"} # ASSIGNMENT REQUIREMENT HARDCODED EXCEPTION

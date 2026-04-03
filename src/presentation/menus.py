@@ -1,5 +1,5 @@
 from domain.backup_logic import assign_backup, restore_any_backup, restore_backup_with_code, revoke_restore_code, view_restore_code_status
-from domain.helpers import create_user, request_employees_claims, view_employee_list, view_employees_claims
+from domain.helpers import create_claim, create_user, request_employees_claims, view_employee_list, view_employees_claims
 from domain.security.validation import validate_menu_choice
 from logging_system import uread_log_count
 from presentation.helpers import call_to_create_backup, go_validate_menu_choice, print_error
@@ -41,12 +41,12 @@ def superadmin_menu(session):
         return Exception("Unauthorized access")
     unread_logs = uread_log_count()
     return _run_menu(f"Super Admin ({unread_logs} unread suspicious logs)", [
-        ("Create manager account", create_user),
-        ("Backup system", call_to_create_backup),
-        ("Generate restore code for manager", assign_backup), # NEEDS TESTING
+        ("Create manager account", create_user), # does manager create employee account?????????
+        ("Backup system", call_to_create_backup), # now displays complete filepath of where backup is saved??? vulnerable to path traversal attack
+        ("Generate restore code for manager", assign_backup), # NEEDS TESTING errror: token must be bytes or string
         ("Restore any backup", restore_any_backup), # add visual feedback for completing task (optional)
         ("View restore code status", view_restore_code_status), # NEEDS TESTING
-        ("Revoke restore code", revoke_restore_code), # NEEDS TESTING
+        ("Revoke restore code", revoke_restore_code), # NEEDS TESTING fake restore codes get: 'NoneType' object is not subscriptable
         ("Logout", None),
         ("Exit system", None),
     ], session)
@@ -61,7 +61,7 @@ def manager_menu(session):
         ("Backup system", call_to_create_backup),
         ("Restore backup with code", restore_backup_with_code), # NEEDS TESTING
         ("View employee list", view_employee_list), # NEEDS TESTING
-        ("View claims submitted by employees", view_employees_claims), # NEEDS TESTING
+        ("View claims submitted by employees", view_employees_claims), # NEEDS TESTING current output: <sqlite3.Row object at 0x1045cc910>
         ("Approve claim", None),
         ("Reject claim", None),
         ("Logout", None),
@@ -73,7 +73,7 @@ def employee_menu(session):
     if session["role"] != "employee":
         return Exception("Unauthorized access")
     return _run_menu("Employee", [
-        ("Submit new claim", None),
+        ("Submit new claim", create_claim),
         ("View own claims", request_employees_claims), # NEEDS TESTING
         ("Edit claim", None),
         ("Delete claim", None),

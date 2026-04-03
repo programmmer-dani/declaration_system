@@ -1,7 +1,10 @@
 import os
+
 from cryptography.fernet import Fernet
 
-KEY_PATH = "data/master.key"
+from infrastructure.config import DATA_DIR
+
+KEY_PATH = os.path.join(DATA_DIR, "master.key")
 
 
 def load_or_create_key():

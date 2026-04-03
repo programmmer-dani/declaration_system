@@ -1,5 +1,14 @@
-from domain.security.validation import validate_birthday, validate_bsn, validate_city, validate_email, validate_gender, validate_house_number, validate_id_doc_number, validate_id_doc_type, validate_menu_choice, validate_mobile_phone, validate_name, validate_password, validate_restore_code, validate_role, validate_street_name, validate_username, validate_zip_code
+from domain.security.validation import validate_birthday, validate_bsn, validate_city, validate_claim_date, validate_email, validate_gender, validate_house_number, validate_id_doc_number, validate_id_doc_type, validate_menu_choice, validate_mobile_phone, validate_name, validate_password, validate_restore_code, validate_street_name, validate_username, validate_zip_code
 from infrastructure.backup_infrastructure import create_backup
+from domain.security.validation import (
+    validate_claim_date,
+    validate_claim_type,
+    validate_project_number,
+    validate_travel_distance,
+    validate_zip_code,
+    validate_house_number,
+)
+
 
 def get_login_input():
     username = go_validate("Username: ", validate_username)
@@ -63,6 +72,32 @@ def display_restorecode_status(used, revoked):
     else:
         print(f"Revoked: No")
         
+        
+def get_claim_data():
+    print("\nCreating new claim...\n")
+
+    claim_data = {
+        "claim_date": go_validate("Claim date (YYYY-MM-DD): ", validate_claim_date),
+        "project_number": go_validate("Project number: ", validate_project_number),
+        "claim_type": go_validate("Claim type (Travel/Home Office): ", validate_claim_type),
+    }
+
+    if claim_data["claim_type"] == "Travel":
+        travel_data = get_travel_claim_data()
+        return {**claim_data, **travel_data}
+
+    return claim_data
+
+
+def get_travel_claim_data():
+    return {
+        "travel_distance": go_validate("Travel distance in km: ", validate_travel_distance),
+        "from_zip_code": go_validate("From ZIP code: ", validate_zip_code),
+        "from_house_number": go_validate("From house number: ", validate_house_number),
+        "to_zip_code": go_validate("To ZIP code: ", validate_zip_code),
+        "to_house_number": go_validate("To house number: ", validate_house_number),
+    }        
+
 def get_user_data(role):
     print("\nCreating new user...\n")
     user_data = {

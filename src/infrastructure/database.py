@@ -24,9 +24,9 @@ def fetch_all_employees():
         employees = cur.fetchall()
         return employees
 
-def fetch_all_claims(employee_id):
+def fetch_all_claims(user_id):
     with get_connection() as conn:
-        cur = conn.execute("SELECT * FROM claims WHERE employee_id = ?", (employee_id,))
+        cur = conn.execute("SELECT * FROM claims WHERE user_id = ?", (user_id,))
         claims = cur.fetchall()
         return claims
 
@@ -48,9 +48,9 @@ def fetch_unrevoked_unused_restore_codes():
         restore_codes = cur.fetchall()
         return restore_codes
 
-def fetch_employees_claims(employee_id):
+def fetch_employees_claims(user_id):
     with get_connection() as conn:
-        cur = conn.execute("SELECT * FROM claims WHERE employee_id = ?", (employee_id,))
+        cur = conn.execute("SELECT * FROM claims WHERE user_id = ?", (user_id,))
         claims = cur.fetchall()
         return claims
 
@@ -67,6 +67,69 @@ def save_assigned_backup(manager_user_id, backup_name, restore_code_hash):
 def set_restore_code_used(restore_code_id):
     with get_connection() as conn:
         cur = conn.execute("UPDATE restore_codes SET is_used = 1 WHERE restore_code_id = ?", (restore_code_id,))
+        conn.commit()
+
+def save_claim(claim):
+    with get_connection() as conn:
+        if claim["claim_type"] == "Travel":
+            cur = conn.execute(
+                """
+                INSERT INTO claims (
+                    user_id,
+                    claim_date,
+                    project_number_enc,
+                    claim_type,
+                    travel_distance_enc,
+                    from_zip_enc,
+                    from_house_number_enc,
+                    to_zip_enc,
+                    to_house_number_enc,
+                    status,
+                    approved_by_user_id,
+                    salary_batch_enc
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    claim["user_id"],
+                    claim["claim_date"],
+                    claim["project_number_enc"],
+                    claim["claim_type"],
+                    claim["travel_distance_enc"],
+                    claim["from_zip_enc"],
+                    claim["from_house_number_enc"],
+                    claim["to_zip_enc"],
+                    claim["to_house_number_enc"],
+                    claim.get("status", "Pending"),
+                    claim.get("approved_by_user_id"),
+                    claim.get("salary_batch_enc"),
+                ),
+            )
+        else:
+            cur = conn.execute(
+                """
+                INSERT INTO claims (
+                    user_id,
+                    claim_date,
+                    project_number_enc,
+                    claim_type,
+                    status,
+                    approved_by_user_id,
+                    salary_batch_enc
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    claim["user_id"],
+                    claim["claim_date"],
+                    claim["project_number_enc"],
+                    claim["claim_type"],
+                    claim.get("status", "Pending"),
+                    claim.get("approved_by_user_id"),
+                    claim.get("salary_batch_enc"),
+                ),
+            )
+
         conn.commit()
 
 
@@ -129,7 +192,8 @@ def find_user_by_username(username):
             (lookup,),
         )
         return cur.fetchone()
-    
+
+
 def save_log(ts, username_enc, activity_desc_enc, is_suspicious, additional_info_enc=None):
     with get_connection() as conn:
         cur = conn.execute("INSERT INTO logs (created_at, username_enc, activity_desc_enc, is_suspicious, additional_info_enc) VALUES (?, ?, ?, ?, ?)", (ts, username_enc, activity_desc_enc, is_suspicious, additional_info_enc))
@@ -150,7 +214,7 @@ def init_db():
         create_tables(conn)
 
 
-def create_tables(conn: sqlite3.Connection):
+def create_tables(conn: sqlite3.Connection): # CHECK IF CLAIMS TABLE SHOULD BE DEVIDED IN HOME OFFICE OR TRAVEL CLAIM
     # is_active value is not specefically required for users
     # optional: start using GUIDs
     conn.executescript(
@@ -168,8 +232,7 @@ def create_tables(conn: sqlite3.Connection):
         );
 
         CREATE TABLE IF NOT EXISTS employees (
-            employee_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER NOT NULL UNIQUE REFERENCES users(user_id) ON DELETE CASCADE,
+            user_id INTEGER PRIMARY KEY REFERENCES users(user_id) ON DELETE CASCADE,
             first_name_enc BLOB NOT NULL,
             last_name_enc BLOB NOT NULL,
             birthday_enc BLOB NOT NULL,
@@ -186,9 +249,9 @@ def create_tables(conn: sqlite3.Connection):
             registration_date TEXT NOT NULL
         );
 
-        CREATE TABLE IF NOT EXISTS claims (
+        CREATE TABLE IF NOT EXISTS claims ( 
             claim_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            employee_id INTEGER NOT NULL REFERENCES employees(employee_id) ON DELETE CASCADE,
+            user_id INTEGER NOT NULL REFERENCES employees(user_id) ON DELETE CASCADE,
             claim_date TEXT NOT NULL CHECK (length(claim_date)=10 AND substr(claim_date,5,1)='-' AND substr(claim_date,8,1)='-'),
             project_number_enc BLOB NOT NULL,
             claim_type TEXT NOT NULL CHECK (claim_type IN ('Travel', 'Home Office')),
@@ -199,9 +262,7 @@ def create_tables(conn: sqlite3.Connection):
             to_house_number_enc BLOB,
             status TEXT NOT NULL DEFAULT 'Pending' CHECK (status IN ('Pending', 'Approved', 'Rejected')),
             approved_by_user_id INTEGER REFERENCES users(user_id),
-            salary_batch_enc BLOB,
-            created_at TEXT NOT NULL,
-            updated_at TEXT NOT NULL
+            salary_batch_enc BLOB
         );
 
         CREATE TABLE IF NOT EXISTS restore_codes (
@@ -223,7 +284,7 @@ def create_tables(conn: sqlite3.Connection):
             is_read INTEGER NOT NULL DEFAULT 0 CHECK (is_read IN (0, 1))
         );
 
-        CREATE INDEX IF NOT EXISTS idx_claims_employee_id ON claims(employee_id);
+        CREATE INDEX IF NOT EXISTS idx_claims_user_id ON claims(user_id);
         CREATE INDEX IF NOT EXISTS idx_claims_status ON claims(status);
         """
     )
