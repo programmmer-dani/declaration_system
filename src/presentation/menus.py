@@ -5,6 +5,7 @@ from domain.helpers import (
     create_user,
     delete_claim,
     edit_claim,
+    edit_claim_as_manager,
     reject_claim,
     request_employees_claims,
     search_claims,
@@ -73,10 +74,12 @@ def manager_menu(session):
         ("Backup system", call_to_create_backup),
         ("Restore backup with code", restore_backup_with_code), # NEEDS TESTING
         ("View employee list", view_employee_list), # NEEDS TESTING
-        ("View claims submitted by employees", view_employees_claims), # NEEDS TESTING current output: <sqlite3.Row object at 0x1045cc910>
+        ("View claims submitted by employees", view_employees_claims), # NEEDS TESTING
+        ("Edit claims project/travel distance", edit_claim_as_manager), # NEEDS TESTING
+        ("Assign claim to salary-batch", None), # NEEDS TESTING
         ("Approve claim", approve_claim), # NEEDS TESTING
         ("Reject claim", reject_claim), # NEEDS TESTING
-        ("Update my password", update_password),
+        ("Update my password", update_password), # NEEDS TESTING
         ("Logout", None),
         ("Exit system", None),
     ], session)
@@ -89,9 +92,9 @@ def employee_menu(session):
         ("Search in my claims", search_claims),
         ("Submit new claim", create_claim),
         ("View own claims", request_employees_claims), # NEEDS TESTING
-        ("Edit my claim", edit_claim),
-        ("Delete my claim", delete_claim),
-        ("Update my password", update_password),
+        ("Edit my claim", edit_claim),# NEEDS TESTING
+        ("Delete my claim", delete_claim),# NEEDS TESTING
+        ("Update my password", update_password), # NEEDS TESTING
         ("Logout", None),
         ("Exit system", None),
     ], session)

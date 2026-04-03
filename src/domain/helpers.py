@@ -116,6 +116,24 @@ def edit_claim(session): # EXTENSIVELY TEST THIS FUNCTION
         save_claim_edit(claim_id, key_to_update, updated_value)
         return
     raise Exception("Unauthorized access")
+
+def edit_claim_as_manager(session):
+    if session["role"] == "manager":
+        claims = fetch_all_claims() # maybe only fetch unaproved claims
+        if not claims:
+            raise Exception("No claims found")
+
+        formatted_claims = format_claim_list(claims)
+        claim = print_and_select_from_list(formatted_claims, "Select claim to edit: ")
+        claim_id = claim["claim_id"]
+        keys = ["project_number", "travel_distance"]
+        key_to_update = print_and_select_from_list(keys, "Select key to update: ")
+        updated_value = go_validate(f"Enter new value for {key_to_update}: ", find_validator(key_to_update))
+        updated_value = encrypt_value(updated_value)
+        key_to_update = key_to_update + "_enc"
+        save_claim_edit(claim_id, key_to_update, updated_value)
+        return
+    raise Exception("Unauthorized access")
     
 def find_validator(key_to_update):
     from domain.security.validation import (
@@ -135,7 +153,9 @@ def find_validator(key_to_update):
         "from_zip_code": validate_zip_code,
         "from_house_number": validate_house_number,
         "to_zip_code": validate_zip_code,
-        "to_house_number": validate_house_number
+        "to_house_number": validate_house_number,
+        "project_number": validate_project_number,
+        "travel_distance": validate_travel_distance,
     }
 
     if key_to_update not in validators:
