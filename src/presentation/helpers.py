@@ -46,10 +46,13 @@ def print_employee_list(employees):
     for i, employee in employees:
         print(f"{i}. {employee['name']}")
         
-def print_claim_list(claims, employee_name):
+def print_claim_list(claims, employee_name): # is this the correct data to display
     print(f"Claims for {employee_name}:")
-    for i, claim in claims:
-        print(f"ID {claim['claim_id']} : {claim['claim_date']} - {claim['claim_amount']} - {claim['claim_status']}")
+    for claim in claims:
+        print(
+            f"ID {claim['claim_id']} : {claim['claim_date']} — "
+            f"{claim['claim_type']} — {claim['status']}"
+        )
     
 def call_to_create_backup(session):
     print("Creating backup...")

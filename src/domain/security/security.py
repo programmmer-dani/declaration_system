@@ -82,9 +82,10 @@ def print_db_content():
             "street_name_enc", "house_number_enc", "zip_code_enc", "city_enc",
             "email_enc", "mobile_phone_enc", "id_doc_type_enc", "id_doc_number_enc", "bsn_enc",
         ]),
-        ("claims", [
-            "project_number_enc", "travel_distance_enc", "from_zip_enc", "from_house_number_enc",
-            "to_zip_enc", "to_house_number_enc", "salary_batch_enc",
+        ("claims", ["project_number_enc", "salary_batch_enc"]),
+        ("travel_claims", [
+            "travel_distance_enc", "from_zip_enc", "from_house_number_enc",
+            "to_zip_enc", "to_house_number_enc",
         ]),
     ]
     with get_connection() as conn:

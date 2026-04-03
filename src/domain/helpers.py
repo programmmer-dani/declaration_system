@@ -12,12 +12,81 @@ from infrastructure.database import (
     fetch_pending_claims,
     save_approved_claim,
     save_claim,
+    save_claim_edit,
     save_rejected_claim,
     save_user,
 )
-from presentation.helpers import get_claim_data, get_user_data, input_restore_code, print_and_select_from_list, print_claim_list, print_employee_list, view_all
-from domain.security.encryption import decrypt_value
+from presentation.helpers import get_claim_data, get_user_data, go_validate, input_restore_code, print_and_select_from_list, print_claim_list, print_employee_list, view_all
+from domain.security.encryption import decrypt_value, encrypt_value
 
+
+def edit_claim(session): # EXTENSIVELY TEST THIS FUNCTION
+    claims = fetch_employees_claims(session["user_id"])
+    if not claims:
+        raise Exception("No claims found")
+
+    formatted_claims = format_claim_list(claims)
+    claim = print_and_select_from_list(formatted_claims, "Select claim to edit: ")
+    claim_id = claim["claim_id"]
+    keys = get_keys_to_update(claim["claim_type"])
+    key_to_update = print_and_select_from_list(keys, "Select key to update: ")
+    updated_value = go_validate(f"Enter new value for {key_to_update}: ", find_validator(key_to_update))
+    if is_key_value_encrypted(key_to_update):
+        updated_value = encrypt_value(updated_value)
+        key_to_update = key_to_update + "_enc"
+    save_claim_edit(claim_id, key_to_update, updated_value)
+
+    
+def find_validator(key_to_update):
+    from domain.security.validation import (
+        validate_claim_date,
+        validate_project_number,
+        validate_claim_type,
+        validate_travel_distance,
+        validate_zip_code,
+        validate_house_number,
+    )
+
+    validators = {
+        "claim_date": validate_claim_date,
+        "project_number": validate_project_number,
+        "claim_type": validate_claim_type,
+        "travel_distance": validate_travel_distance,
+        "from_zip_code": validate_zip_code,
+        "from_house_number": validate_house_number,
+        "to_zip_code": validate_zip_code,
+        "to_house_number": validate_house_number
+    }
+
+    if key_to_update not in validators:
+        raise Exception(f"No validator found for {key_to_update}")
+    return validators[key_to_update]
+    
+def is_key_value_encrypted(key_to_update):
+    if key_to_update in ["travel_distance", "from_zip_code", "to_zip_code"]:
+        return True
+    else:
+        return False
+    
+def get_keys_to_update(claim_type):
+    if claim_type == "Travel":
+        return [
+            "claim_date",
+            "project_number",
+            "claim_type",
+            "travel_distance",
+            "from_zip_code",
+            "from_house_number",
+            "to_zip_code",
+            "to_house_number"
+        ]
+    # For "Home Office", only return general claim keys
+    else:
+        return [
+            "claim_date",
+            "project_number",
+            "claim_type"
+        ]
 
 def approve_claim(session):
     claims = fetch_pending_claims()
@@ -25,7 +94,7 @@ def approve_claim(session):
         raise Exception("No claims found")
     formatted_claims = format_claim_list(claims)
     claim = print_and_select_from_list(formatted_claims, "Select claim to approve: ")
-    save_approved_claim(claim["claim_id"])
+    save_approved_claim(claim["claim_id"], session["user_id"])
     
 def reject_claim(session):
     claims = fetch_pending_claims()
@@ -33,10 +102,18 @@ def reject_claim(session):
         raise Exception("No claims found")
     formatted_claims = format_claim_list(claims)
     claim = print_and_select_from_list(formatted_claims, "Select claim to reject: ")
-    save_rejected_claim(claim["claim_id"])
+    save_rejected_claim(claim["claim_id"], session["user_id"])
     
-def format_claim_list(claims):
-    return [{"claim_id": claim["claim_id"], "claim_date": claim["claim_date"], "claim_amount": claim["claim_amount"], "claim_type": claim["claim_type"], "claim_status": claim["claim_status"]} for claim in claims]
+def format_claim_list(claims): # is this the correct data to display
+    return [
+        {
+            "claim_id": claim["claim_id"],
+            "claim_date": claim["claim_date"],
+            "claim_type": claim["claim_type"],
+            "status": claim["status"],
+        }
+        for claim in claims
+    ]
 
 def create_claim(session):
     claim_data = get_claim_data()

@@ -61,14 +61,14 @@ def fetch_employees_claims(user_id):
         return claims
 
 
-def save_approved_claim(claim_id):
+def save_approved_claim(claim_id, approved_by_user_id):
     with get_connection() as conn:
-        cur = conn.execute("UPDATE claims SET status = 'Approved' WHERE claim_id = ?", (claim_id,))
+        cur = conn.execute("UPDATE claims SET status = 'Approved', approved_by_user_id = ? WHERE claim_id = ?", (approved_by_user_id, claim_id))
         conn.commit()
 
-def save_rejected_claim(claim_id):
+def save_rejected_claim(claim_id, rejected_by_user_id):
     with get_connection() as conn:
-        cur = conn.execute("UPDATE claims SET status = 'Rejected' WHERE claim_id = ?", (claim_id,))
+        cur = conn.execute("UPDATE claims SET status = 'Rejected', approved_by_user_id = ? WHERE claim_id = ?", (rejected_by_user_id, claim_id))
         conn.commit()
 
 def save_assigned_backup(manager_user_id, backup_name, restore_code_hash):
@@ -85,65 +85,59 @@ def set_restore_code_used(restore_code_id):
     with get_connection() as conn:
         cur = conn.execute("UPDATE restore_codes SET is_used = 1 WHERE restore_code_id = ?", (restore_code_id,))
         conn.commit()
+        
+
+def save_claim_edit(claim_id, key_to_update, updated_value):
+    with get_connection() as conn:
+        cur = conn.execute(f"UPDATE claims SET ? = ? WHERE claim_id = ?", (key_to_update, updated_value, claim_id))
+        conn.commit()
 
 def save_claim(claim):
     with get_connection() as conn:
+        cur = conn.execute(
+            """
+            INSERT INTO claims (
+                user_id,
+                claim_date,
+                project_number_enc,
+                claim_type,
+                status,
+                approved_by_user_id,
+                salary_batch_enc
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                claim["user_id"],
+                claim["claim_date"],
+                claim["project_number_enc"],
+                claim["claim_type"],
+                claim.get("status", "Pending"),
+                claim.get("approved_by_user_id"),
+                claim.get("salary_batch_enc"),
+            ),
+        )
+        claim_id = cur.lastrowid
         if claim["claim_type"] == "Travel":
-            cur = conn.execute(
+            conn.execute(
                 """
-                INSERT INTO claims (
-                    user_id,
-                    claim_date,
-                    project_number_enc,
-                    claim_type,
+                INSERT INTO travel_claims (
+                    claim_id,
                     travel_distance_enc,
                     from_zip_enc,
                     from_house_number_enc,
                     to_zip_enc,
-                    to_house_number_enc,
-                    status,
-                    approved_by_user_id,
-                    salary_batch_enc
+                    to_house_number_enc
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?)
                 """,
                 (
-                    claim["user_id"],
-                    claim["claim_date"],
-                    claim["project_number_enc"],
-                    claim["claim_type"],
+                    claim_id,
                     claim["travel_distance_enc"],
                     claim["from_zip_enc"],
                     claim["from_house_number_enc"],
                     claim["to_zip_enc"],
                     claim["to_house_number_enc"],
-                    claim.get("status", "Pending"),
-                    claim.get("approved_by_user_id"),
-                    claim.get("salary_batch_enc"),
-                ),
-            )
-        else:
-            cur = conn.execute(
-                """
-                INSERT INTO claims (
-                    user_id,
-                    claim_date,
-                    project_number_enc,
-                    claim_type,
-                    status,
-                    approved_by_user_id,
-                    salary_batch_enc
-                )
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-                """,
-                (
-                    claim["user_id"],
-                    claim["claim_date"],
-                    claim["project_number_enc"],
-                    claim["claim_type"],
-                    claim.get("status", "Pending"),
-                    claim.get("approved_by_user_id"),
-                    claim.get("salary_batch_enc"),
                 ),
             )
 
@@ -231,7 +225,7 @@ def init_db():
         create_tables(conn)
 
 
-def create_tables(conn: sqlite3.Connection): # CHECK IF CLAIMS TABLE SHOULD BE DEVIDED IN HOME OFFICE OR TRAVEL CLAIM
+def create_tables(conn: sqlite3.Connection):
     # is_active value is not specefically required for users
     # optional: start using GUIDs
     conn.executescript(
@@ -266,20 +260,24 @@ def create_tables(conn: sqlite3.Connection): # CHECK IF CLAIMS TABLE SHOULD BE D
             registration_date TEXT NOT NULL
         );
 
-        CREATE TABLE IF NOT EXISTS claims ( 
+        CREATE TABLE IF NOT EXISTS claims (
             claim_id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER NOT NULL REFERENCES employees(user_id) ON DELETE CASCADE,
             claim_date TEXT NOT NULL CHECK (length(claim_date)=10 AND substr(claim_date,5,1)='-' AND substr(claim_date,8,1)='-'),
             project_number_enc BLOB NOT NULL,
             claim_type TEXT NOT NULL CHECK (claim_type IN ('Travel', 'Home Office')),
-            travel_distance_enc BLOB,
-            from_zip_enc BLOB,
-            from_house_number_enc BLOB,
-            to_zip_enc BLOB,
-            to_house_number_enc BLOB,
             status TEXT NOT NULL DEFAULT 'Pending' CHECK (status IN ('Pending', 'Approved', 'Rejected')),
             approved_by_user_id INTEGER REFERENCES users(user_id),
             salary_batch_enc BLOB
+        );
+
+        CREATE TABLE IF NOT EXISTS travel_claims (
+            claim_id INTEGER PRIMARY KEY REFERENCES claims(claim_id) ON DELETE CASCADE,
+            travel_distance_enc BLOB NOT NULL,
+            from_zip_enc BLOB NOT NULL,
+            from_house_number_enc BLOB NOT NULL,
+            to_zip_enc BLOB NOT NULL,
+            to_house_number_enc BLOB NOT NULL
         );
 
         CREATE TABLE IF NOT EXISTS restore_codes (

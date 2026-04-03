@@ -1,5 +1,5 @@
 from domain.backup_logic import assign_backup, restore_any_backup, restore_backup_with_code, revoke_restore_code, view_restore_code_status
-from domain.helpers import approve_claim, create_claim, create_user, reject_claim, request_employees_claims, view_employee_list, view_employees_claims
+from domain.helpers import approve_claim, create_claim, create_user, edit_claim, reject_claim, request_employees_claims, view_employee_list, view_employees_claims
 from domain.security.validation import validate_menu_choice
 from logging_system import uread_log_count
 from presentation.helpers import call_to_create_backup, go_validate_menu_choice, print_error
@@ -75,8 +75,8 @@ def employee_menu(session):
     return _run_menu("Employee", [
         ("Submit new claim", create_claim),
         ("View own claims", request_employees_claims), # NEEDS TESTING
-        ("Edit claim", None),
-        ("Delete claim", None),
+        ("Edit my claim", edit_claim),
+        ("Delete my claim", None),
         ("Logout", None),
         ("Exit system", None),
     ], session)
