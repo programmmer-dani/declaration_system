@@ -1,4 +1,4 @@
-from domain.security.validation import validate_birthday, validate_bsn, validate_city, validate_claim_date, validate_email, validate_gender, validate_house_number, validate_id_doc_number, validate_id_doc_type, validate_menu_choice, validate_mobile_phone, validate_name, validate_password, validate_restore_code, validate_street_name, validate_username, validate_zip_code
+from domain.security.validation import validate_birthday, validate_bsn, validate_city, validate_claim_date, validate_email, validate_employee_search_term, validate_gender, validate_house_number, validate_id_doc_number, validate_id_doc_type, validate_menu_choice, validate_mobile_phone, validate_name, validate_password, validate_restore_code, validate_street_name, validate_username, validate_zip_code
 from infrastructure.backup_infrastructure import create_backup
 from domain.security.validation import (
     validate_claim_date,
@@ -68,6 +68,11 @@ def input_claim_search_term():
         validate_claim_search_term,
     )
 
+def input_employee_search_term():
+    return go_validate(
+        "Search employee: ",
+        validate_employee_search_term,
+    )
 
 def input_restore_code():
     restore_code = go_validate("Restore code: ", validate_restore_code)

@@ -27,6 +27,7 @@ from presentation.helpers import (
     get_user_data,
     go_validate,
     input_claim_search_term,
+    input_employee_search_term,
     input_restore_code,
     print_and_select_from_list,
     print_claim_list,
@@ -38,6 +39,15 @@ from domain.security.encryption import decrypt_value, encrypt_value
 
 def _normalize_search_text(s):
     return " ".join((s or "").lower().split())
+
+def _employee_row_matches_partial_search(row, needle_normalized):
+    parts = [
+        str(decrypt_value(row["username_enc"]) or ""),
+        str(decrypt_value(row["first_name_enc"]) or ""),
+        str(decrypt_value(row["last_name_enc"]) or ""),
+    ]
+    haystack = _normalize_search_text(" ".join(parts))
+    return needle_normalized in haystack
 
 def _claim_row_matches_partial_search(row, needle_normalized):
     parts = [
@@ -89,6 +99,20 @@ def search_claims(session):
             return
         else:
             raise Exception("Invalid role")
+    raise Exception("Unauthorized access")
+
+def search_employees(session):
+    if session["role"] == "manager":
+        employees = fetch_all_employees()
+        if not employees:
+            raise Exception("No employees found")
+        needle = _normalize_search_text(input_employee_search_term())
+        matched = [r for r in employees if _employee_row_matches_partial_search(r, needle)]
+        if not matched:
+            print_error("No employees match that search.")
+            return
+        print_employee_list(matched)
+        return
     raise Exception("Unauthorized access")
 
 

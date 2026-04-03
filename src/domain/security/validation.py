@@ -190,6 +190,10 @@ def validate_claim_search_term(s):
         return True
     return False
 
+def validate_employee_search_term(s):
+    if _ok(s) and re.fullmatch(r"[A-Za-z0-9 .'\-]{1,50}", s) and len(s) <= 200:
+        return True
+    return False
 
 def validate_project_number(s):
     if _ok(s) and re.match(r"^\d{2,10}$", s):
