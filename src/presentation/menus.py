@@ -77,6 +77,8 @@ def superadmin_menu(session):
         ("Search employee", search_employees),
         ("Update manager account", edit_manager_account_as_admin), # NEEDS TESTING
         ("Delete manager account", delete_manager_account_as_admin), # NEEDS TESTING
+        ("Reset employee password", None),
+        ("Reset manager password", None),
         ("View logs", view_logs), # on hold till logging is made complete
         ("Logout", None),
         ("Exit system", None),
@@ -93,6 +95,7 @@ def manager_menu(session):
         ("Create employee account", create_user),
         ("Edit employee account", edit_employee_account),
         ("Delete employee account", delete_employee_account),
+        ("reset employee password", None),
         ("Backup system", call_to_create_backup),
         ("Restore backup with code", restore_backup_with_code), # NEEDS TESTING
         ("View employee list", view_employee_list), # NEEDS TESTING
@@ -126,5 +129,6 @@ def employee_menu(session):
     
     
 # NEXT STEPS:
+# - RESET PASSWORD FUNCTIONALITY
 # - IMPLEMENT COMPLETE LOGGING WHERE NEEDED (functionality already made)
 # - TEST ALL FUNCTIONALITY EXTENSIVELY
