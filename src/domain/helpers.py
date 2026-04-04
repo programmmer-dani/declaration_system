@@ -100,15 +100,10 @@ def edit_employee_account(session):
         return
     raise Exception("Unauthorized access")
 
-def set_claims_salary_batch(session):
+def set_claims_salary_batch(session, claim_id):
     if session["role"] in ["manager", "admin"]:
-        claims = fetch_claims_without_salary_batch() # maybe only fetch unaproved claims
-        if not claims:
-            raise Exception("No claims found")
-        formatted_claims = format_claim_list(claims)
-        claim = print_and_select_from_list(formatted_claims, "Select claim to assign to salary-batch: ")
         salary_batch = go_validate("Enter salary-batch (YYYY-MM): ", validate_salary_batch)
-        save_claim_edit(claim["claim_id"], "salary_batch_enc",  encrypt_value(salary_batch))
+        save_claim_edit(claim_id, "salary_batch_enc",  encrypt_value(salary_batch))
         return
     raise Exception("Unauthorized access")
 
@@ -325,6 +320,10 @@ def approve_claim(session):
             raise Exception("No claims found")
         formatted_claims = format_claim_list(claims)
         claim = print_and_select_from_list(formatted_claims, "Select claim to approve: ")
+        try: 
+            set_claims_salary_batch(session, claim["claim_id"])
+        except Exception as e:
+            raise Exception(f"Error setting salary-batch: {e}")
         save_approved_claim(claim["claim_id"], session["user_id"])
         return
     raise Exception("Unauthorized access")

@@ -101,7 +101,6 @@ def manager_menu(session):
         ("View employee list", view_employee_list), # NEEDS TESTING
         ("View claims submitted by employees", view_employees_claims), # NEEDS TESTING
         ("Edit claims project/travel distance", edit_claim_as_manager_or_admin), # NEEDS TESTING
-        ("Assign claim to salary-batch", set_claims_salary_batch), # NEEDS TESTING
         ("Approve claim", approve_claim), # NEEDS TESTING
         ("Reject claim", reject_claim), # NEEDS TESTING
         ("View logs", view_logs), # on hold till logging is made complete
