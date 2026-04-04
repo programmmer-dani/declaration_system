@@ -18,6 +18,7 @@ from domain.helpers import (
     update_password,
     view_employee_list,
     view_employees_claims,
+    view_logs,
 )
 from domain.security.validation import validate_menu_choice
 from logging_system import uread_log_count
@@ -89,7 +90,7 @@ def manager_menu(session):
         ("Assign claim to salary-batch", set_claims_salary_batch), # NEEDS TESTING
         ("Approve claim", approve_claim), # NEEDS TESTING
         ("Reject claim", reject_claim), # NEEDS TESTING
-        ("View logs", view_logs),
+        ("View logs", view_logs), # on hold till logging is made complete
         ("Update my password", update_password), # NEEDS TESTING
         ("Update my account", edit_manager_account), # NEEDS TESTING
         ("Delete my account", delete_manager_account), # NEEDS TESTING
