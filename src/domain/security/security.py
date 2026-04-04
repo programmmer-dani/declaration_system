@@ -1,3 +1,4 @@
+from domain.security.temp_password_updator import update_temp_password
 from infrastructure.database import find_user_by_username, username_exists
 from domain.security.encryption import decrypt_value, encrypt_value
 from domain.security.hashing import hash_password, hash_username, verify_password
@@ -113,6 +114,12 @@ def login(credentials):
     user = find_user_by_username(credentials["username"])
     if user is None:
         return None
+    is_temp_password = user["is_password_temp"] == 1
     if verify_password(credentials["password"], user["password_hash"]):
-        return user
+        if is_temp_password is False:
+            return user
+        else:
+            update_temp_password(user)
+            return user
     return None
+

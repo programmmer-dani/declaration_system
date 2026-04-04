@@ -34,15 +34,30 @@ def go_validate_menu_choice(input_message, validator, number_of_choices):
             return value
         print_error("Invalid input, try again.")
 
+def _menu_line(item):
+    if isinstance(item, dict):
+        if "user" in item:
+            return item["user"]
+        if "label" in item:
+            return item["label"]
+    return str(item)
+
+
 def print_and_select_from_list(list, message="Choose item: "):
     for i, item in enumerate(list, 1):
-        print(f"{i}. {item}")
+        print(f"{i}. {_menu_line(item)}")
     choice = go_validate_menu_choice(message, validate_menu_choice, len(list))
     return list[int(choice) - 1]
 
-def print_employee_list(employees):
-    for i, employee in employees:
-        print(f"{i}. {employee['name']}")
+def print_user_list(users):
+    for i, user in enumerate(users, 1):
+        if isinstance(user, dict) and "user" in user:
+            print(f"{i}. {user['user']}")
+        else:
+            print(f"{i}. {user['first_name']} {user['last_name']}")
+        
+def print_temp_password(temp_password):
+    print(f"Temporary password: {temp_password}")
         
 def print_claim_list(claims): # is this the correct data to display
     print("Your claims: ")

@@ -1,7 +1,9 @@
 import datetime
+import random
+import string
 from datetime import datetime
 from domain.security.hashing import hash_password, verify_restore_code
-from domain.security.security import login, secure_claim_data, secure_user_data, verify_existing_username
+from domain.security.security import secure_claim_data, secure_user_data, verify_existing_username
 from domain.security.validation import validate_password, validate_salary_batch
 from infrastructure.backup_infrastructure import fetch_all_backups
 from infrastructure.database import (
@@ -12,7 +14,6 @@ from infrastructure.database import (
     fetch_all_logs,
     fetch_all_managers,
     fetch_all_restore_codes,
-    fetch_claims_without_salary_batch,
     fetch_employees_claims,
     fetch_employees_claims_with_travel,
     fetch_pending_claims,
@@ -34,8 +35,9 @@ from presentation.helpers import (
     input_restore_code,
     print_and_select_from_list,
     print_claim_list,
-    print_employee_list,
     print_error,
+    print_temp_password,
+    print_user_list,
 )
 from domain.security.encryption import decrypt_value, encrypt_value
 
@@ -72,6 +74,45 @@ def _claim_row_matches_partial_search(row, needle_normalized):
     haystack = _normalize_search_text(" ".join(parts))
     return needle_normalized in haystack
 
+def reset_users_password(session):
+    if session["role"] in ["manager", "admin"]:
+        if session["role"] == "admin":
+            users = [*fetch_all_employees(), *fetch_all_managers()]
+        else:
+            users = fetch_all_employees()
+        if not users:
+            raise Exception("No users found")
+        formatted_users = format_user_list(users)
+        user = print_and_select_from_list(formatted_users, "Select user to reset password: ")
+        user_id = user["user_id"]
+        temp_password = generate_temp_password()
+        temp_password_hash = hash_password(temp_password)
+        save_new_password(user_id, temp_password_hash, is_password_temp=1)
+        print_temp_password(temp_password)
+        return
+    raise Exception("Unauthorized access")
+
+
+def generate_temp_password():
+    lowercase = string.ascii_lowercase
+    uppercase = string.ascii_uppercase
+    digits = string.digits
+    specials = "~!@#$%&_-+=`|\\()[]{}:;'<>,.?/"
+    allowed = lowercase + uppercase + digits + specials
+
+    password = [
+        random.choice(lowercase),
+        random.choice(uppercase),
+        random.choice(digits),
+        random.choice(specials),
+    ]
+    length = random.randint(12, 20)
+    password += [random.choice(allowed) for _ in range(length - 4)]
+    random.shuffle(password)
+    password = ''.join(password)
+    if  validate_password(password):
+        return password
+    return generate_temp_password()
 
 def view_logs(session):
     if session["role"] == "manager":
@@ -87,7 +128,7 @@ def edit_employee_account(session):
         employees = fetch_all_employees()
         if not employees:
             raise Exception("No employees found")
-        formatted_employees = format_employee_list(employees)
+        formatted_employees = format_user_list(employees)
         employee = print_and_select_from_list(formatted_employees, "Select employee to edit: ")
         employee_id = employee["user_id"]
         keys = ["first_name", "last_name", "email", "mobile_phone", "birthday", "bsn", "street_name", "house_number", "zip_code", "city"]
@@ -136,12 +177,14 @@ def search_employees(session):
         if not matched:
             print_error("No employees match that search.")
             return
-        print_employee_list(matched)
+        print_user_list(format_user_list(matched))
         return
     raise Exception("Unauthorized access")
 
 
 def update_password(session):
+    from domain.security.security import login
+    
     if session["role"] in ["employee", "manager"]:
         valid_user = login(get_login_input())
         if valid_user is None:
@@ -157,7 +200,8 @@ def edit_manager_account_as_admin(session):
         managers = fetch_all_managers()
         if not managers:
             raise Exception("No managers found")
-        manager = print_and_select_from_list(managers, "Select manager to edit: ")
+        formatted = format_user_list(managers)
+        manager = print_and_select_from_list(formatted, "Select manager to edit: ")
         manager_id = manager["user_id"]
         keys = ["first_name", "last_name"]
         key_to_update = print_and_select_from_list(keys, "Select key to update: ")
@@ -173,7 +217,8 @@ def delete_manager_account_as_admin(session):
         managers = fetch_all_managers()
         if not managers:
             raise Exception("No managers found")
-        manager = print_and_select_from_list(managers, "Select manager to delete: ")
+        formatted = format_user_list(managers)
+        manager = print_and_select_from_list(formatted, "Select manager to delete: ")
         manager_id = manager["user_id"]
         delete_employee_from_db(manager_id)
         return
@@ -201,7 +246,7 @@ def delete_employee_account(session):
         employees = fetch_all_employees()
         if not employees:
             raise Exception("No employees found")
-        formatted_employees = format_employee_list(employees)
+        formatted_employees = format_user_list(employees)
         employee = print_and_select_from_list(formatted_employees, "Select employee to delete: ")
         employee_id = employee["user_id"]
         delete_employee_from_db(employee_id)
@@ -346,6 +391,10 @@ def format_claim_list(claims): # is this the correct data to display
             "claim_date": claim["claim_date"],
             "claim_type": claim["claim_type"],
             "status": claim["status"],
+            "label": (
+                f"ID {claim['claim_id']} : {claim['claim_date']} — "
+                f"{claim['claim_type']} — {claim['status']}"
+            ),
         }
         for claim in claims
     ]
@@ -422,16 +471,22 @@ def request_employees():
 def request_claims(user_id):
     return fetch_all_claims(user_id)
 
-def format_employee_list(employees):
-    return [{"name": f"{decrypt_value(employee['username_enc'])} : {decrypt_value(employee['first_name_enc'])} {decrypt_value(employee['last_name_enc'])}"} for employee in employees]
+def format_user_list(users):
+    return [
+        {
+            "user_id": employee["user_id"],
+            "user": f"{decrypt_value(employee['username_enc'])} : {decrypt_value(employee['first_name_enc'])} {decrypt_value(employee['last_name_enc'])}",
+        }
+        for employee in users
+    ]
 
 def view_employee_list(session):
     if session["role"] == "manager":
         employees = request_employees()
         if not employees:
             raise Exception("No employees found")
-        employees_list = format_employee_list(employees)    
-        print_employee_list(employees_list)
+        employees_list = format_user_list(employees)    
+        print_user_list(employees_list)
         return
     raise Exception("Unauthorized access")
 
@@ -442,13 +497,13 @@ def view_employees_claims(session):
         if not employees:
             raise Exception("No employees found")
         
-        formatted_employees = format_employee_list(employees)
-        employee = print_and_select_from_list(formatted_employees)
-        index = formatted_employees.index(employee)
-        claims = request_claims(employees[index]["user_id"])
+        formatted_employees = format_user_list(employees)
+        employee = print_and_select_from_list(formatted_employees, "Select employee: ")
+        claims = request_claims(employee["user_id"])
         
         if not claims:
             raise Exception("No claims found")
         
-        return print_claim_list(claims, employee["name"])
+        print_claim_list(claims)
+        return
     raise Exception("Unauthorized access")

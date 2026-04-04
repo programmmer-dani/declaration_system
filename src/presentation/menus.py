@@ -14,6 +14,7 @@ from domain.helpers import (
     edit_manager_account_as_admin,
     reject_claim,
     request_employees_claims,
+    reset_users_password,
     search_claims,
     search_employees,
     set_claims_salary_batch,
@@ -72,13 +73,11 @@ def superadmin_menu(session):
         ("Edit claims project/travel distance", edit_claim_as_manager_or_admin), # NEEDS TESTING
         ("Approve claim", approve_claim), # NEEDS TESTING
         ("Reject claim", reject_claim), # NEEDS TESTING
-        ("Assign claim to salary-batch", set_claims_salary_batch), # NEEDS TESTING
         ("Search claim", search_claims),
         ("Search employee", search_employees),
         ("Update manager account", edit_manager_account_as_admin), # NEEDS TESTING
-        ("Delete manager account", delete_manager_account_as_admin), # NEEDS TESTING
-        ("Reset employee password", None),
-        ("Reset manager password", None),
+        ("Delete manager account", delete_manager_account_as_admin),
+        ("Reset users password", reset_users_password),
         ("View logs", view_logs), # on hold till logging is made complete
         ("Logout", None),
         ("Exit system", None),
@@ -95,7 +94,7 @@ def manager_menu(session):
         ("Create employee account", create_user),
         ("Edit employee account", edit_employee_account),
         ("Delete employee account", delete_employee_account),
-        ("reset employee password", None),
+        ("reset employee password", reset_users_password),
         ("Backup system", call_to_create_backup),
         ("Restore backup with code", restore_backup_with_code), # NEEDS TESTING
         ("View employee list", view_employee_list), # NEEDS TESTING
@@ -106,7 +105,7 @@ def manager_menu(session):
         ("View logs", view_logs), # on hold till logging is made complete
         ("Update my password", update_password), # NEEDS TESTING
         ("Update my account", edit_manager_account), # NEEDS TESTING
-        ("Delete my account", delete_manager_account), # NEEDS TESTING
+        ("Delete my account", delete_manager_account),
         ("Logout", None),
         ("Exit system", None),
     ], session)

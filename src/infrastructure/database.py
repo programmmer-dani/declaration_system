@@ -111,9 +111,9 @@ def save_assigned_backup(manager_user_id, backup_name, restore_code_hash):
         )
         conn.commit()
 
-def save_new_password(user_id, hashed_password):
+def save_new_password(user_id, hashed_password, is_password_temp=0):
     with get_connection() as conn:
-        cur = conn.execute("UPDATE users SET password_hash = ? WHERE user_id = ?", (hashed_password, user_id))
+        cur = conn.execute("UPDATE users SET password_hash = ?, is_password_temp = ? WHERE user_id = ?", (hashed_password, is_password_temp, user_id))
         conn.commit()
 
 def set_restore_code_used(restore_code_id):
@@ -134,7 +134,7 @@ def save_employee_edit(employee_id, key_to_update, updated_value):
 
 def delete_employee_from_db(employee_id):
     with get_connection() as conn:
-        cur = conn.execute("DELETE FROM employees WHERE user_id = ?", (employee_id,))
+        cur = conn.execute("DELETE FROM users WHERE user_id = ?", (employee_id,))
         conn.commit()
 
 def delete_claim_from_db(claim_id):
@@ -286,6 +286,7 @@ def create_tables(conn: sqlite3.Connection):
             username_enc BLOB NOT NULL,
             username_lookup TEXT NOT NULL UNIQUE,
             password_hash TEXT NOT NULL,
+            is_password_temp INTEGER NOT NULL DEFAULT 0 CHECK (is_password_temp IN (0, 1)),
             first_name_enc BLOB NOT NULL,
             last_name_enc BLOB NOT NULL,
             registration_date TEXT NOT NULL,
