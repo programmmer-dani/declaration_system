@@ -127,6 +127,5 @@ def employee_menu(session):
     
     
 # NEXT STEPS:
-# - RESET PASSWORD FUNCTIONALITY
 # - IMPLEMENT COMPLETE LOGGING WHERE NEEDED (functionality already made)
 # - TEST ALL FUNCTIONALITY EXTENSIVELY
