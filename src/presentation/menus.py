@@ -6,10 +6,12 @@ from domain.helpers import (
     delete_claim,
     delete_employee_account,
     delete_manager_account,
+    delete_manager_account_as_admin,
     edit_claim,
-    edit_claim_as_manager,
+    edit_claim_as_manager_or_admin,
     edit_employee_account,
     edit_manager_account,
+    edit_manager_account_as_admin,
     reject_claim,
     request_employees_claims,
     search_claims,
@@ -67,6 +69,15 @@ def superadmin_menu(session):
         ("Restore any backup", restore_any_backup), # add visual feedback for completing task (optional)
         ("View restore code status", view_restore_code_status), # NEEDS TESTING
         ("Revoke restore code", revoke_restore_code), # NEEDS TESTING fake restore codes get: 'NoneType' object is not subscriptable
+        ("Edit claims project/travel distance", edit_claim_as_manager_or_admin), # NEEDS TESTING
+        ("Approve claim", approve_claim), # NEEDS TESTING
+        ("Reject claim", reject_claim), # NEEDS TESTING
+        ("Assign claim to salary-batch", set_claims_salary_batch), # NEEDS TESTING
+        ("Search claim", search_claims),
+        ("Search employee", search_employees),
+        ("Update manager account", edit_manager_account_as_admin), # NEEDS TESTING
+        ("Delete manager account", delete_manager_account_as_admin), # NEEDS TESTING
+        ("View logs", view_logs), # on hold till logging is made complete
         ("Logout", None),
         ("Exit system", None),
     ], session)
@@ -86,7 +97,7 @@ def manager_menu(session):
         ("Restore backup with code", restore_backup_with_code), # NEEDS TESTING
         ("View employee list", view_employee_list), # NEEDS TESTING
         ("View claims submitted by employees", view_employees_claims), # NEEDS TESTING
-        ("Edit claims project/travel distance", edit_claim_as_manager), # NEEDS TESTING
+        ("Edit claims project/travel distance", edit_claim_as_manager_or_admin), # NEEDS TESTING
         ("Assign claim to salary-batch", set_claims_salary_batch), # NEEDS TESTING
         ("Approve claim", approve_claim), # NEEDS TESTING
         ("Reject claim", reject_claim), # NEEDS TESTING

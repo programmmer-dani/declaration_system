@@ -101,7 +101,7 @@ def edit_employee_account(session):
     raise Exception("Unauthorized access")
 
 def set_claims_salary_batch(session):
-    if session["role"] == "manager":
+    if session["role"] in ["manager", "admin"]:
         claims = fetch_claims_without_salary_batch() # maybe only fetch unaproved claims
         if not claims:
             raise Exception("No claims found")
@@ -113,7 +113,7 @@ def set_claims_salary_batch(session):
     raise Exception("Unauthorized access")
 
 def search_claims(session):
-    if session["role"] in ["employee", "manager"]:
+    if session["role"] in ["employee", "manager", "admin"]:
         if session["role"] == "employee":
             rows = fetch_employees_claims_with_travel(session["user_id"])
         elif session["role"] == "manager":
@@ -132,7 +132,7 @@ def search_claims(session):
     raise Exception("Unauthorized access")
 
 def search_employees(session):
-    if session["role"] == "manager":
+    if session["role"] in ["manager", "admin"]:
         employees = fetch_all_employees()
         if not employees:
             raise Exception("No employees found")
@@ -154,6 +154,33 @@ def update_password(session):
             return "logout"
         password = go_validate("Enter new password: ", validate_password)
         save_new_password(session["user_id"], hash_password(password))
+        return
+    raise Exception("Unauthorized access")
+
+def edit_manager_account_as_admin(session):
+    if session["role"] == "admin":
+        managers = fetch_all_managers()
+        if not managers:
+            raise Exception("No managers found")
+        manager = print_and_select_from_list(managers, "Select manager to edit: ")
+        manager_id = manager["user_id"]
+        keys = ["first_name", "last_name"]
+        key_to_update = print_and_select_from_list(keys, "Select key to update: ")
+        updated_value = go_validate(f"Enter new value for {key_to_update}: ", find_validator(key_to_update))
+        updated_value = encrypt_value(updated_value)
+        key_to_update = key_to_update + "_enc"
+        save_employee_edit(manager_id, key_to_update, updated_value)
+        return
+    raise Exception("Unauthorized access")
+
+def delete_manager_account_as_admin(session):
+    if session["role"] == "admin":
+        managers = fetch_all_managers()
+        if not managers:
+            raise Exception("No managers found")
+        manager = print_and_select_from_list(managers, "Select manager to delete: ")
+        manager_id = manager["user_id"]
+        delete_employee_from_db(manager_id)
         return
     raise Exception("Unauthorized access")
 
@@ -217,8 +244,8 @@ def edit_claim(session): # EXTENSIVELY TEST THIS FUNCTION
         return
     raise Exception("Unauthorized access")
 
-def edit_claim_as_manager(session):
-    if session["role"] == "manager":
+def edit_claim_as_manager_or_admin(session):
+    if session["role"] in ["manager", "admin"]:
         claims = fetch_all_claims() # maybe only fetch unaproved claims
         if not claims:
             raise Exception("No claims found")
@@ -292,7 +319,7 @@ def get_keys_to_update(claim_type):
         ]
 
 def approve_claim(session):
-    if session["role"] == "manager":
+    if session["role"] in ["manager", "admin"]:
         claims = fetch_pending_claims()
         if not claims:
             raise Exception("No claims found")
@@ -303,7 +330,7 @@ def approve_claim(session):
     raise Exception("Unauthorized access")
     
 def reject_claim(session):
-    if session["role"] == "manager":
+    if session["role"] in ["manager", "admin"]:
         claims = fetch_pending_claims()
         if not claims:
             raise Exception("No claims found")
