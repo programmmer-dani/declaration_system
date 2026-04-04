@@ -23,6 +23,12 @@ def fetch_unread_logs():
         cur = conn.execute("SELECT * FROM logs WHERE is_read = 0")
         logs = cur.fetchall()
         return logs
+    
+def fetch_last2_logs():
+    with get_connection() as conn:
+        cur = conn.execute("SELECT * FROM logs ORDER BY log_id DESC LIMIT 2")
+        logs = cur.fetchall()
+        return logs
 
 def fetch_all_employees():
     with get_connection() as conn:

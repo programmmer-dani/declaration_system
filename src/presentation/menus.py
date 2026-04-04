@@ -17,7 +17,6 @@ from domain.helpers import (
     reset_users_password,
     search_claims,
     search_employees,
-    set_claims_salary_batch,
     update_password,
     view_employee_list,
     view_employees_claims,
@@ -56,7 +55,6 @@ def _run_menu(title, options, session):
         print("Not implemented yet.")
         
 
-### ALL MENU FUNCTIONALITIES NEED SESSION PARAMETER, FIX THIS (so that they expect this parameter)
 ### LOGGING FUNCTIONALITY MADE BUT NEEDS TO BE CALLED ON THE APPROPRIATE PLACES
 
 def superadmin_menu(session):

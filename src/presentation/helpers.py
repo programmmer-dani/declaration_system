@@ -9,6 +9,7 @@ from domain.security.validation import (
     validate_zip_code,
     validate_house_number,
 )
+from logging_system import log_event
 
 
 def get_login_input():
@@ -25,6 +26,7 @@ def go_validate(input_message, validator):
         value = input(input_message)
         if validator(value):
             return value
+        log_event("Incorrect login attempt")
         print_error("Invalid input, try again.")
 
 def go_validate_menu_choice(input_message, validator, number_of_choices):

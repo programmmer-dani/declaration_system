@@ -122,4 +122,3 @@ def login(credentials):
             update_temp_password(user)
             return user
     return None
-
