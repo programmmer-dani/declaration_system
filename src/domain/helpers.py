@@ -25,6 +25,7 @@ from infrastructure.database import (
     save_rejected_claim,
     save_user,
 )
+from logging_system import log_event
 from presentation.helpers import (
     get_claim_data,
     get_login_input,
@@ -36,6 +37,7 @@ from presentation.helpers import (
     print_and_select_from_list,
     print_claim_list,
     print_error,
+    print_log_list,
     print_temp_password,
     print_user_list,
 )
@@ -89,7 +91,9 @@ def reset_users_password(session):
         temp_password_hash = hash_password(temp_password)
         save_new_password(user_id, temp_password_hash, is_password_temp=1)
         print_temp_password(temp_password)
+        log_event("users password reset", username_enc=session["username_enc"], additional_info=f"user: {decrypt_value(user["username_enc"])}")
         return
+    log_event("unauthorized users password reset attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
 
 
@@ -115,12 +119,14 @@ def generate_temp_password():
     return generate_temp_password()
 
 def view_logs(session):
-    if session["role"] == "manager":
+    if session["role"] in ["manager", "admin"]:
         logs = fetch_all_logs()
         if not logs:
             raise Exception("No logs found")
-        # print_log_list(logs) logging needs further implementation to display logs in a readable format
+        print_log_list(logs)
+        log_event("logs viewed", username_enc=session["username_enc"])
         return
+    log_event("unauthorized logs view attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
 
 def edit_employee_account(session):
@@ -157,6 +163,7 @@ def search_claims(session):
             if not rows:
                 raise Exception("No claims found")
             needle = _normalize_search_text(input_claim_search_term())
+            log_event("claims searched", username_enc=session["username_enc"], additional_info=f"claims searched for {needle}")
             matched = [r for r in rows if _claim_row_matches_partial_search(r, needle)]
             if not matched:
                 print_error("No claims match that search.")
@@ -164,7 +171,9 @@ def search_claims(session):
             print_claim_list(matched)
             return
         else:
+            log_event("invalid role claim search attempt", username_enc=session["username_enc"], is_suspicious=True)
             raise Exception("Invalid role")
+    log_event("claims searched", username_enc=session["username_enc"], additional_info=f"claims searched for {needle}")
     raise Exception("Unauthorized access")
 
 def search_employees(session):
@@ -174,11 +183,13 @@ def search_employees(session):
             raise Exception("No employees found")
         needle = _normalize_search_text(input_employee_search_term())
         matched = [r for r in employees if _employee_row_matches_partial_search(r, needle)]
+        log_event("employees searched", username_enc=session["username_enc"], additional_info=f"employees searched for {needle}")
         if not matched:
             print_error("No employees match that search.")
             return
         print_user_list(format_user_list(matched))
         return
+    log_event("unauthorized employee search attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
 
 
@@ -209,7 +220,9 @@ def edit_manager_account_as_admin(session):
         updated_value = encrypt_value(updated_value)
         key_to_update = key_to_update + "_enc"
         save_employee_edit(manager_id, key_to_update, updated_value)
+        log_event("manager account edited", username_enc=session["username_enc"], additional_info=f"manager account edited (id: {manager_id}): {key_to_update} updated to {updated_value}")
         return
+    log_event("unauthorized manager account edit attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
 
 def delete_manager_account_as_admin(session):
@@ -221,7 +234,9 @@ def delete_manager_account_as_admin(session):
         manager = print_and_select_from_list(formatted, "Select manager to delete: ")
         manager_id = manager["user_id"]
         delete_employee_from_db(manager_id)
+        log_event("manager account deleted", username_enc=session["username_enc"], additional_info=f"manager account deleted (username: {decrypt_value(manager["username_enc"])})")
         return
+    log_event("unauthorized manager account delete attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
 
 def edit_manager_account(session):
@@ -299,7 +314,9 @@ def edit_claim_as_manager_or_admin(session):
         updated_value = encrypt_value(updated_value)
         key_to_update = key_to_update + "_enc"
         save_claim_edit(claim_id, key_to_update, updated_value)
+        log_event("claim edited", username_enc=session["username_enc"], additional_info=f"claim edited (id: {claim_id}): {key_to_update} updated to {updated_value}")
         return
+    log_event("unauthorized claim edit attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
     
 def find_validator(key_to_update):
@@ -367,10 +384,13 @@ def approve_claim(session):
         claim = print_and_select_from_list(formatted_claims, "Select claim to approve: ")
         try: 
             set_claims_salary_batch(session, claim["claim_id"])
+            log_event("claims salary batch  set", username_enc=session["username_enc"], additional_info=f"claim (id: {claim["claim_id"]}) salary batch set to {claim["salary_batch"]}")
         except Exception as e:
             raise Exception(f"Error setting salary-batch: {e}")
         save_approved_claim(claim["claim_id"], session["user_id"])
+        log_event("claim approved", username_enc=session["username_enc"], additional_info=f"claim approved (id: {claim["claim_id"]})")
         return
+    log_event("unauthorized claim approve attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
     
 def reject_claim(session):
@@ -381,7 +401,9 @@ def reject_claim(session):
         formatted_claims = format_claim_list(claims)
         claim = print_and_select_from_list(formatted_claims, "Select claim to reject: ")
         save_rejected_claim(claim["claim_id"], session["user_id"])
+        log_event("claim rejected", username_enc=session["username_enc"], additional_info=f"claim rejected (id: {claim["claim_id"]})")
         return
+    log_event("unauthorized claim reject attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
     
 def format_claim_list(claims): # is this the correct data to display
@@ -408,6 +430,7 @@ def create_claim(session):
     raise Exception("Unauthorized access")
 
 def create_user(session):
+    log_event("create user attempt", username_enc=session["username_enc"])
     session_role = session["role"]
     if session_role in ["manager", "admin"]:
         if session_role == "admin":
@@ -422,9 +445,11 @@ def create_user(session):
             verify_existing_username(user_data["username"])
             secured_user_data = secure_user_data(user_data) 
             save_user(now, secured_user_data)
+            log_event("create user success", username_enc=session["username_enc"], additional_info=f"user created: {user_data["username"]}")
             return
         except ValueError as e:
             raise Exception(e)
+    log_event("invalid role create user attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Invalid role")
     # optionally add visual feedback
 

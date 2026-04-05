@@ -1,5 +1,7 @@
+from domain.security.encryption import encrypt_value
 from domain.security.security import login
 from infrastructure.database import init_db
+from logging_system import log_event
 from presentation.helpers import get_login_input, print_error
 from presentation.menus import employee_menu, manager_menu, superadmin_menu
 
@@ -43,4 +45,5 @@ def verify_user_menu(session):
         return manager_menu
     elif session["role"] == "employee":
         return employee_menu
+    log_event("unexisting role login attempt", username_enc=session["username"], is_suspicious=True)
     raise Exception("Invalid role")

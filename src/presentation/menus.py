@@ -23,7 +23,7 @@ from domain.helpers import (
     view_logs,
 )
 from domain.security.validation import validate_menu_choice
-from logging_system import uread_log_count
+from logging_system import log_event, uread_log_count
 from presentation.helpers import call_to_create_backup, go_validate_menu_choice, print_error
 
 def _run_menu(title, options, session):
@@ -59,6 +59,7 @@ def _run_menu(title, options, session):
 
 def superadmin_menu(session):
     if session["role"] != "admin":
+        log_event("unauthorized menu access attempt", username_enc=session["username"], is_suspicious=True)
         return Exception("Unauthorized access")
     unread_logs = uread_log_count()
     return _run_menu(f"Super Admin ({unread_logs} unread suspicious logs)", [
@@ -84,6 +85,7 @@ def superadmin_menu(session):
 
 def manager_menu(session):
     if session["role"] != "manager":
+        log_event("unauthorized menu access attempt", username_enc=session["username"], is_suspicious=True)
         return Exception("Unauthorized access")
     unread_logs = uread_log_count()
     return _run_menu(f"Manager ({unread_logs} unread suspicious logs)", [ # Check if count updates automatically (I think it does)
@@ -111,6 +113,7 @@ def manager_menu(session):
 
 def employee_menu(session):
     if session["role"] != "employee":
+        log_event("unauthorized menu access attempt", username_enc=session["username"], is_suspicious=True)
         return Exception("Unauthorized access")
     return _run_menu("Employee", [
         ("Search in my claims", search_claims),

@@ -1,3 +1,7 @@
+import datetime
+
+from logging_system import log_event
+from domain.security.encryption import decrypt_value
 from domain.security.validation import validate_birthday, validate_bsn, validate_city, validate_claim_date, validate_email, validate_employee_search_term, validate_gender, validate_house_number, validate_id_doc_number, validate_id_doc_type, validate_menu_choice, validate_mobile_phone, validate_name, validate_password, validate_restore_code, validate_street_name, validate_username, validate_zip_code
 from infrastructure.backup_infrastructure import create_backup
 from domain.security.validation import (
@@ -9,12 +13,11 @@ from domain.security.validation import (
     validate_zip_code,
     validate_house_number,
 )
-from logging_system import log_event
-
 
 def get_login_input():
     username = go_validate("Username: ", validate_username)
     password = go_validate("Password: ", validate_password)
+    log_event("login attempt")
     return {"username": username, "password": password}
 
 def print_error(error):
@@ -26,7 +29,6 @@ def go_validate(input_message, validator):
         value = input(input_message)
         if validator(value):
             return value
-        log_event("Incorrect login attempt")
         print_error("Invalid input, try again.")
 
 def go_validate_menu_choice(input_message, validator, number_of_choices):
@@ -68,13 +70,40 @@ def print_claim_list(claims): # is this the correct data to display
             f"ID {claim['claim_id']} : {claim['claim_date']} — "
             f"{claim['claim_type']} — {claim['status']}"
         )
-    
+
+
+def _format_log_created_at(created_at):
+    log_stored_ts = "%Y%m%d_%H%M%S"
+    log_display_ts = "%Y-%m-%d %H:%M:%S"
+    try:
+        return datetime.datetime.strptime(created_at, log_stored_ts).strftime(log_display_ts)
+    except (ValueError, TypeError):
+        return str(created_at)
+
+
+def print_log_list(logs):
+    for row in logs:
+        r = dict(row)
+        when = _format_log_created_at(r["created_at"])
+        act = decrypt_value(r["activity_desc_enc"])
+        user = decrypt_value(r["username_enc"]) if r["username_enc"] is not None else "—"
+        extra = decrypt_value(r["additional_info_enc"]) if r["additional_info_enc"] else "—"
+        susp = "yes" if r["is_suspicious"] else "no"
+        read = "yes" if r["is_read"] else "no"
+        print(
+            f"[{r['log_id']}] {when} | {act} | username={user} | additional_info={extra} "
+            f"| is_suspicious={susp} | is_read={read}"
+        )
+
+
 def call_to_create_backup(session):
     if session["role"] in ["admin", "manager"]:
         print("Creating backup...")
+        log_event("backup created from this point", username_enc=session["username_enc"])
         backup_path = create_backup() # presentation layer shouldn't make this call, domain logic should
         print(f"Backup created at {backup_path}")
         return
+    log_event("unauthorized backup create attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
     
     

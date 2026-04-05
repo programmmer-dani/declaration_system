@@ -2,6 +2,7 @@ from domain.security.temp_password_updator import update_temp_password
 from infrastructure.database import find_user_by_username, username_exists
 from domain.security.encryption import decrypt_value, encrypt_value
 from domain.security.hashing import hash_password, hash_username, verify_password
+from logging_system import log_event
 
 
 def secure_claim_data(session, claim_data):
@@ -88,6 +89,11 @@ def print_db_content():
             "travel_distance_enc", "from_zip_enc", "from_house_number_enc",
             "to_zip_enc", "to_house_number_enc",
         ]),
+        ("restore_codes", []),
+        (
+            "logs",
+            ["username_enc", "activity_desc_enc", "additional_info_enc"],
+        ),
     ]
     with get_connection() as conn:
         for table_name, enc_cols in tables:
@@ -110,15 +116,19 @@ def verify_existing_username(username):
 def login(credentials):
     print_db_content() # DONT FORGET TO REMOVE
     if credentials["username"] == "super_admin" and credentials["password"] == "Admin_123?":
-        return {"role":"admin"} # ASSIGNMENT REQUIREMENT HARDCODED EXCEPTION
+        log_event("super admin logged in")
+        return {"role":"admin", "username_enc": encrypt_value(credentials["username"])} # ASSIGNMENT REQUIREMENT HARDCODED EXCEPTION
     user = find_user_by_username(credentials["username"])
     if user is None:
+        log_event("incorrect username login attempt", username_enc=encrypt_value(credentials["username"]))
         return None
     is_temp_password = user["is_password_temp"] == 1
     if verify_password(credentials["password"], user["password_hash"]):
         if is_temp_password is False:
+            log_event("succesfull login", username_enc=encrypt_value(credentials["username"]))
             return user
         else:
             update_temp_password(user)
             return user
+    log_event("incorrect password login attempt", username_enc=encrypt_value(credentials["username"]))
     return None

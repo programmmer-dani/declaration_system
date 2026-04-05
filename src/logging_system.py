@@ -1,30 +1,36 @@
 import datetime
 
-from domain.security.encryption import decrypt_value, encrypt_value
-from infrastructure.database import fetch_last2_logs, fetch_unread_logs, save_log
+from infrastructure.database import fetch_unread_logs
 
-### IMPLEMENT THIS CODE FOR LOGGING IN
-def log_event(activity_desc, is_suspicious=False, username_enc=None, additional_info=None):
-    fmt = "%Y%m%d_%H%M%S"
-    now = datetime.datetime.now()
-    last2 = fetch_last2_logs()
-    wrong = "Incorrect login attempt"
-    if (
-        len(last2) >= 2
-        and activity_desc == wrong
-        and decrypt_value(last2[0]["activity_desc_enc"]) == wrong
-        and decrypt_value(last2[1]["activity_desc_enc"]) == wrong
-    ):
-        t1 = datetime.datetime.strptime(last2[0]["created_at"], fmt)
-        t0 = datetime.datetime.strptime(last2[1]["created_at"], fmt)
-        if (t1 - t0).total_seconds() <= 120 and (now - t0).total_seconds() <= 120:
-            is_suspicious = True
+def log_event(activity_desc, username_enc=None, additional_info=None, is_suspicious=False):
+    from domain.security.encryption import encrypt_value
+    from infrastructure.database import save_log
+    ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    save_log(
+        ts,
+        username_enc,
+        encrypt_value(activity_desc),
+        1 if is_suspicious else 0,
+        encrypt_value(additional_info) if additional_info else None,
+    )
 
-    ts = now.strftime(fmt)
-    activity_desc_enc = encrypt_value(activity_desc)
-    additional_info_enc = encrypt_value(additional_info) if additional_info else None
-    save_log(ts, username_enc, activity_desc_enc, is_suspicious, additional_info_enc)
-
+# def bruteforce_detected():
+#     fmt = "%Y%m%d_%H%M%S"
+#     wrong = "Incorrect login attempt"
+#     bad = []
+#     for row in fetch_bad_login_logs():
+#         try:
+#             if decrypt_value(row["activity_desc_enc"]) == wrong:
+#                 bad.append(row)
+#         except Exception:
+#             continue
+#         if len(bad) >= 5:
+#             break
+#     if len(bad) < 5:
+#         return False
+#     t_newest = datetime.datetime.strptime(bad[0]["created_at"], fmt)
+#     t_oldest = datetime.datetime.strptime(bad[4]["created_at"], fmt)
+#     return (t_newest - t_oldest).total_seconds() <= 300
 
 def uread_log_count():
     return len(fetch_unread_logs())

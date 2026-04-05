@@ -24,11 +24,10 @@ def fetch_unread_logs():
         logs = cur.fetchall()
         return logs
     
-def fetch_last2_logs():
-    with get_connection() as conn:
-        cur = conn.execute("SELECT * FROM logs ORDER BY log_id DESC LIMIT 2")
-        logs = cur.fetchall()
-        return logs
+# def fetch_5_bad_login_logs():
+#     with get_connection() as conn:
+#         cur = conn.execute("SELECT * FROM logs WHERE activity_desc = 'Incorrect login attempt' ORDER BY log_id ASC LIMIT 5")
+#         return cur.fetchall()
 
 def fetch_all_employees():
     with get_connection() as conn:
