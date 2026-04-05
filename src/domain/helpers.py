@@ -74,6 +74,8 @@ def _claim_row_matches_partial_search(row, needle_normalized):
             "to_zip_enc",
             "to_house_number_enc",
         ):
+            if key not in row:
+                continue
             blob = row[key]
             parts.append(decrypt_value(blob) if blob is not None else "")
     haystack = _normalize_search_text(" ".join(parts))
@@ -161,26 +163,27 @@ def set_claims_salary_batch(session, claim_id):
     raise Exception("Unauthorized access")
 
 def search_claims(session):
-    if session["role"] in ["employee", "manager", "admin"]:
-        if session["role"] == "employee":
-            rows = fetch_employees_claims_with_travel(session["user_id"])
-        elif session["role"] == "manager" or session["role"] == "admin":
-            rows = fetch_all_claims()
-            if not rows:
-                raise Exception("No claims found")
-            needle = _normalize_search_text(input_claim_search_term())
-            log_event("claims searched", username_enc=session["username_enc"], additional_info=f"claims searched for {needle}")
-            matched = [r for r in rows if _claim_row_matches_partial_search(r, needle)]
-            if not matched:
-                print_error("No claims match that search.")
-                return
-            print_claim_list(matched)
-            return
-        else:
-            log_event("invalid role claim search attempt", username_enc=session["username_enc"], is_suspicious=True)
-            raise Exception("Invalid role")
+    if session["role"] not in ["employee", "manager", "admin"]:
+        log_event("unauthorized claims search attempt", username_enc=session["username_enc"], is_suspicious=True)
+        raise Exception("Unauthorized access")
+
+    if session["role"] == "employee":
+        rows = fetch_employees_claims_with_travel(session["user_id"])
+    elif session["role"] in ["manager", "admin"]:
+        rows = fetch_all_claims()
+        if not rows:
+            raise Exception("No claims found")
+    else:
+        log_event("invalid role claims search attempt", username_enc=session["username_enc"], is_suspicious=True)
+        raise Exception("Invalid role")
+
+    needle = _normalize_search_text(input_claim_search_term())
     log_event("claims searched", username_enc=session["username_enc"], additional_info=f"claims searched for {needle}")
-    raise Exception("Unauthorized access")
+    matched = [r for r in rows if _claim_row_matches_partial_search(r, needle)]
+    if not matched:
+        print_error("No claims match that search.")
+        return
+    print_claim_list(matched)
 
 def search_employees(session):
     if session["role"] in ["manager", "admin"]:
