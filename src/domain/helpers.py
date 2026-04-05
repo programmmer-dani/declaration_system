@@ -17,6 +17,7 @@ from infrastructure.database import (
     fetch_employees_claims,
     fetch_employees_claims_with_travel,
     fetch_pending_claims,
+    flag_all_logs_as_read,
     save_approved_claim,
     save_claim,
     save_claim_edit,
@@ -124,6 +125,7 @@ def view_logs(session):
         if not logs:
             raise Exception("No logs found")
         print_log_list(logs)
+        flag_all_logs_as_read()
         log_event("logs viewed", username_enc=session["username_enc"])
         return
     log_event("unauthorized logs view attempt", username_enc=session["username_enc"], is_suspicious=True)

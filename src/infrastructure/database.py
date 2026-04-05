@@ -18,12 +18,16 @@ def fetch_all_managers():
         managers = cur.fetchall()
         return managers
 
-def fetch_unread_logs():
+def fetch_unread_suspicious_logs():
     with get_connection() as conn:
-        cur = conn.execute("SELECT * FROM logs WHERE is_read = 0")
+        cur = conn.execute("SELECT * FROM logs WHERE is_read = 0 AND is_suspicious = 1")
         logs = cur.fetchall()
         return logs
 
+def flag_all_logs_as_read():
+    with get_connection() as conn:
+        cur = conn.execute("UPDATE logs SET is_read = 1")
+        conn.commit()
 
 def fetch_logs_since_created_at(since_created_at):
     with get_connection() as conn:
@@ -32,12 +36,6 @@ def fetch_logs_since_created_at(since_created_at):
             (since_created_at,),
         )
         return cur.fetchall()
-
-
-# def fetch_5_bad_login_logs():
-#     with get_connection() as conn:
-#         cur = conn.execute("SELECT * FROM logs WHERE activity_desc = 'Incorrect login attempt' ORDER BY log_id ASC LIMIT 5")
-#         return cur.fetchall()
 
 def fetch_all_employees():
     with get_connection() as conn:

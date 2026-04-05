@@ -23,7 +23,7 @@ from domain.helpers import (
     view_logs,
 )
 from domain.security.validation import validate_menu_choice
-from logging_system import log_event, uread_log_count
+from logging_system import log_event, unread_suspicious_log_count
 from presentation.helpers import call_to_create_backup, go_validate_menu_choice, print_error
 
 def _run_menu(title, options, session):
@@ -61,7 +61,7 @@ def superadmin_menu(session):
     if session["role"] != "admin":
         log_event("unauthorized menu access attempt", username_enc=session["username"], is_suspicious=True)
         return Exception("Unauthorized access")
-    unread_logs = uread_log_count()
+    unread_logs = unread_suspicious_log_count()
     return _run_menu(f"Super Admin ({unread_logs} unread suspicious logs)", [
         ("Create manager account", create_user), # does manager create employee account?????????
         ("Backup system", call_to_create_backup), # now displays complete filepath of where backup is saved??? vulnerable to path traversal attack
@@ -87,7 +87,7 @@ def manager_menu(session):
     if session["role"] != "manager":
         log_event("unauthorized menu access attempt", username_enc=session["username"], is_suspicious=True)
         return Exception("Unauthorized access")
-    unread_logs = uread_log_count()
+    unread_logs = unread_suspicious_log_count()
     return _run_menu(f"Manager ({unread_logs} unread suspicious logs)", [ # Check if count updates automatically (I think it does)
         ("Search claim", search_claims),
         ("Search employee", search_employees),
@@ -128,5 +128,4 @@ def employee_menu(session):
     
     
 # NEXT STEPS:
-# - IMPLEMENT COMPLETE LOGGING WHERE NEEDED (functionality already made)
 # - TEST ALL FUNCTIONALITY EXTENSIVELY
