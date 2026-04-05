@@ -96,7 +96,11 @@ def reset_users_password(session):
         temp_password_hash = hash_password(temp_password)
         save_new_password(user_id, temp_password_hash, is_password_temp=1)
         print_temp_password(temp_password)
-        log_event("users password reset", username_enc=session["username_enc"], additional_info=f"user: {decrypt_value(user["username_enc"])}")
+        log_event(
+            "users password reset",
+            username_enc=session["username_enc"],
+            additional_info=f"user: {user['user']}",
+        )
         return
     log_event("unauthorized users password reset attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
