@@ -287,7 +287,9 @@ def delete_claim(session):
         claim = print_and_select_from_list(formatted_claims, "Select claim to delete: ")
         claim_id = claim["claim_id"]
         delete_claim_from_db(claim_id)
+        log_event("claim deleted", username_enc=session["username_enc"], additional_info=f"claim deleted (id: {claim_id})")
         return
+    log_event("unauthorized claim delete attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
 
 def edit_claim(session): # EXTENSIVELY TEST THIS FUNCTION
@@ -306,7 +308,9 @@ def edit_claim(session): # EXTENSIVELY TEST THIS FUNCTION
             updated_value = encrypt_value(updated_value)
             key_to_update = key_to_update + "_enc"
         save_claim_edit(claim_id, key_to_update, updated_value)
+        log_event("claim edited", username_enc=session["username_enc"], additional_info=f"claim edited (id: {claim_id}): {key_to_update} updated to {updated_value}")
         return
+    log_event("unauthorized claim edit attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
 
 def edit_claim_as_manager_or_admin(session):
@@ -436,7 +440,9 @@ def create_claim(session):
         claim_data = get_claim_data()
         secured_claim_data = secure_claim_data(session, claim_data)
         save_claim(secured_claim_data)
+        log_event("claim created", username_enc=session["username_enc"], additional_info=f"claim created (id: {secured_claim_data["claim_id"]})")
         return
+    log_event("unauthorized claim create attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
 
 def create_user(session):
@@ -494,7 +500,9 @@ def request_employees_claims(session):
         if not claims:
             raise Exception("No claims found")
         print_claim_list(claims)
+        log_event("employees own claims viewed", username_enc=session["username_enc"]) 
         return
+    log_event("unauthorized employees claims view attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
 
 def request_managers():
