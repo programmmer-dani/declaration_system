@@ -18,7 +18,7 @@ def app():
     while session is None:
         print_error("Invalid username or password")
         if is_bruteforce_lockout_active():
-            log_event("bruteforce lockout active", is_suspicious=True)
+            log_event("bruteforce lockout activated", is_suspicious=True)
             print_error("Too many failed login attempts. Please wait about one minute.")
             exit()
         session = login(get_login_input())

@@ -41,5 +41,5 @@ def overwrite_db(db): # db is local file that gets overwritten by locally overwr
     
 def set_restore_code_revoked(restore_code_object):
     with get_connection() as conn:
-        cur = conn.execute("UPDATE restore_codes SET is_revoked = 1 WHERE id = ?", (restore_code_object["id"],))
+        cur = conn.execute("UPDATE restore_codes SET is_revoked = 1 WHERE restore_code_id = ?", (restore_code_object["restore_code_id"],))
         conn.commit()
