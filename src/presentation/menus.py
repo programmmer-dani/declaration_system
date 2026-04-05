@@ -67,8 +67,8 @@ def superadmin_menu(session):
         ("Backup system", call_to_create_backup),
         ("Generate restore code for manager", assign_backup),
         ("Restore any backup", restore_any_backup),
-        ("View restore code status", view_restore_code_status), # NEEDS TESTING
-        ("Revoke restore code", revoke_restore_code), # NEEDS TESTING fake restore codes get: 'NoneType' object is not subscriptable
+        ("View restore code status", view_restore_code_status),
+        ("Revoke restore code", revoke_restore_code),
         ("Edit claims project/travel distance", edit_claim_as_manager_or_admin), # NEEDS TESTING
         ("Approve claim", approve_claim), # NEEDS TESTING
         ("Reject claim", reject_claim), # NEEDS TESTING

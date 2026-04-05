@@ -43,9 +43,9 @@ def fetch_all_employees():
         employees = cur.fetchall()
         return employees
 
-def fetch_all_claims(user_id): # bad naming
+def fetch_all_claims():
     with get_connection() as conn:
-        cur = conn.execute("SELECT * FROM claims WHERE user_id = ?", (user_id,))
+        cur = conn.execute("SELECT * FROM claims")
         claims = cur.fetchall()
         return claims
 
@@ -136,8 +136,12 @@ def set_restore_code_used(restore_code_id):
         
 
 def save_claim_edit(claim_id, key_to_update, updated_value):
+    ALLOWED_UPDATE_COLUMNS = {"status","claim_type","salary_batch_enc", "project_number", "travel_distance"}
+    if key_to_update not in ALLOWED_UPDATE_COLUMNS:
+        save_log("Attempt to update invalid claim column", is_suspicious=True, additional_info_enc=key_to_update)
+        raise ValueError("Invalid claim, logged incident")
     with get_connection() as conn:
-        cur = conn.execute(f"UPDATE claims SET ? = ? WHERE claim_id = ?", (key_to_update, updated_value, claim_id))
+        cur = conn.execute(f"UPDATE claims SET {key_to_update} = ? WHERE claim_id = ?", (updated_value, claim_id))
         conn.commit()
         
 def save_employee_edit(employee_id, key_to_update, updated_value):
@@ -266,6 +270,16 @@ def find_user_by_username(username):
             (lookup,),
         )
         return cur.fetchone()
+
+def get_user_id_by_username(username):
+    lookup = hash_username(username)
+    with get_connection() as conn:
+        cur = conn.execute(
+            "SELECT user_id FROM users WHERE username_lookup = ? AND is_active = 1",
+            (lookup,),
+        )
+        row = cur.fetchone()
+        return row["user_id"] if row is not None else None
 
 
 def save_log(ts, username_enc, activity_desc_enc, is_suspicious, additional_info_enc=None):

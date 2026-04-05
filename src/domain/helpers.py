@@ -25,6 +25,7 @@ from infrastructure.database import (
     save_new_password,
     save_rejected_claim,
     save_user,
+    get_user_id_by_username,
 )
 from logging_system import log_event
 from presentation.helpers import (
@@ -162,7 +163,7 @@ def search_claims(session):
     if session["role"] in ["employee", "manager", "admin"]:
         if session["role"] == "employee":
             rows = fetch_employees_claims_with_travel(session["user_id"])
-        elif session["role"] == "manager":
+        elif session["role"] == "manager" or session["role"] == "admin":
             rows = fetch_all_claims()
             if not rows:
                 raise Exception("No claims found")
@@ -317,7 +318,7 @@ def edit_claim(session): # EXTENSIVELY TEST THIS FUNCTION
 
 def edit_claim_as_manager_or_admin(session):
     if session["role"] in ["manager", "admin"]:
-        claims = fetch_all_claims() # maybe only fetch unaproved claims
+        claims = fetch_all_claims()
         if not claims:
             raise Exception("No claims found")
 
@@ -331,6 +332,7 @@ def edit_claim_as_manager_or_admin(session):
         key_to_update = key_to_update + "_enc"
         save_claim_edit(claim_id, key_to_update, updated_value)
         log_event("claim edited", username_enc=session["username_enc"], additional_info=f"claim edited (id: {claim_id}): {key_to_update} updated to {updated_value}")
+        print("Claim edited successfully.")
         return
     log_event("unauthorized claim edit attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
@@ -400,11 +402,12 @@ def approve_claim(session):
         claim = print_and_select_from_list(formatted_claims, "Select claim to approve: ")
         try: 
             set_claims_salary_batch(session, claim["claim_id"])
-            log_event("claims salary batch  set", username_enc=session["username_enc"], additional_info=f"claim (id: {claim["claim_id"]}) salary batch set to {claim["salary_batch"]}")
+            log_event("claims salary batch  set", username_enc=session["username_enc"], additional_info=f"claim (id: {claim["claim_id"]}) salary batch set during approve")
         except Exception as e:
             raise Exception(f"Error setting salary-batch: {e}")
-        save_approved_claim(claim["claim_id"], session["user_id"])
+        save_approved_claim(claim["claim_id"], get_user_id_by_username(decrypt_value(session["username_enc"])))
         log_event("claim approved", username_enc=session["username_enc"], additional_info=f"claim approved (id: {claim["claim_id"]})")
+        print("\nClaim approved successfully.")
         return
     log_event("unauthorized claim approve attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
@@ -416,8 +419,9 @@ def reject_claim(session):
             raise Exception("No claims found")
         formatted_claims = format_claim_list(claims)
         claim = print_and_select_from_list(formatted_claims, "Select claim to reject: ")
-        save_rejected_claim(claim["claim_id"], session["user_id"])
+        save_rejected_claim(claim["claim_id"], get_user_id_by_username(decrypt_value(session["username_enc"])))
         log_event("claim rejected", username_enc=session["username_enc"], additional_info=f"claim rejected (id: {claim["claim_id"]})")
+        print("\nClaim rejected successfully.")
         return
     log_event("unauthorized claim reject attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
