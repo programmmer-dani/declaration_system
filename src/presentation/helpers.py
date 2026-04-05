@@ -63,7 +63,7 @@ def print_user_list(users):
 def print_temp_password(temp_password):
     print(f"Temporary password: {temp_password}")
         
-def print_claim_list(claims): # is this the correct data to display
+def print_claim_list(claims):
     print("Your claims: ")
     for claim in claims:
         print(
@@ -100,7 +100,7 @@ def call_to_create_backup(session):
     if session["role"] in ["admin", "manager"]:
         print("Creating backup...")
         log_event("backup created from this point", username_enc=session["username_enc"])
-        backup_path = create_backup() # presentation layer shouldn't make this call, domain logic should
+        backup_path = create_backup()
         print(f"Backup created at {backup_path}")
         return
     log_event("unauthorized backup create attempt", username_enc=session["username_enc"], is_suspicious=True)
@@ -155,9 +155,9 @@ def get_claim_data():
 def get_travel_claim_data():
     return {
         "travel_distance": go_validate("Travel distance in km: ", validate_travel_distance),
-        "from_zip_code": go_validate("From ZIP code: ", validate_zip_code),
+        "from_zip_code": go_validate("From ZIP code (DDDDLL): ", validate_zip_code),
         "from_house_number": go_validate("From house number: ", validate_house_number),
-        "to_zip_code": go_validate("To ZIP code: ", validate_zip_code),
+        "to_zip_code": go_validate("To ZIP code (DDDDLL): ", validate_zip_code),
         "to_house_number": go_validate("To house number: ", validate_house_number),
     }        
 
@@ -183,7 +183,7 @@ def get_employee_data():
         "street_name": go_validate("Street name: ", validate_street_name),
         "house_number": go_validate("House number: ", validate_house_number),
         "zip_code": go_validate("Zip code: ", validate_zip_code),
-        "city": go_validate("City: ", validate_city),
+        "city": go_validate("City (Rotterdam): ", validate_city),
         "email": go_validate("Email: ", validate_email),
         "mobile_phone": go_validate("Mobile phone (8 digits): ", validate_mobile_phone),
         "id_doc_type": go_validate("ID doc type (Passport/ID-Card): ", validate_id_doc_type),
