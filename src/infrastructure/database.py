@@ -23,7 +23,17 @@ def fetch_unread_logs():
         cur = conn.execute("SELECT * FROM logs WHERE is_read = 0")
         logs = cur.fetchall()
         return logs
-    
+
+
+def fetch_logs_since_created_at(since_created_at):
+    with get_connection() as conn:
+        cur = conn.execute(
+            "SELECT * FROM logs WHERE created_at >= ? ORDER BY log_id DESC",
+            (since_created_at,),
+        )
+        return cur.fetchall()
+
+
 # def fetch_5_bad_login_logs():
 #     with get_connection() as conn:
 #         cur = conn.execute("SELECT * FROM logs WHERE activity_desc = 'Incorrect login attempt' ORDER BY log_id ASC LIMIT 5")

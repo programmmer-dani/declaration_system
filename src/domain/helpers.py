@@ -440,7 +440,7 @@ def create_claim(session):
         claim_data = get_claim_data()
         secured_claim_data = secure_claim_data(session, claim_data)
         save_claim(secured_claim_data)
-        log_event("claim created", username_enc=session["username_enc"], additional_info=f"claim created (id: {secured_claim_data["claim_id"]})")
+        log_event("claim created", username_enc=session["username_enc"])
         return
     log_event("unauthorized claim create attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
