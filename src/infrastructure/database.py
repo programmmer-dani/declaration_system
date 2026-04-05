@@ -5,7 +5,6 @@ import sqlite3
 from domain.security.hashing import hash_username
 from infrastructure.config import DATABASE_PATH
 
-
 def fetch_all_logs():
     with get_connection() as conn:
         cur = conn.execute("SELECT * FROM logs")
@@ -138,15 +137,25 @@ def set_restore_code_used(restore_code_id):
 def save_claim_edit(claim_id, key_to_update, updated_value):
     ALLOWED_UPDATE_COLUMNS = {"status","claim_type","salary_batch_enc", "project_number", "travel_distance"}
     if key_to_update not in ALLOWED_UPDATE_COLUMNS:
-        save_log("Attempt to update invalid claim column", is_suspicious=True, additional_info_enc=key_to_update)
-        raise ValueError("Invalid claim, logged incident")
+        raise ValueError("Invalid claim")
     with get_connection() as conn:
         cur = conn.execute(f"UPDATE claims SET {key_to_update} = ? WHERE claim_id = ?", (updated_value, claim_id))
         conn.commit()
         
 def save_employee_edit(employee_id, key_to_update, updated_value):
+    ALLOWED_UPDATE_COLUMNS = {"first_name_enc", "last_name_enc", 'birthday_enc', 'gender_enc', 'street_name_enc', 'house_number_enc', 'zip_code_enc', 'city_enc', 'email_enc', 'mobile_phone_enc', 'id_doc_type_enc', 'id_doc_number_enc', 'bsn_enc'}
+    if key_to_update not in ALLOWED_UPDATE_COLUMNS:
+        raise ValueError("Invalid employee")
     with get_connection() as conn:
-        cur = conn.execute(f"UPDATE employees SET ? = ? WHERE user_id = ?", (key_to_update, updated_value, employee_id))
+        cur = conn.execute(f"UPDATE employees SET {key_to_update} = ? WHERE user_id = ?", (updated_value, employee_id))
+        conn.commit()
+
+def save_manager_edit(manager_id, key_to_update, updated_value):
+    ALLOWED_UPDATE_COLUMNS = {"first_name_enc", "last_name_enc"}
+    if key_to_update not in ALLOWED_UPDATE_COLUMNS:
+        raise ValueError("Invalid manager")
+    with get_connection() as conn:
+        cur = conn.execute(f"UPDATE users SET {key_to_update} = ? WHERE user_id = ?", (updated_value, manager_id))
         conn.commit()
 
 def delete_employee_from_db(employee_id):
