@@ -69,15 +69,15 @@ def superadmin_menu(session):
         ("Restore any backup", restore_any_backup),
         ("View restore code status", view_restore_code_status),
         ("Revoke restore code", revoke_restore_code),
-        ("Edit claims project/travel distance", edit_claim_as_manager_or_admin), # NEEDS TESTING
-        ("Approve claim", approve_claim), # NEEDS TESTING
-        ("Reject claim", reject_claim), # NEEDS TESTING
+        ("Edit claims project/travel distance", edit_claim_as_manager_or_admin),
+        ("Approve claim", approve_claim),
+        ("Reject claim", reject_claim),
         ("Search claim", search_claims),
         ("Search employee", search_employees),
-        ("Update manager account", edit_manager_account_as_admin), # NEEDS TESTING
+        ("Update manager account", edit_manager_account_as_admin),
         ("Delete manager account", delete_manager_account_as_admin),
         ("Reset users password", reset_users_password),
-        ("View logs", view_logs), # on hold till logging is made complete
+        ("View logs", view_logs),
         ("Logout", None),
         ("Exit system", None),
     ], session)
@@ -88,7 +88,7 @@ def manager_menu(session):
         log_event("unauthorized menu access attempt", username_enc=session["username"], is_suspicious=True)
         return Exception("Unauthorized access")
     unread_logs = unread_suspicious_log_count()
-    return _run_menu(f"Manager ({unread_logs} unread suspicious logs)", [ # Check if count updates automatically (I think it does)
+    return _run_menu(f"Manager ({unread_logs} unread suspicious logs)", [
         ("Search claim", search_claims),
         ("Search employee", search_employees),
         ("Create employee account", create_user),
@@ -96,13 +96,13 @@ def manager_menu(session):
         ("Delete employee account", delete_employee_account),
         ("reset employee password", reset_users_password),
         ("Backup system", call_to_create_backup),
-        ("Restore backup with code", restore_backup_with_code), # NEEDS TESTING
+        ("Restore backup with code", restore_backup_with_code),
         ("View employee list", view_employee_list), # NEEDS TESTING
         ("View claims submitted by employees", view_employees_claims), # NEEDS TESTING
         ("Edit claims project/travel distance", edit_claim_as_manager_or_admin), # NEEDS TESTING
-        ("Approve claim", approve_claim), # NEEDS TESTING
-        ("Reject claim", reject_claim), # NEEDS TESTING
-        ("View logs", view_logs), # on hold till logging is made complete
+        ("Approve claim", approve_claim),
+        ("Reject claim", reject_claim),
+        ("View logs", view_logs),
         ("Update my password", update_password), # NEEDS TESTING
         ("Update my account", edit_manager_account), # NEEDS TESTING
         ("Delete my account", delete_manager_account),

@@ -22,6 +22,7 @@ from infrastructure.database import (
     save_claim,
     save_claim_edit,
     save_employee_edit,
+    save_manager_edit,
     save_new_password,
     save_rejected_claim,
     save_user,
@@ -226,7 +227,7 @@ def edit_manager_account_as_admin(session):
         updated_value = go_validate(f"Enter new value for {key_to_update}: ", find_validator(key_to_update))
         updated_value = encrypt_value(updated_value)
         key_to_update = key_to_update + "_enc"
-        save_employee_edit(manager_id, key_to_update, updated_value)
+        save_manager_edit(manager_id, key_to_update, updated_value)
         log_event("manager account edited", username_enc=session["username_enc"], additional_info=f"manager account edited (id: {manager_id}): {key_to_update} updated to {updated_value}")
         return
     log_event("unauthorized manager account edit attempt", username_enc=session["username_enc"], is_suspicious=True)
