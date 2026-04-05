@@ -65,8 +65,8 @@ def superadmin_menu(session):
     return _run_menu(f"Super Admin ({unread_logs} unread suspicious logs)", [
         ("Create manager account", create_user),
         ("Backup system", call_to_create_backup),
-        ("Generate restore code for manager", assign_backup), # NEEDS TESTING errror: token must be bytes or string
-        ("Restore any backup", restore_any_backup), # add visual feedback for completing task (optional)
+        ("Generate restore code for manager", assign_backup),
+        ("Restore any backup", restore_any_backup),
         ("View restore code status", view_restore_code_status), # NEEDS TESTING
         ("Revoke restore code", revoke_restore_code), # NEEDS TESTING fake restore codes get: 'NoneType' object is not subscriptable
         ("Edit claims project/travel distance", edit_claim_as_manager_or_admin), # NEEDS TESTING

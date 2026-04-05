@@ -125,7 +125,7 @@ def input_restore_code():
     return restore_code
     
 def display_restorecode_status(used, revoked):
-    print(f"Restore code status:")
+    print(f"\n-- Restore code status --")
     if used == 1:
         print(f"Used: Yes")
     else:

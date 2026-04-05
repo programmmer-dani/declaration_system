@@ -493,10 +493,10 @@ def select_backup():
 def select_restore_code():
     restore_codes = fetch_all_restore_codes()
     inputted_restore_code = input_restore_code()
-    matching_restorecode_object = None
-    for code in restore_codes:
-        if verify_restore_code(inputted_restore_code, code["restore_code_hash"]):
-            return matching_restorecode_object
+    restore_codes_dict = [dict(row) for row in restore_codes]
+    for code in restore_codes_dict:
+        if verify_restore_code(inputted_restore_code, code["code_hash"]):
+            return code
     return None
 
 def request_employees_claims(session):

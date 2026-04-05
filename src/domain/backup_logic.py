@@ -15,6 +15,7 @@ def restore_any_backup(session):
             return None
         overwrite_db(name)
         log_event("backup restored", username_enc=session["username_enc"], additional_info=f"backup restored: {name}")
+        print(f"Backup '{name}' restored successfully.")
         return "logout"
     log_event("unauthorized backup restore attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
@@ -80,8 +81,9 @@ def view_restore_code_status(session):
 def revoke_restore_code(session):
     if session["role"] == "admin":
         verified_restorecode_object = select_restore_code()
-        if verified_restorecode_object:
+        if verified_restorecode_object and not None:
             set_restore_code_revoked(verified_restorecode_object)
+            print("Restore code revoked successfully.")
             log_event("restore code revoked", username_enc=session["username_enc"], additional_info=f"restore code revoked (id: {verified_restorecode_object["id"]})")
             return
         raise Exception("Invalid restore code.")
