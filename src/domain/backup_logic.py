@@ -32,7 +32,9 @@ def restore_backup_with_code(session):
                     return Exception("Restore code already used.")
                 if restore_code_object["is_revoked"] == 1:
                     return Exception("Restore code revoked.")
-                try: overwrite_db(restore_code_object["backup_filename"]) # test if needs to be filename or complete path + filename
+                try: 
+                    overwrite_db(restore_code_object["backup_filename"])
+                    log_event("backup restored", username_enc=session["username_enc"], additional_info=f"backup restored: {restore_code_object["backup_filename"]}") # test if needs to be filename or complete path + filename
                 except Exception:
                     return Exception("Failed to restore backup.")
                 # check if manager exists, check if user exists in new(old) db
@@ -43,9 +45,11 @@ def restore_backup_with_code(session):
                         for code in codes:
                             if code["id"] == restore_code_object["id"]:
                                 set_restore_code_used(code["id"])
+                                log_event("backup restore code used", username_enc=session["username_enc"], additional_info=f"code id: {restore_code_object["id"]}")
                                 return "logout"
                 return Exception("Invalid restore code.")
         raise Exception("Invalid restore code.")
+    log_event("unauthorized backup restore code use attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
 
 def generate_backup_restore_code():
