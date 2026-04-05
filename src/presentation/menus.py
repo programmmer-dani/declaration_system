@@ -74,7 +74,7 @@ def superadmin_menu(session):
         ("Reject claim", reject_claim),
         ("Search claim", search_claims),
         ("Search employee", search_employees),
-        ("Update manager account", edit_manager_account_as_admin), # NEEDS TESTING
+        ("Update manager account", edit_manager_account_as_admin),
         ("Delete manager account", delete_manager_account_as_admin),
         ("Reset users password", reset_users_password),
         ("View logs", view_logs),
@@ -88,7 +88,7 @@ def manager_menu(session):
         log_event("unauthorized menu access attempt", username_enc=session["username"], is_suspicious=True)
         return Exception("Unauthorized access")
     unread_logs = unread_suspicious_log_count()
-    return _run_menu(f"Manager ({unread_logs} unread suspicious logs)", [ # Check if count updates automatically (I think it does)
+    return _run_menu(f"Manager ({unread_logs} unread suspicious logs)", [
         ("Search claim", search_claims),
         ("Search employee", search_employees),
         ("Create employee account", create_user),
