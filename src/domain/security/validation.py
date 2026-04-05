@@ -38,8 +38,8 @@ def validate_restore_code(s):
 
 def validate_username(s):
     if s == "super_admin":
-        return True # ASSIGNMENT REQUIREMENT HARDCODED EXCEPTION
-    if _ok(s) and " " not in s and re.match(r"^[A-Za-z_][A-Za-z0-9_'.]{7,9}$", s): # blacklisting by: and " " not in s fix this
+        return True
+    if _ok(s) and re.match(r"^[A-Za-z_][A-Za-z0-9_'.]{7,9}$", s):
         return True
     return False
 
@@ -49,7 +49,7 @@ def validate_password(s):
     special_pattern = r"[~!@#$%&_\-+=`|\\(){}$begin:math:display$$end:math:display$:;'<>,.?/]"
     
     if s == "Admin_123?":
-        return True # ASSIGNMENT REQUIREMENT HARDCODED EXCEPTION
+        return True
 
     if (
         _ok(s)
@@ -116,13 +116,13 @@ def validate_house_number(s):
 
 
 def validate_zip_code(s):
-    if _ok(s) and re.match(r"^\d{4}[A-Z]{2}$", s.replace(" ", "").upper()): # check if this is allowed and not a vuln.
+    if _ok(s) and re.match(r"^\d{4}[A-Z]{2}$"):
         return True
     return False
 
 
 def validate_city(s):
-    if _ok(s) and s.strip().lower() in {c.lower() for c in VALID_CITIES}:
+    if _ok(s) and s in {c for c in VALID_CITIES}:
         return True
     return False
 
@@ -211,13 +211,6 @@ def validate_salary_batch(s):
     if _ok(s) and re.match(r"^\d{4}-(0[1-9]|1[0-2])$", s):
         return True
     return False
-
-
-def validate_restore_code(s):
-    if _ok(s) and 12 <= len(s) <= 32 and re.match(r"^[A-Za-z0-9]{12,32}$", s):
-        return True
-    return False
-
 
 def validate_backup_filename(s):
     if _ok(s) and re.match(r"^[A-Za-z0-9_-][A-Za-z0-9_.\-]{0,99}\.zip$", s):
