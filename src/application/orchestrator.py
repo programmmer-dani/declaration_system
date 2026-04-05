@@ -42,7 +42,6 @@ def app():
             app()
         if running == "exit":
             exit()
-
     exit()
     
     

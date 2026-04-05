@@ -303,7 +303,7 @@ def delete_claim(session):
     log_event("unauthorized claim delete attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
 
-def edit_claim(session): # EXTENSIVELY TEST THIS FUNCTION
+def edit_claim(session):
     if session["role"] == "employee":
         claims = fetch_employees_claims(session["user_id"])
         if not claims:
@@ -393,7 +393,6 @@ def get_keys_to_update(claim_type):
             "to_zip_code",
             "to_house_number"
         ]
-    # For "Home Office", only return general claim keys
     else:
         return [
             "claim_date",
@@ -434,7 +433,7 @@ def reject_claim(session):
     log_event("unauthorized claim reject attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
     
-def format_claim_list(claims): # is this the correct data to display
+def format_claim_list(claims):
     return [
         {
             "claim_id": claim["claim_id"],
@@ -481,7 +480,6 @@ def create_user(session):
             raise Exception(e)
     log_event("invalid role create user attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Invalid role")
-    # optionally add visual feedback
 
 def select_manager():
     managers = request_managers()

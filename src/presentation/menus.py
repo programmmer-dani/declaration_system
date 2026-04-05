@@ -32,13 +32,13 @@ def _run_menu(title, options, session):
         print(f"  {i}. {label}")
     choice = go_validate_menu_choice("Choice: ", validate_menu_choice, len(options))
     if choice is None:
-        print_error("Invalid choice") # dead code
+        print_error("Invalid choice")
         return
     idx = int(choice) - 1
-    if idx == len(options) - 2:  # logout
+    if idx == len(options) - 2:
         session = None
         return "logout"
-    if idx == len(options) - 1:  # exit system
+    if idx == len(options) - 1:
         return "exit"
     execute_option = options[idx][1]
     if execute_option:
@@ -54,9 +54,6 @@ def _run_menu(title, options, session):
     else:
         print("Not implemented yet.")
         
-
-### LOGGING FUNCTIONALITY MADE BUT NEEDS TO BE CALLED ON THE APPROPRIATE PLACES
-
 def superadmin_menu(session):
     if session["role"] != "admin":
         log_event("unauthorized menu access attempt", username_enc=session["username"], is_suspicious=True)
@@ -97,14 +94,14 @@ def manager_menu(session):
         ("reset employee password", reset_users_password),
         ("Backup system", call_to_create_backup),
         ("Restore backup with code", restore_backup_with_code),
-        ("View employee list", view_employee_list), # NEEDS TESTING
-        ("View claims submitted by employees", view_employees_claims), # NEEDS TESTING
-        ("Edit claims project/travel distance", edit_claim_as_manager_or_admin), # NEEDS TESTING
+        ("View employee list", view_employee_list),
+        ("View claims submitted by employees", view_employees_claims),
+        ("Edit claims project/travel distance", edit_claim_as_manager_or_admin),
         ("Approve claim", approve_claim),
         ("Reject claim", reject_claim),
         ("View logs", view_logs),
-        ("Update my password", update_password), # NEEDS TESTING
-        ("Update my account", edit_manager_account), # NEEDS TESTING
+        ("Update my password", update_password),
+        ("Update my account", edit_manager_account),
         ("Delete my account", delete_manager_account),
         ("Logout", None),
         ("Exit system", None),
@@ -118,14 +115,10 @@ def employee_menu(session):
     return _run_menu("Employee", [
         ("Search in my claims", search_claims),
         ("Submit new claim", create_claim),
-        ("View own claims", request_employees_claims), # NEEDS TESTING
-        ("Edit my claim", edit_claim),# NEEDS TESTING
-        ("Delete my claim", delete_claim),# NEEDS TESTING
-        ("Update my password", update_password), # NEEDS TESTING
+        ("View own claims", request_employees_claims),
+        ("Edit my claim", edit_claim),
+        ("Delete my claim", delete_claim),
+        ("Update my password", update_password),
         ("Logout", None),
         ("Exit system", None),
     ], session)
-    
-    
-# NEXT STEPS:
-# - TEST ALL FUNCTIONALITY EXTENSIVELY

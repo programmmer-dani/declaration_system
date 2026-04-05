@@ -297,8 +297,6 @@ def save_log(ts, username_enc, activity_desc_enc, is_suspicious, additional_info
         conn.commit()
 
 def get_connection():
-    # always call with: with get_connection() as conn:
-    # this will close the connection after usage
     conn = sqlite3.connect(DATABASE_PATH)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
@@ -312,8 +310,6 @@ def init_db():
 
 
 def create_tables(conn: sqlite3.Connection):
-    # is_active value is not specefically required for users
-    # optional: start using GUIDs
     conn.executescript(
         """
         CREATE TABLE IF NOT EXISTS users (

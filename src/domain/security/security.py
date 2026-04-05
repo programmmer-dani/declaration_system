@@ -63,61 +63,14 @@ def secure_employee_data(employee_data):
         "bsn_enc": encrypt_value(employee_data["bsn"]),
     }
 
-
-def _decrypt_row(row_dict, enc_columns):
-    #AI generated func, outputting DB data for debugging purposes
-    out = dict(row_dict)
-    for col in enc_columns:
-        if col in out and out[col] is not None:
-            out[col] = decrypt_value(out[col])
-    return out
-
-
-def print_db_content():
-    #AI generated func, outputting DB data for debugging purposes
-    from infrastructure.database import get_connection
-
-    tables = [
-        ("users", ["username_enc", "first_name_enc", "last_name_enc"]),
-        ("employees", [
-            "first_name_enc", "last_name_enc", "birthday_enc", "gender_enc",
-            "street_name_enc", "house_number_enc", "zip_code_enc", "city_enc",
-            "email_enc", "mobile_phone_enc", "id_doc_type_enc", "id_doc_number_enc", "bsn_enc",
-        ]),
-        ("claims", ["project_number_enc", "salary_batch_enc"]),
-        ("travel_claims", [
-            "travel_distance_enc", "from_zip_enc", "from_house_number_enc",
-            "to_zip_enc", "to_house_number_enc",
-        ]),
-        ("restore_codes", []),
-        (
-            "logs",
-            ["username_enc", "activity_desc_enc", "additional_info_enc"],
-        ),
-    ]
-    with get_connection() as conn:
-        for table_name, enc_cols in tables:
-            cur = conn.execute(f"SELECT * FROM {table_name}")
-            rows = cur.fetchall()
-            cols = [d[0] for d in cur.description]
-            enc_cols = [c for c in enc_cols if c in cols]
-            print(f"\n=== {table_name.upper()} (as stored) ===")
-            for row in rows:
-                print(dict(row))
-            print(f"\n=== {table_name.upper()} (decrypted) ===")
-            for row in rows:
-                print(_decrypt_row(dict(row), enc_cols))
-
 def verify_existing_username(username): 
-    # Is this func really necessary?
     if username_exists(username):
         raise ValueError("Username already exists")
     
 def login(credentials):
-    print_db_content() # DONT FORGET TO REMOVE
     if credentials["username"] == "super_admin" and credentials["password"] == "Admin_123?":
         log_event("super admin logged in")
-        return {"role":"admin", "username_enc": encrypt_value(credentials["username"])} # ASSIGNMENT REQUIREMENT HARDCODED EXCEPTION
+        return {"role":"admin", "username_enc": encrypt_value(credentials["username"])}
     user = find_user_by_username(credentials["username"])
     if user is None:
         log_event("incorrect username login attempt", username_enc=encrypt_value(credentials["username"]))

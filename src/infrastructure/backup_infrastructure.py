@@ -36,7 +36,7 @@ def _merge_newer_logs_from_current_into_restored(restored_db_path, current_db_pa
 def create_backup():
     os.makedirs(BACKUPS_DIR, exist_ok=True)
 
-    stamp = datetime.now().strftime("%Y%m%d_%H%M%S") # what if 2 backups are created simultaniously
+    stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     zip_name = f"database_backup_{stamp}.zip"
     zip_path = os.path.join(BACKUPS_DIR, zip_name)
 
@@ -52,7 +52,7 @@ def fetch_all_backups():
         return None
     return os.listdir(BACKUPS_DIR)
 
-def overwrite_db(db): # db is local file that gets overwritten by locally overwriting the db
+def overwrite_db(db):
     backup_zip_path = os.path.join(BACKUPS_DIR, db)
 
     if not os.path.exists(backup_zip_path):
