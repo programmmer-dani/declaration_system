@@ -475,10 +475,13 @@ def select_manager():
     managers = request_managers()
     if not managers:
         raise Exception("No managers found")
-    managers_names = [decrypt_value(manager) for manager in managers]
+    
+    managers_dict = [dict(row) for row in managers]
+    managers_names_enc = [manager['first_name_enc'] for manager in managers_dict]
+    managers_names = [decrypt_value(name) for name in managers_names_enc]
     manager = print_and_select_from_list(managers_names)
     index = managers_names.index(manager)
-    return managers[index]
+    return managers_dict[index]
 
 def select_backup():
     backups = fetch_all_backups()

@@ -46,7 +46,7 @@ def validate_username(s):
 
 def validate_password(s):
     allowed_pattern = r"^[A-Za-z0-9~!@#$%&_\-+=`|\\(){}\[\]:;'<>,.?/]{12,50}$"
-    special_pattern = r"[~!@#$%&_\-+=`|\\(){}$begin:math:display$$end:math:display$:;'<>,.?/]"
+    special_pattern = r"[~!@#$%&_\-+=`|\\(){}\[\]:;'<>,.?/]"
     
     if s == "Admin_123?":
         return True

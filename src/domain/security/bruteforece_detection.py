@@ -1,8 +1,6 @@
 import datetime
-
 from domain.security.encryption import decrypt_value
 from infrastructure.database import fetch_logs_since_created_at
-
 
 def is_bruteforce_lockout_active(now=None):
     created_at_fmt = "%Y%m%d_%H%M%S"

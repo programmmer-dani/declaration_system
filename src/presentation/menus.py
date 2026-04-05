@@ -63,8 +63,8 @@ def superadmin_menu(session):
         return Exception("Unauthorized access")
     unread_logs = unread_suspicious_log_count()
     return _run_menu(f"Super Admin ({unread_logs} unread suspicious logs)", [
-        ("Create manager account", create_user), # does manager create employee account?????????
-        ("Backup system", call_to_create_backup), # now displays complete filepath of where backup is saved??? vulnerable to path traversal attack
+        ("Create manager account", create_user),
+        ("Backup system", call_to_create_backup),
         ("Generate restore code for manager", assign_backup), # NEEDS TESTING errror: token must be bytes or string
         ("Restore any backup", restore_any_backup), # add visual feedback for completing task (optional)
         ("View restore code status", view_restore_code_status), # NEEDS TESTING
