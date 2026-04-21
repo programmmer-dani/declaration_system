@@ -28,7 +28,7 @@ def app():
         
     except Exception as e:
         session = None
-        print_error(e)
+        print_error(e) # remove before handing in! - Should only be used to debug dont give this info to user
         app()
     
     while menu and session:
