@@ -16,7 +16,10 @@ VALID_CITIES = {
 
 
 def _ok(s):
-    return isinstance(s, str) and re.match(r"^[ -~À-ÿ]+$", s) is not None and len(s.strip()) > 0
+    return (
+        isinstance(s, str) 
+        and re.match(r"^[ -~À-ÿ]+$", s) 
+        and re.search(r"\S", s))
 
 def validate_menu_choice(s, number_of_choices):
     if (
