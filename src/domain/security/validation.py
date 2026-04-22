@@ -203,9 +203,8 @@ def validate_project_number(s):
         return True
     return False
 
-
 def validate_travel_distance(s):
-    if _ok(s) and re.match(fr"^\d{1,3}$", s):
+    if _ok(s) and re.fullmatch(r"[1-9]\d{0,2}", s):
         return True
     return False
 
