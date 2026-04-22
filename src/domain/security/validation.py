@@ -87,14 +87,16 @@ def _valid_calendar_ymd(s):
             return False
     return False
 
+def _now_str():
+    return date.today().isoformat()
+
 
 def validate_birthday(s):
-    today_str = date.today().isoformat()
     if (
         _ok(s)
         and re.match(r"^\d{4}-\d{2}-\d{2}$", s)
         and _valid_calendar_ymd(s)
-        and s <= today_str
+        and s <= _now_str()
     ):
         return True
     return False
@@ -183,8 +185,26 @@ def validate_claim_date(s):
         return True
     return False
 
+def _valid_calendar_ym(s):
+    if _ok(s):
+        try:
+            datetime.strptime(s, "%Y-%m")
+            return True
+        except Exception:
+            return False
+    return False
+
 def validate_salary_batch(s):
-    if _ok(s) and re.fullmatch(r"\d{4}-(0[1-9]|1[0-2])", s):
+    today = date.today()
+    min_first = date(today.year - 1, 1, 1).isoformat()[:7]
+    max_first = date(today.year, today.month, 1).isoformat()[:7]
+
+    if (
+        _ok(s)
+        and re.fullmatch(r"\d{4}-(0[1-9]|1[0-2])", s)
+        and _valid_calendar_ym(s)
+        and min_first <= s <= max_first
+    ):
         return True
     return False
 
@@ -205,12 +225,6 @@ def validate_project_number(s):
 
 def validate_travel_distance(s):
     if _ok(s) and re.fullmatch(r"[1-9]\d{0,2}", s):
-        return True
-    return False
-
-
-def validate_salary_batch(s):
-    if _ok(s) and re.match(r"^\d{4}-(0[1-9]|1[0-2])$", s):
         return True
     return False
 
