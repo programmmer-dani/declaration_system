@@ -79,13 +79,13 @@ def validate_role(s):
 
 
 def _valid_calendar_ymd(s):
-    if not _ok(s):
-        return False
-    try:
-        datetime.strptime(s, "%Y-%m-%d")
-        return True
-    except Exception:
-        return False
+    if _ok(s):
+        try:
+            datetime.strptime(s, "%Y-%m-%d")
+            return True
+        except Exception:
+            return False
+    return False
 
 
 def validate_birthday(s):
