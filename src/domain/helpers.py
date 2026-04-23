@@ -337,7 +337,7 @@ def edit_claim_as_manager_or_admin(session):
         key_to_update = print_and_select_from_list(keys, "Select key to update: ")
         updated_value = go_validate(f"Enter new value for {key_to_update}: ", find_validator(key_to_update))
         updated_value = encrypt_value(updated_value)
-        key_to_update = key_to_update + "_enc"
+        if key_to_update == "project_number": key_to_update = "project_number_enc"
         save_claim_edit(claim_id, key_to_update, updated_value)
         log_event("claim edited", username_enc=session["username_enc"], additional_info=f"claim edited (id: {claim_id}): {key_to_update} updated to {updated_value}")
         print("Claim edited successfully.")
@@ -526,8 +526,11 @@ def request_managers():
 def request_employees():
     return fetch_all_employees()
 
-def request_claims(user_id):
-    return fetch_all_claims(user_id)
+def request_claims(user_id=None):
+    if user_id:
+        return fetch_employees_claims(user_id)
+    else:
+        return fetch_all_claims()
 
 def format_user_list(users):
     return [

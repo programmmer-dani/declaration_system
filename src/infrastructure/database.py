@@ -135,11 +135,18 @@ def set_restore_code_used(restore_code_id):
         
 
 def save_claim_edit(claim_id, key_to_update, updated_value):
-    ALLOWED_UPDATE_COLUMNS = {"status","claim_type","salary_batch_enc", "project_number", "travel_distance"}
+    ALLOWED_UPDATE_COLUMNS = {"status", "claim_type", "salary_batch_enc", "project_number_enc", "travel_distance_enc"}
+    TRAVEL_CLAIM_COLUMNS = {"travel_distance_enc"}
+
     if key_to_update not in ALLOWED_UPDATE_COLUMNS:
-        raise ValueError("Invalid claim")
+        raise ValueError("Corrupted claim data")
+
+    table_to_update = "travel_claims" if key_to_update in TRAVEL_CLAIM_COLUMNS else "claims"
     with get_connection() as conn:
-        cur = conn.execute(f"UPDATE claims SET {key_to_update} = ? WHERE claim_id = ?", (updated_value, claim_id))
+        cur = conn.execute(
+            f"UPDATE {table_to_update} SET {key_to_update} = ? WHERE claim_id = ?",
+            (updated_value, claim_id),
+        )
         conn.commit()
         
 def save_employee_edit(employee_id, key_to_update, updated_value):
