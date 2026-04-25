@@ -172,7 +172,7 @@ def search_claims(session):
         raise Exception("Unauthorized access")
 
     if session["role"] == "employee":
-        rows = fetch_employees_claims_with_travel(session["user_id"])
+        rows = fetch_employees_claims_with_travel(session["user_id"]) # CHECK IF THIS IS CORRECT FLOW
     elif session["role"] in ["manager", "admin"]:
         rows = fetch_all_claims()
         if not rows:
@@ -568,7 +568,7 @@ def view_employees_claims(session):
             raise Exception("No claims found")
         
         print_claim_list(claims)
-        log_event("employees claims viewed", username_enc=session["username_enc"], additional_info=f"employee: {decrypt_value(employee["username_enc"])} claims viewed")
+        log_event("employees claims viewed", username_enc=session["username_enc"], additional_info=f"employee: {employee['user']} claims viewed") # employee is formatted without containing username_enc
         return
     log_event("unauthorized employees claims view attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")

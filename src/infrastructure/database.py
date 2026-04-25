@@ -78,11 +78,11 @@ def fetch_employees_claims(user_id):
         claims = cur.fetchall()
         return claims
 
-def fetch_claims_without_salary_batch():
-    with get_connection() as conn:
-        cur = conn.execute("SELECT * FROM claims WHERE salary_batch_enc IS NULL")
-        claims = cur.fetchall()
-        return claims
+# def fetch_claims_without_salary_batch():
+#     with get_connection() as conn:
+#         cur = conn.execute("SELECT * FROM claims WHERE salary_batch_enc IS NULL")
+#         claims = cur.fetchall()
+#         return claims
 
 
 def fetch_employees_claims_with_travel(user_id):
