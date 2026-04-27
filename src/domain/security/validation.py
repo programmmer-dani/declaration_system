@@ -19,7 +19,8 @@ def _ok(s):
     return (
         isinstance(s, str) 
         and re.match(r"^[ -~À-ÿ]+$", s) 
-        and re.search(r"\S", s))
+        and re.search(r"\S", s)
+        and len(s) <= 200)
 
 def validate_menu_choice(s, number_of_choices):
     if (
@@ -209,12 +210,12 @@ def validate_salary_batch(s):
     return False
 
 def validate_claim_search_term(s):
-    if _ok(s) and re.fullmatch(r"[A-Za-z0-9 .'\-]{1,50}", s) and len(s) <= 200:
+    if _ok(s) and re.fullmatch(r"[A-Za-z0-9 .'\-]{1,50}", s):
         return True
     return False
 
 def validate_employee_search_term(s):
-    if _ok(s) and re.fullmatch(r"[A-Za-z0-9 .'\-]{1,50}", s) and len(s) <= 200:
+    if _ok(s) and re.fullmatch(r"[A-Za-z0-9 .'\-]{1,50}", s):
         return True
     return False
 
