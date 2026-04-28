@@ -20,7 +20,7 @@ def _ok(s):
         isinstance(s, str) 
         and re.match(r"^[ -~À-ÿ]+$", s) 
         and re.search(r"\S", s)
-        and len(s) <= 200)
+        and len(s) <= 100)
 
 def validate_menu_choice(s, number_of_choices):
     if (
@@ -68,7 +68,7 @@ def validate_password(s):
 
 
 def validate_name(s):
-    if _ok(s) and len(s) <= 100 and re.match(r"^[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ '\-]{0,99}$", s):
+    if _ok(s) and re.match(r"^[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ '\-]{0,99}$", s):
         return True
     return False
 
@@ -79,7 +79,7 @@ def validate_role(s):
     return False
 
 
-def _valid_calendar_ymd(s):
+def _valid_calendar_ymd(s): #striptime? is it modifying the input?
     if _ok(s):
         try:
             datetime.strptime(s, "%Y-%m-%d")
@@ -110,13 +110,13 @@ def validate_gender(s):
 
 
 def validate_street_name(s):
-    if _ok(s) and len(s) <= 100 and re.match(r"^[A-Za-zÀ-ÿ0-9][A-Za-zÀ-ÿ0-9 .'\-]{0,99}$", s):
+    if _ok(s) and re.match(r"^[A-Za-zÀ-ÿ0-9][A-Za-zÀ-ÿ0-9 .'\-]{0,99}$", s):
         return True
     return False
 
 
 def validate_house_number(s):
-    if _ok(s) and re.match(r"^\d{1,10}$", s):
+    if _ok(s) and re.match(r"^\d{1,5}$", s):
         return True
     return False
 
@@ -135,7 +135,8 @@ def validate_city(s):
 
 def validate_email(s):
     if (
-        _ok(s)
+        isinstance(s, str) 
+        and re.match(r"^[ -~À-ÿ]+$", s)
         and len(s) <= 254
         and re.match(r"^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$", s)
     ):

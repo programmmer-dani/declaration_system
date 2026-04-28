@@ -2,7 +2,7 @@ import datetime
 
 from logging_system import log_event
 from domain.security.encryption import decrypt_value
-from domain.security.validation import validate_birthday, validate_bsn, validate_city, validate_claim_date, validate_email, validate_employee_search_term, validate_gender, validate_house_number, validate_id_doc_number, validate_id_doc_type, validate_menu_choice, validate_mobile_phone, validate_name, validate_password, validate_restore_code, validate_street_name, validate_username, validate_zip_code
+from domain.security.validation import validate_birthday, validate_bsn, validate_city, validate_claim_date, validate_email, validate_employee_search_term, validate_gender, validate_house_number, validate_id_doc_number, validate_id_doc_type, validate_menu_choice, validate_mobile_phone, validate_name, validate_password, validate_restore_code, validate_street_name, validate_username, validate_zip_code, validate_backup_filename, validate_salary_batch
 from infrastructure.backup_infrastructure import create_backup
 from domain.security.validation import (
     validate_claim_date,
@@ -29,7 +29,57 @@ def go_validate(input_message, validator):
         value = input(input_message)
         if validator(value):
             return value
-        print_error("Invalid input, try again.")
+        give_feedback(validator)
+        log_event("invalid input", additional_info=f"input: {value}", is_suspicious=False)
+
+def give_feedback(validator):
+    if validator == validate_username:
+        print("Username must be 8-10 characters, start with a letter or _, and contain only letters, numbers, underscores, apostrophes or periods only.")
+    elif validator == validate_password:
+        print("Password must be 12-30 characters, include uppercase letters, lowercase letters, numbers and special characters.")
+    elif validator == validate_name:
+        print("Name must be 1-100 characters, letters, spaces, hyphens and apostrophes allowed.")
+    elif validator == validate_birthday:
+        print("Birthday must be in format YYYY-MM-DD and a valid date.")
+    elif validator == validate_gender:
+        print("Gender must be 'male' or 'female'.")
+    elif validator == validate_street_name:
+        print("Street name must be 1-100 characters, letters, numbers, spaces, hyphens and apostrophes allowed.")
+    elif validator == validate_house_number:
+        print("House number must be 1-5 digits.")
+    elif validator == validate_zip_code:
+        print("ZIP code must be in format DDDDLL (4 digits followed by 2 uppercase letters).")
+    elif validator == validate_city:
+        print("City must be one of the valid cities.")
+    elif validator == validate_email:
+        print("Email must be a valid email address format.")
+    elif validator == validate_mobile_phone:
+        print("Mobile phone must be exactly 8 digits.")
+    elif validator == validate_id_doc_type:
+        print("ID doc type must be 'Passport' or 'ID-Card'.")
+    elif validator == validate_id_doc_number:
+        print("ID doc number must be 9 characters, letters and numbers only. In either XX9999999 or X99999999 format.")
+    elif validator == validate_bsn:
+        print("BSN must be exactly 9 digits.")
+    elif validator == validate_claim_date:
+        print("Claim date must be in format YYYY-MM-DD and a valid date.")
+    elif validator == validate_claim_search_term:
+        print("Claim search term must be 1-50 characters, letters, numbers and spaces allowed.")
+    elif validator == validate_employee_search_term:
+        print("Employee search term must be 1-50 characters, letters, numbers and spaces allowed.")
+    elif validator == validate_claim_type:
+        print("Claim type must be 'Travel' or 'Home Office'.")
+    elif validator == validate_project_number:
+        print("Project number must be 2-10 digits.")
+    elif validator == validate_travel_distance:
+        print("Travel distance must be a positive number.")
+    elif validator == validate_backup_filename:
+        print("Backup filename must be alphanumeric (with underscores, dots, or hyphens) and end with '.zip'.")
+    elif validator == validate_salary_batch:
+       print("Salary batch must be a valid YYYY-MM date within the last 12 months.")
+    elif validator == validate_restore_code:
+        print("Restore code must be exactly 22 alphanumeric characters, underscores, or hyphens.")
+    
 
 def go_validate_menu_choice(input_message, validator, number_of_choices):
     while True:
