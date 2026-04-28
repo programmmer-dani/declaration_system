@@ -87,19 +87,20 @@ def superadmin_menu(session):
     
     return _run_menu(f"Super Admin ({unread_logs} unread suspicious logs)", options, session)
 
-
 def manager_menu(session):
-    if session["role"] != "manager":
-        log_event("unauthorized menu access attempt", username_enc=session["username"], is_suspicious=True)
-        return Exception("Unauthorized access")
+    if session.get("role") != "manager":
+        log_event("unauthorized_menu_access", username_enc=session.get("username_enc"), is_suspicious=True)
+        return "logout"
+    
     unread_logs = unread_suspicious_log_count()
-    return _run_menu(f"Manager ({unread_logs} unread suspicious logs)", [
+    
+    options = [
         ("Search claim", search_claims),
         ("Search employee", search_employees),
         ("Create employee account", create_user),
         ("Edit employee account", edit_employee_account),
         ("Delete employee account", delete_employee_account),
-        ("reset employee password", reset_users_password),
+        ("Reset employee password", reset_users_password),
         ("Backup system", call_to_create_backup),
         ("Restore backup with code", restore_backup_with_code),
         ("View employee list", view_employee_list),
@@ -113,14 +114,17 @@ def manager_menu(session):
         ("Delete my account", delete_manager_account),
         ("Logout", "logout"),
         ("Exit system", "exit"),
-    ], session)
+    ]
+    
+    return _run_menu(f"Manager ({unread_logs} unread suspicious logs)", options, session)
 
 
 def employee_menu(session):
-    if session["role"] != "employee":
-        log_event("unauthorized menu access attempt", username_enc=session["username"], is_suspicious=True)
-        return Exception("Unauthorized access")
-    return _run_menu("Employee", [
+    if session.get("role") != "employee":
+        log_event("unauthorized_menu_access", username_enc=session.get("username_enc"), is_suspicious=True)
+        return "logout"
+    
+    options = [
         ("Search in my claims", search_claims),
         ("Submit new claim", create_claim),
         ("View own claims", request_employees_claims),
@@ -129,4 +133,6 @@ def employee_menu(session):
         ("Update my password", update_password),
         ("Logout", "logout"),
         ("Exit system", "exit"),
-    ], session)
+    ]
+    
+    return _run_menu("Employee", options, session)
