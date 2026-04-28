@@ -210,7 +210,7 @@ def update_password(session):
     from domain.security.security import login
     
     if session["role"] in ["employee", "manager"]:
-        valid_user = login(get_login_input())
+        valid_user = login()
         if valid_user is None:
             print_error("Authentication failed, user logged out")
             return "logout"

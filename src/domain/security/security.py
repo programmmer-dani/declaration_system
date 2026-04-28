@@ -1,3 +1,5 @@
+from time import time
+
 from domain.security.temp_password_updator import update_temp_password
 from infrastructure.database import find_user_by_username, username_exists
 from domain.security.encryption import decrypt_value, encrypt_value
@@ -66,22 +68,30 @@ def secure_employee_data(employee_data):
 def verify_existing_username(username): 
     if username_exists(username):
         raise ValueError("Username already exists")
+
+def login():
+    username = input("Username: ")
+    password = input("Password: ")
     
-def login(credentials):
-    if credentials["username"] == "super_admin" and credentials["password"] == "Admin_123?":
+    if username == "super_admin" and password == "Admin_123?":
         log_event("super admin logged in")
-        return {"role":"admin", "username_enc": encrypt_value(credentials["username"])}
-    user = find_user_by_username(credentials["username"])
+        return {"role":"admin", "username_enc": encrypt_value(username)}
+    
+    user = find_user_by_username(username)
+    
     if user is None:
-        log_event("incorrect username login attempt", username_enc=encrypt_value(credentials["username"]))
+        dummy_hash = hash_password("dummy_string_for_timing")
+        log_event("failed_login_attempt", username_enc=encrypt_value(username))
         return None
-    is_temp_password = user["is_password_temp"] == 1
-    if verify_password(credentials["password"], user["password_hash"]):
-        if is_temp_password is False:
-            log_event("succesfull login", username_enc=encrypt_value(credentials["username"]))
-            return user
-        else:
+    
+    is_temp_password = user.get("is_password_temp", 0) == 1
+    if verify_password(password, user["password_hash"]):
+        log_event("successful_login", username_enc=encrypt_value(username))
+        if is_temp_password:
             update_temp_password(user)
-            return user
-    log_event("incorrect password login attempt", username_enc=encrypt_value(credentials["username"]))
+
+        # Return session token with secrets lib?
+        return user
+    
+    log_event("failed_login_attempt", username_enc=encrypt_value(username))
     return None
