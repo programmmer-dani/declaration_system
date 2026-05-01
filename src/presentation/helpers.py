@@ -15,14 +15,28 @@ from domain.security.validation import (
 )
 
 def get_login_input():
-    username = input("Username: ")
-    password = input("Password: ")
-    log_event(f"login attempt", encrypt_value(username), is_suspicious=False)
-    return {"username": username, "password": password}
+    username = go_validate_login("Username: ", validate_username)
+    if not username:
+        log_event(f"incorrect username format",)
+        input("Password: ")
+        return None
+    else:
+        password = go_validate_login("Password: ", validate_password)
+        if password:
+            return {"username": username, "password": password}
+    
+    log_event(f"incorrect password format")
+    return None
+
 
 def print_error(error):
     print(f"\n-----------------\nError: {error}\n-----------------\n")
 
+def go_validate_login(input_message, validator):
+    value = input(input_message)
+    if validator(value):
+        return value
+    
     
 def go_validate(input_message, validator):
     while True:
@@ -32,7 +46,11 @@ def go_validate(input_message, validator):
         give_feedback(validator)
 
 def give_feedback(validator):
-    if validator == validate_name:
+    if validator == validate_username:
+        print("Username must be 8-10 characters, start with a letter or _, and contain only letters, numbers, underscores, apostrophes or periods only.")
+    elif validator == validate_password:
+        print("Password must be 12-30 characters, include uppercase letters, lowercase letters, numbers and special characters.")
+    elif validator == validate_name:
         print("Name must be 1-100 characters, letters, spaces, hyphens and apostrophes allowed.")
     elif validator == validate_birthday:
         print("Birthday must be in format YYYY-MM-DD and a valid date.")

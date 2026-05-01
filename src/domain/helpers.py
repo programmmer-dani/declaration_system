@@ -99,7 +99,7 @@ def reset_users_password(session):
         log_event(
             "users password reset",
             username_enc=session["username_enc"],
-            additional_info=f"user: {user['user']}",
+            additional_info=f"id: {user['user_id']}",
         )
         return
     log_event("unauthorized users password reset attempt", username_enc=session["username_enc"], is_suspicious=True)
@@ -154,7 +154,7 @@ def edit_employee_account(session):
             updated_value = encrypt_value(updated_value)
             key_to_update = key_to_update + "_enc"
         save_employee_edit(employee_id, key_to_update, updated_value)
-        log_event("employee account edited", username_enc=session["username_enc"], additional_info=f"employee account edited (username: {decrypt_value(employee["username_enc"])}: {key_to_update} updated to {updated_value}")
+        log_event("employee account edited", username_enc=session["username_enc"], additional_info=f"employee account edited (id: {decrypt_value(employee["user_id"])}: {key_to_update} updated to {updated_value}")
         return
     log_event("unauthorized employee account edit attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
@@ -249,7 +249,7 @@ def delete_manager_account_as_admin(session):
         manager = print_and_select_from_list(formatted, "Select manager to delete: ")
         manager_id = manager["user_id"]
         delete_employee_from_db(manager_id)
-        log_event("manager account deleted", username_enc=session["username_enc"], additional_info=f"manager account deleted (username: {decrypt_value(manager["username_enc"])})")
+        log_event("manager account deleted", username_enc=session["username_enc"], additional_info=f"manager account deleted (id: {manager['user_id']})")
         return
     log_event("unauthorized manager account delete attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
@@ -270,7 +270,7 @@ def edit_manager_account(session):
 def delete_manager_account(session):
     if session["role"] == "manager":
         delete_employee_from_db(session["user_id"])
-        log_event("manager account deleted", username_enc=session["username_enc"], additional_info=f"manager account deleted (username: {decrypt_value(session["username_enc"])}")
+        log_event("manager account deleted", username_enc=session["username_enc"], additional_info=f"manager account deleted (id: {session['user_id']})")
         return "logout"
     log_event("unauthorized manager account delete attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
@@ -284,7 +284,7 @@ def delete_employee_account(session):
         employee = print_and_select_from_list(formatted_employees, "Select employee to delete: ")
         employee_id = employee["user_id"]
         delete_employee_from_db(employee_id)
-        log_event("employee account deleted", username_enc=session["username_enc"], additional_info=f"employee account deleted (username: {decrypt_value(employee["username_enc"])} named: {decrypt_value(employee["first_name_enc"])} {decrypt_value(employee["last_name_enc"])}")
+        log_event("employee account deleted", username_enc=session["username_enc"], additional_info=f"employee account deleted (id: {employee['user_id']})")
         return
     log_event("unauthorized employee account delete attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
@@ -536,7 +536,7 @@ def format_user_list(users):
     return [
         {
             "user_id": employee["user_id"],
-            "user": f"{decrypt_value(employee['username_enc'])} : {decrypt_value(employee['first_name_enc'])} {decrypt_value(employee['last_name_enc'])}",
+            "username": decrypt_value(employee['username_enc'])
         }
         for employee in users
     ]
