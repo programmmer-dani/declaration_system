@@ -30,7 +30,6 @@ def go_validate(input_message, validator):
         if validator(value):
             return value
         give_feedback(validator)
-        log_event("invalid input", additional_info=f"input: {value}", is_suspicious=False)
 
 def give_feedback(validator):
     if validator == validate_username:
