@@ -80,7 +80,7 @@ def login():
     user = find_user_by_username(username)
     
     if user is None:
-        dummy_hash = hash_password("dummy_string_for_timing")
+        dummy_hash = hash_password("dummy_string_for_timing") # What is the use of this?
         log_event("failed_login_attempt", username_enc=encrypt_value(username))
         return None
     

@@ -59,8 +59,8 @@ def _run_menu(title, options, session):
             continue
         
 def superadmin_menu(session):
-    if session.get("role") != "admin":
-        log_event("unauthorized_menu_access", username_enc=session.get("username_enc"), is_suspicious=True)
+    if session["role"] != "admin":
+        log_event("unauthorized_menu_access", username_enc=session["username_enc"], is_suspicious=True)
         return "logout"
     
     unread_logs = unread_suspicious_log_count()
@@ -89,7 +89,7 @@ def superadmin_menu(session):
 
 def manager_menu(session):
     if session["role"] != "manager":
-        log_event("unauthorized_menu_access", username_enc=session.get("username_enc"), is_suspicious=True)
+        log_event("unauthorized_menu_access", username_enc=session["username_enc"], is_suspicious=True)
         return "logout"
     
     unread_logs = unread_suspicious_log_count()
@@ -121,7 +121,7 @@ def manager_menu(session):
 
 def employee_menu(session):
     if session["role"] != "employee":
-        log_event("unauthorized_menu_access", username_enc=session.get("username_enc"), is_suspicious=True)
+        log_event("unauthorized_menu_access", username_enc=session["username_enc"], is_suspicious=True)
         return "logout"
     
     options = [
