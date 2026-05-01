@@ -84,7 +84,7 @@ def login():
         log_event("failed_login_attempt", username_enc=encrypt_value(username))
         return None
     
-    is_temp_password = user.get("is_password_temp", 0) == 1
+    is_temp_password = user["is_password_temp"] == 1
     if verify_password(password, user["password_hash"]):
         log_event("successful_login", username_enc=encrypt_value(username))
         if is_temp_password:

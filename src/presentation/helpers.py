@@ -32,11 +32,7 @@ def go_validate(input_message, validator):
         give_feedback(validator)
 
 def give_feedback(validator):
-    if validator == validate_username:
-        print("Username must be 8-10 characters, start with a letter or _, and contain only letters, numbers, underscores, apostrophes or periods only.")
-    elif validator == validate_password:
-        print("Password must be 12-30 characters, include uppercase letters, lowercase letters, numbers and special characters.")
-    elif validator == validate_name:
+    if validator == validate_name:
         print("Name must be 1-100 characters, letters, spaces, hyphens and apostrophes allowed.")
     elif validator == validate_birthday:
         print("Birthday must be in format YYYY-MM-DD and a valid date.")

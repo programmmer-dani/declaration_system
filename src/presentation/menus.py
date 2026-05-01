@@ -88,7 +88,7 @@ def superadmin_menu(session):
     return _run_menu(f"Super Admin ({unread_logs} unread suspicious logs)", options, session)
 
 def manager_menu(session):
-    if session.get("role") != "manager":
+    if session["role"] != "manager":
         log_event("unauthorized_menu_access", username_enc=session.get("username_enc"), is_suspicious=True)
         return "logout"
     
@@ -120,7 +120,7 @@ def manager_menu(session):
 
 
 def employee_menu(session):
-    if session.get("role") != "employee":
+    if session["role"] != "employee":
         log_event("unauthorized_menu_access", username_enc=session.get("username_enc"), is_suspicious=True)
         return "logout"
     
