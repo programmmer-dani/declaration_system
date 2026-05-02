@@ -83,7 +83,7 @@ def give_feedback(validator):
     elif validator == validate_project_number:
         print("Project number must be 2-10 digits.")
     elif validator == validate_travel_distance:
-        print("Travel distance must be a positive number.")
+        print("Travel distance must be between 1 and 999 km.")
     elif validator == validate_backup_filename: # Need to check this to prevent path traversal, null-byte attacks and other file-related vulnerabilities
         print("Backup filename must be alphanumeric (with underscores, dots, or hyphens) and end with '.zip'.")
     elif validator == validate_salary_batch:
