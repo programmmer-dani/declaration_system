@@ -135,8 +135,8 @@ def set_restore_code_used(restore_code_id):
         
 
 def save_claim_edit(claim_id, key_to_update, updated_value):
-    ALLOWED_UPDATE_COLUMNS = {"status", "claim_type", "salary_batch_enc", "project_number_enc", "travel_distance_enc"}
-    TRAVEL_CLAIM_COLUMNS = {"travel_distance_enc"}
+    ALLOWED_UPDATE_COLUMNS = {"status", "claim_type", "salary_batch_enc", "project_number_enc", "travel_distance_enc", "from_zip_enc", "from_house_number_enc", "to_zip_enc", "to_house_number_enc", "claim_date"}
+    TRAVEL_CLAIM_COLUMNS = {"travel_distance_enc", "from_zip_enc", "from_house_number_enc", "to_zip_enc", "to_house_number_enc"}
 
     if key_to_update not in ALLOWED_UPDATE_COLUMNS:
         raise ValueError("Corrupted claim data")

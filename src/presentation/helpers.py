@@ -75,7 +75,7 @@ def give_feedback(validator):
     elif validator == validate_bsn:
         print("BSN must be exactly 9 digits.")
     elif validator == validate_claim_date:
-        print("Claim date must be in format YYYY-MM-DD and a valid date.")
+        print("Claim date must be in format YYYY-MM-DD and a valid date between 60 days and 14 days from today.")
     elif validator == validate_search_keyword:
         print("Search term must be 1-50 characters, letters, numbers and spaces allowed.")
     elif validator == validate_claim_type:
@@ -236,7 +236,7 @@ def get_employee_data():
         "street_name": go_validate("Street name: ", validate_street_name),
         "house_number": go_validate("House number: ", validate_house_number),
         "zip_code": go_validate("Zip code: ", validate_zip_code),
-        "city": go_validate("City (Rotterdam): ", validate_city),
+        "city": go_validate("City (Start w capital letter): ", validate_city),
         "email": go_validate("Email: ", validate_email),
         "mobile_phone": go_validate("Mobile phone (8 digits): ", validate_mobile_phone),
         "id_doc_type": go_validate("ID doc type (Passport/ID-Card): ", validate_id_doc_type),

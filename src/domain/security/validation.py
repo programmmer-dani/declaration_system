@@ -97,7 +97,7 @@ def validate_birthday(s):
     if (
         _ok(s)
         and re.match(r"^\d{4}-\d{2}-\d{2}$", s)
-        and _date_sanity(s, today.year - 1, today.year)
+        and _date_sanity(s, today.year - 100, today.year)
         and s <= _now_str()
     ):
         return True
@@ -123,7 +123,7 @@ def validate_house_number(s):
 
 
 def validate_zip_code(s):
-    if _ok(s) and re.match(r"^\d{4}[A-Z]{2}$"):
+    if _ok(s) and re.match(r"^\d{4}[A-Z]{2}$", s):
         return True
     return False
 
