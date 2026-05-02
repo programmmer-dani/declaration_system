@@ -1,5 +1,5 @@
 import re
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 
 VALID_CITIES = {
     "Rotterdam",
@@ -15,12 +15,11 @@ VALID_CITIES = {
 }
 
 
-def _ok(s):
+def _ok(s, length=100):
     return (
-        isinstance(s, str) 
-        and re.match(r"^[ -~À-ÿ]+$", s) 
-        and re.search(r"\S", s)
-        and len(s) <= 100)
+        isinstance(s, str)
+        and re.match(fr"^[ -~À-ÿ]{{1,{length}}}$", s)
+        and re.search(r"\S", s))
 
 def validate_menu_choice(s, number_of_choices):
     if (
@@ -79,24 +78,26 @@ def validate_role(s):
     return False
 
 
-def _valid_calendar_ymd(s): #striptime? is it modifying the input?
-    if _ok(s):
-        try:
-            datetime.strptime(s, "%Y-%m-%d")
-            return True
-        except Exception:
-            return False
-    return False
+def _date_sanity(s, min_year, max_year):
+    y, m, d = int(s[:4]), int(s[5:7]), int(s[8:10])
+    return min_year <= y <= max_year and 1 <= m <= 12 and 1 <= d <= 31
+
+
+def _calendar_ym_sanity(s, min_year, max_year):
+    y, mo = int(s[:4]), int(s[5:7])
+    return min_year <= y <= max_year and 1 <= mo <= 12
+
 
 def _now_str():
     return date.today().isoformat()
 
 
 def validate_birthday(s):
+    today = date.today()
     if (
         _ok(s)
         and re.match(r"^\d{4}-\d{2}-\d{2}$", s)
-        and _valid_calendar_ymd(s)
+        and _date_sanity(s, today.year - 1, today.year)
         and s <= _now_str()
     ):
         return True
@@ -104,7 +105,7 @@ def validate_birthday(s):
 
 
 def validate_gender(s):
-    if isinstance(s, str) and s in ("male", "female"):
+    if _ok(s,7) and s in ("male", "female"):
         return True
     return False
 
@@ -134,12 +135,7 @@ def validate_city(s):
 
 
 def validate_email(s):
-    if (
-        isinstance(s, str) 
-        and re.match(r"^[ -~À-ÿ]+$", s)
-        and len(s) <= 254
-        and re.match(r"^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$", s)
-    ):
+    if _ok(s,254) and re.match(r"^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$", s):
         return True
     return False
 
@@ -151,7 +147,7 @@ def validate_mobile_phone(s):
 
 
 def validate_id_doc_type(s):
-    if isinstance(s, str) and s in ("Passport", "ID-Card"):
+    if _ok(s,8) and s in ("Passport", "ID-Card"):
         return True
     return False
 
@@ -169,7 +165,7 @@ def validate_bsn(s):
 
 
 def validate_claim_type(s):
-    if isinstance(s, str) and s in ("Travel", "Home Office"):
+    if _ok(s,11) and s in ("Travel", "Home Office"):
         return True
     return False
 
@@ -181,19 +177,10 @@ def validate_claim_date(s):
     if (
         _ok(s)
         and re.match(r"^\d{4}-\d{2}-\d{2}$", s)
-        and _valid_calendar_ymd(s)
+        and _date_sanity(s, today.year - 1, today.year + 1)
         and low <= s <= high
     ):
         return True
-    return False
-
-def _valid_calendar_ym(s):
-    if _ok(s):
-        try:
-            datetime.strptime(s, "%Y-%m")
-            return True
-        except Exception:
-            return False
     return False
 
 def validate_salary_batch(s):
@@ -204,7 +191,7 @@ def validate_salary_batch(s):
     if (
         _ok(s)
         and re.fullmatch(r"\d{4}-(0[1-9]|1[0-2])", s)
-        and _valid_calendar_ym(s)
+        and _calendar_ym_sanity(s, today.year - 1, today.year)
         and min_first <= s <= max_first
     ):
         return True
