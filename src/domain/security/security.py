@@ -81,6 +81,7 @@ def login():
     
         if user is None:
             log_event("failed_login_attempt", username_enc=encrypt_value(credentials["username"]))
+            dummy_hash = hash_password("against enumeration cointing time resposnes")
             return None
     
         is_temp_password = user["is_password_temp"] == 1
