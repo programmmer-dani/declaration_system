@@ -1,7 +1,7 @@
 import datetime
 
 from logging_system import log_event
-from domain.security.encryption import decrypt_value
+from domain.security.encryption import decrypt_value, encrypt_value
 from domain.security.validation import validate_birthday, validate_bsn, validate_city, validate_claim_date, validate_email, validate_employee_search_term, validate_gender, validate_house_number, validate_id_doc_number, validate_id_doc_type, validate_menu_choice, validate_mobile_phone, validate_name, validate_password, validate_restore_code, validate_street_name, validate_username, validate_zip_code, validate_backup_filename, validate_salary_batch
 from infrastructure.backup_infrastructure import create_backup
 from domain.security.validation import (
@@ -15,14 +15,28 @@ from domain.security.validation import (
 )
 
 def get_login_input():
-    username = go_validate("Username: ", validate_username)
-    password = go_validate("Password: ", validate_password)
-    log_event("login attempt")
-    return {"username": username, "password": password}
+    username = go_validate_login("Username: ", validate_username)
+    if not username:
+        log_event(f"incorrect username format",)
+        input("Password: ")
+        return None
+    else:
+        password = go_validate_login("Password: ", validate_password)
+        if password:
+            return {"username": username, "password": password}
+    
+    log_event(f"incorrect password format")
+    return None
+
 
 def print_error(error):
     print(f"\n-----------------\nError: {error}\n-----------------\n")
 
+def go_validate_login(input_message, validator):
+    value = input(input_message)
+    if validator(value):
+        return value
+    
     
 def go_validate(input_message, validator):
     while True:
@@ -30,7 +44,6 @@ def go_validate(input_message, validator):
         if validator(value):
             return value
         give_feedback(validator)
-        log_event("invalid input", additional_info=f"input: {value}", is_suspicious=False)
 
 def give_feedback(validator):
     if validator == validate_username:
@@ -73,11 +86,11 @@ def give_feedback(validator):
         print("Project number must be 2-10 digits.")
     elif validator == validate_travel_distance:
         print("Travel distance must be a positive number.")
-    elif validator == validate_backup_filename:
+    elif validator == validate_backup_filename: # Need to check this to prevent path traversal, null-byte attacks and other file-related vulnerabilities
         print("Backup filename must be alphanumeric (with underscores, dots, or hyphens) and end with '.zip'.")
     elif validator == validate_salary_batch:
        print("Salary batch must be a valid YYYY-MM date within the last 12 months.")
-    elif validator == validate_restore_code:
+    elif validator == validate_restore_code: # Maybe add bruteforce protection
         print("Restore code must be exactly 22 alphanumeric characters, underscores, or hyphens.")
     
 

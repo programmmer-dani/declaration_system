@@ -27,39 +27,45 @@ from logging_system import log_event, unread_suspicious_log_count
 from presentation.helpers import call_to_create_backup, go_validate_menu_choice, print_error
 
 def _run_menu(title, options, session):
-    print(f"\n--- {title} ---")
-    for i, (label, _) in enumerate(options, 1):
-        print(f"  {i}. {label}")
-    choice = go_validate_menu_choice("Choice: ", validate_menu_choice, len(options))
-    if choice is None:
-        print_error("Invalid choice")
-        return
-    idx = int(choice) - 1
-    if idx == len(options) - 2:
-        session = None
-        return "logout"
-    if idx == len(options) - 1:
-        return "exit"
-    execute_option = options[idx][1]
-    if execute_option:
+    while True:
+        print(f"\n--- {title} ---")
+        for i, (label, action) in enumerate(options, 1):
+            print(f"  {i}. {label}")
+        choice = go_validate_menu_choice("Choice: ", validate_menu_choice, len(options))
+        if choice is None:
+            print_error("Invalid choice")
+            continue
         try:
-            result = execute_option(session)
-            if result == "logout":
+            idx = int(choice) - 1
+            label, action = options[idx]
+            if action == "logout":
                 return "logout"
-            if result == "exit":
+            if action == "exit":
                 return "exit"
-        except Exception as e:
-            print_error(e)
-            return
-    else:
-        print("Not implemented yet.")
+            if callable(action):
+                try:
+                    result = action(session)
+                    if result == "logout":
+                        return "logout"
+                    if result == "exit":
+                        return "exit"
+                except Exception as e:
+                    log_event("menu_action_crash", error=str(e), is_suspicious=False)
+                    print_error("An unexpected error occurred. Please try again.")
+                continue
+            print("Not implemented yet.")
+        except (ValueError, IndexError):
+            print_error("Invalid input format")
+            continue
         
 def superadmin_menu(session):
     if session["role"] != "admin":
-        log_event("unauthorized menu access attempt", username_enc=session["username"], is_suspicious=True)
-        return Exception("Unauthorized access")
+        log_event("unauthorized_menu_access", username_enc=session["username_enc"], is_suspicious=True)
+        return "logout"
+    
     unread_logs = unread_suspicious_log_count()
-    return _run_menu(f"Super Admin ({unread_logs} unread suspicious logs)", [
+    
+    options = [
         ("Create manager account", create_user),
         ("Backup system", call_to_create_backup),
         ("Generate restore code for manager", assign_backup),
@@ -75,23 +81,26 @@ def superadmin_menu(session):
         ("Delete manager account", delete_manager_account_as_admin),
         ("Reset users password", reset_users_password),
         ("View logs", view_logs),
-        ("Logout", None),
-        ("Exit system", None),
-    ], session)
-
+        ("Logout", "logout"), 
+        ("Exit system", "exit"),
+    ]
+    
+    return _run_menu(f"Super Admin ({unread_logs} unread suspicious logs)", options, session)
 
 def manager_menu(session):
     if session["role"] != "manager":
-        log_event("unauthorized menu access attempt", username_enc=session["username"], is_suspicious=True)
-        return Exception("Unauthorized access")
+        log_event("unauthorized_menu_access", username_enc=session["username_enc"], is_suspicious=True)
+        return "logout"
+    
     unread_logs = unread_suspicious_log_count()
-    return _run_menu(f"Manager ({unread_logs} unread suspicious logs)", [
+    
+    options = [
         ("Search claim", search_claims),
         ("Search employee", search_employees),
         ("Create employee account", create_user),
         ("Edit employee account", edit_employee_account),
         ("Delete employee account", delete_employee_account),
-        ("reset employee password", reset_users_password),
+        ("Reset employee password", reset_users_password),
         ("Backup system", call_to_create_backup),
         ("Restore backup with code", restore_backup_with_code),
         ("View employee list", view_employee_list),
@@ -103,22 +112,27 @@ def manager_menu(session):
         ("Update my password", update_password),
         ("Update my account", edit_manager_account),
         ("Delete my account", delete_manager_account),
-        ("Logout", None),
-        ("Exit system", None),
-    ], session)
+        ("Logout", "logout"),
+        ("Exit system", "exit"),
+    ]
+    
+    return _run_menu(f"Manager ({unread_logs} unread suspicious logs)", options, session)
 
 
 def employee_menu(session):
     if session["role"] != "employee":
-        log_event("unauthorized menu access attempt", username_enc=session["username"], is_suspicious=True)
-        return Exception("Unauthorized access")
-    return _run_menu("Employee", [
+        log_event("unauthorized_menu_access", username_enc=session["username_enc"], is_suspicious=True)
+        return "logout"
+    
+    options = [
         ("Search in my claims", search_claims),
         ("Submit new claim", create_claim),
         ("View own claims", request_employees_claims),
         ("Edit my claim", edit_claim),
         ("Delete my claim", delete_claim),
         ("Update my password", update_password),
-        ("Logout", None),
-        ("Exit system", None),
-    ], session)
+        ("Logout", "logout"),
+        ("Exit system", "exit"),
+    ]
+    
+    return _run_menu("Employee", options, session)

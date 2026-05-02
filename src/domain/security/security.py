@@ -1,8 +1,11 @@
+from time import time
+
 from domain.security.temp_password_updator import update_temp_password
 from infrastructure.database import find_user_by_username, username_exists
 from domain.security.encryption import decrypt_value, encrypt_value
 from domain.security.hashing import hash_password, hash_username, verify_password
 from logging_system import log_event
+from presentation.helpers import get_login_input
 
 
 def secure_claim_data(session, claim_data):
@@ -66,22 +69,24 @@ def secure_employee_data(employee_data):
 def verify_existing_username(username): 
     if username_exists(username):
         raise ValueError("Username already exists")
+
+def login():
+    credentials = get_login_input()
+    if credentials:
+        if credentials["username"] == "super_admin" and credentials["password"] == "Admin_123?":
+            log_event("super admin logged in")
+            return {"role":"admin", "username_enc": encrypt_value(credentials["username"])}
     
-def login(credentials):
-    if credentials["username"] == "super_admin" and credentials["password"] == "Admin_123?":
-        log_event("super admin logged in")
-        return {"role":"admin", "username_enc": encrypt_value(credentials["username"])}
-    user = find_user_by_username(credentials["username"])
-    if user is None:
-        log_event("incorrect username login attempt", username_enc=encrypt_value(credentials["username"]))
-        return None
-    is_temp_password = user["is_password_temp"] == 1
-    if verify_password(credentials["password"], user["password_hash"]):
-        if is_temp_password is False:
-            log_event("succesfull login", username_enc=encrypt_value(credentials["username"]))
+        user = find_user_by_username(credentials["username"])
+    
+        if user is None:
+            log_event("failed_login_attempt", username_enc=encrypt_value(credentials["username"]))
+            return None
+    
+        is_temp_password = user["is_password_temp"] == 1
+        if verify_password(credentials["password"], user["password_hash"]):
+            log_event("successful_login", username_enc=encrypt_value(credentials["username"]))
+            if is_temp_password:
+                update_temp_password(user)
             return user
-        else:
-            update_temp_password(user)
-            return user
-    log_event("incorrect password login attempt", username_enc=encrypt_value(credentials["username"]))
     return None
