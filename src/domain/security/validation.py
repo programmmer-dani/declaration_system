@@ -197,12 +197,7 @@ def validate_salary_batch(s):
         return True
     return False
 
-def validate_claim_search_term(s):
-    if _ok(s) and re.fullmatch(r"[A-Za-z0-9 .'\-]{1,50}", s):
-        return True
-    return False
-
-def validate_employee_search_term(s):
+def validate_search_keyword(s):
     if _ok(s) and re.fullmatch(r"[A-Za-z0-9 .'\-]{1,50}", s):
         return True
     return False

@@ -31,11 +31,9 @@ from infrastructure.database import (
 from logging_system import log_event
 from presentation.helpers import (
     get_claim_data,
-    get_login_input,
     get_user_data,
     go_validate,
-    input_claim_search_term,
-    input_employee_search_term,
+    input_search_term,
     input_restore_code,
     print_and_select_from_list,
     print_claim_list,
@@ -181,7 +179,7 @@ def search_claims(session):
         log_event("invalid role claims search attempt", username_enc=session["username_enc"], is_suspicious=True)
         raise Exception("Invalid role")
 
-    needle = _normalize_search_text(input_claim_search_term())
+    needle = _normalize_search_text(input_search_term())
     log_event("claims searched", username_enc=session["username_enc"], additional_info=f"claims searched for {needle}")
     matched = [r for r in rows if _claim_row_matches_partial_search(r, needle)]
     if not matched:
@@ -194,7 +192,7 @@ def search_employees(session):
         employees = fetch_all_employees()
         if not employees:
             raise Exception("No employees found")
-        needle = _normalize_search_text(input_employee_search_term())
+        needle = _normalize_search_text(input_search_term())
         matched = [r for r in employees if _employee_row_matches_partial_search(r, needle)]
         log_event("employees searched", username_enc=session["username_enc"], additional_info=f"employees searched for {needle}")
         if not matched:

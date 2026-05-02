@@ -1,12 +1,12 @@
 import datetime
 
 from logging_system import log_event
-from domain.security.encryption import decrypt_value, encrypt_value
-from domain.security.validation import validate_birthday, validate_bsn, validate_city, validate_claim_date, validate_email, validate_employee_search_term, validate_gender, validate_house_number, validate_id_doc_number, validate_id_doc_type, validate_menu_choice, validate_mobile_phone, validate_name, validate_password, validate_restore_code, validate_street_name, validate_username, validate_zip_code, validate_backup_filename, validate_salary_batch
+from domain.security.encryption import decrypt_value
+from domain.security.validation import validate_birthday, validate_bsn, validate_city, validate_claim_date, validate_email, validate_gender, validate_house_number, validate_id_doc_number, validate_id_doc_type, validate_menu_choice, validate_mobile_phone, validate_name, validate_password, validate_restore_code, validate_street_name, validate_username, validate_zip_code, validate_backup_filename, validate_salary_batch
 from infrastructure.backup_infrastructure import create_backup
 from domain.security.validation import (
     validate_claim_date,
-    validate_claim_search_term,
+    validate_search_keyword,
     validate_claim_type,
     validate_project_number,
     validate_travel_distance,
@@ -76,10 +76,8 @@ def give_feedback(validator):
         print("BSN must be exactly 9 digits.")
     elif validator == validate_claim_date:
         print("Claim date must be in format YYYY-MM-DD and a valid date.")
-    elif validator == validate_claim_search_term:
-        print("Claim search term must be 1-50 characters, letters, numbers and spaces allowed.")
-    elif validator == validate_employee_search_term:
-        print("Employee search term must be 1-50 characters, letters, numbers and spaces allowed.")
+    elif validator == validate_search_keyword:
+        print("Search term must be 1-50 characters, letters, numbers and spaces allowed.")
     elif validator == validate_claim_type:
         print("Claim type must be 'Travel' or 'Home Office'.")
     elif validator == validate_project_number:
@@ -169,18 +167,10 @@ def call_to_create_backup(session):
     log_event("unauthorized backup create attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
     
-    
-    
-def input_claim_search_term():
+def input_search_term():
     return go_validate(
-        "Search claim: ",
-        validate_claim_search_term,
-    )
-
-def input_employee_search_term():
-    return go_validate(
-        "Search employee: ",
-        validate_employee_search_term,
+        "Search: ",
+        validate_search_keyword,
     )
 
 def input_restore_code():
