@@ -31,11 +31,9 @@ from infrastructure.database import (
 from logging_system import log_event
 from presentation.helpers import (
     get_claim_data,
-    get_login_input,
     get_user_data,
     go_validate,
-    input_claim_search_term,
-    input_employee_search_term,
+    input_search_term,
     input_restore_code,
     print_and_select_from_list,
     print_claim_list,
@@ -181,7 +179,7 @@ def search_claims(session):
         log_event("invalid role claims search attempt", username_enc=session["username_enc"], is_suspicious=True)
         raise Exception("Invalid role")
 
-    needle = _normalize_search_text(input_claim_search_term())
+    needle = _normalize_search_text(input_search_term())
     log_event("claims searched", username_enc=session["username_enc"], additional_info=f"claims searched for {needle}")
     matched = [r for r in rows if _claim_row_matches_partial_search(r, needle)]
     if not matched:
@@ -194,7 +192,7 @@ def search_employees(session):
         employees = fetch_all_employees()
         if not employees:
             raise Exception("No employees found")
-        needle = _normalize_search_text(input_employee_search_term())
+        needle = _normalize_search_text(input_search_term())
         matched = [r for r in employees if _employee_row_matches_partial_search(r, needle)]
         log_event("employees searched", username_enc=session["username_enc"], additional_info=f"employees searched for {needle}")
         if not matched:
@@ -317,7 +315,7 @@ def edit_claim(session):
         updated_value = go_validate(f"Enter new value for {key_to_update}: ", find_validator(key_to_update))
         if is_key_value_encrypted(key_to_update):
             updated_value = encrypt_value(updated_value)
-            key_to_update = key_to_update + "_enc"
+            key_to_update = f"{key_to_update}_enc"
         save_claim_edit(claim_id, key_to_update, updated_value)
         log_event("claim edited", username_enc=session["username_enc"], additional_info=f"claim edited (id: {claim_id}): {key_to_update} updated to {updated_value}")
         return
@@ -333,11 +331,12 @@ def edit_claim_as_manager_or_admin(session):
         formatted_claims = format_claim_list(claims)
         claim = print_and_select_from_list(formatted_claims, "Select claim to edit: ")
         claim_id = claim["claim_id"]
-        keys = ["project_number", "travel_distance"]
+        keys = get_keys_to_update(claim["claim_type"], "manager_or_admin")
         key_to_update = print_and_select_from_list(keys, "Select key to update: ")
         updated_value = go_validate(f"Enter new value for {key_to_update}: ", find_validator(key_to_update))
-        updated_value = encrypt_value(updated_value)
-        if key_to_update == "project_number": key_to_update = "project_number_enc"
+        if is_key_value_encrypted(key_to_update):
+            updated_value = encrypt_value(updated_value)
+            key_to_update = f"{key_to_update}_enc"
         save_claim_edit(claim_id, key_to_update, updated_value)
         log_event("claim edited", username_enc=session["username_enc"], additional_info=f"claim edited (id: {claim_id}): {key_to_update} updated to {updated_value}")
         print("Claim edited successfully.")
@@ -376,12 +375,23 @@ def find_validator(key_to_update):
     return validators[key_to_update]
     
 def is_key_value_encrypted(key_to_update):
-    if key_to_update in ["travel_distance", "from_zip_code", "to_zip_code", "first_name", "last_name", "email", "mobile_phone", "birthday", "bsn", "street_name", "house_number", "zip_code", "city"]:
+    if key_to_update in ["project_number", "travel_distance", "from_zip_code", "to_zip_code", "first_name", "last_name", "email", "mobile_phone", "birthday", "bsn", "street_name", "house_number", "zip_code", "city"]:
         return True
     else:
         return False
     
-def get_keys_to_update(claim_type):
+def get_keys_to_update(claim_type, role=None):
+    if role == "manager_or_admin":
+        if claim_type == "Travel":
+            return [
+                "project_number",
+                "travel_distance"
+            ]
+        else:
+            return [
+                "project_number"
+            ]
+            
     if claim_type == "Travel":
         return [
             "claim_date",

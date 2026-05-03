@@ -1,12 +1,12 @@
 import datetime
 
 from logging_system import log_event
-from domain.security.encryption import decrypt_value, encrypt_value
-from domain.security.validation import validate_birthday, validate_bsn, validate_city, validate_claim_date, validate_email, validate_employee_search_term, validate_gender, validate_house_number, validate_id_doc_number, validate_id_doc_type, validate_menu_choice, validate_mobile_phone, validate_name, validate_password, validate_restore_code, validate_street_name, validate_username, validate_zip_code, validate_backup_filename, validate_salary_batch
+from domain.security.encryption import decrypt_value
+from domain.security.validation import validate_birthday, validate_bsn, validate_city, validate_claim_date, validate_email, validate_gender, validate_house_number, validate_id_doc_number, validate_id_doc_type, validate_menu_choice, validate_mobile_phone, validate_name, validate_password, validate_restore_code, validate_street_name, validate_username, validate_zip_code, validate_backup_filename, validate_salary_batch
 from infrastructure.backup_infrastructure import create_backup
 from domain.security.validation import (
     validate_claim_date,
-    validate_claim_search_term,
+    validate_search_keyword,
     validate_claim_type,
     validate_project_number,
     validate_travel_distance,
@@ -75,17 +75,15 @@ def give_feedback(validator):
     elif validator == validate_bsn:
         print("BSN must be exactly 9 digits.")
     elif validator == validate_claim_date:
-        print("Claim date must be in format YYYY-MM-DD and a valid date.")
-    elif validator == validate_claim_search_term:
-        print("Claim search term must be 1-50 characters, letters, numbers and spaces allowed.")
-    elif validator == validate_employee_search_term:
-        print("Employee search term must be 1-50 characters, letters, numbers and spaces allowed.")
+        print("Claim date must be in format YYYY-MM-DD and a valid date between 60 days and 14 days from today.")
+    elif validator == validate_search_keyword:
+        print("Search term must be 1-50 characters, letters, numbers and spaces allowed.")
     elif validator == validate_claim_type:
         print("Claim type must be 'Travel' or 'Home Office'.")
     elif validator == validate_project_number:
         print("Project number must be 2-10 digits.")
     elif validator == validate_travel_distance:
-        print("Travel distance must be a positive number.")
+        print("Travel distance must be between 1 and 999 km.")
     elif validator == validate_backup_filename: # Need to check this to prevent path traversal, null-byte attacks and other file-related vulnerabilities
         print("Backup filename must be alphanumeric (with underscores, dots, or hyphens) and end with '.zip'.")
     elif validator == validate_salary_batch:
@@ -169,18 +167,10 @@ def call_to_create_backup(session):
     log_event("unauthorized backup create attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
     
-    
-    
-def input_claim_search_term():
+def input_search_term():
     return go_validate(
-        "Search claim: ",
-        validate_claim_search_term,
-    )
-
-def input_employee_search_term():
-    return go_validate(
-        "Search employee: ",
-        validate_employee_search_term,
+        "Search: ",
+        validate_search_keyword,
     )
 
 def input_restore_code():
@@ -246,7 +236,7 @@ def get_employee_data():
         "street_name": go_validate("Street name: ", validate_street_name),
         "house_number": go_validate("House number: ", validate_house_number),
         "zip_code": go_validate("Zip code: ", validate_zip_code),
-        "city": go_validate("City (Rotterdam): ", validate_city),
+        "city": go_validate("City (Start w capital letter): ", validate_city),
         "email": go_validate("Email: ", validate_email),
         "mobile_phone": go_validate("Mobile phone (8 digits): ", validate_mobile_phone),
         "id_doc_type": go_validate("ID doc type (Passport/ID-Card): ", validate_id_doc_type),
