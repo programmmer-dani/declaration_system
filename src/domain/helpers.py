@@ -39,6 +39,7 @@ from presentation.helpers import (
     print_claim_list,
     print_error,
     print_log_list,
+    print_semi_decrypted_log_list,
     print_temp_password,
     print_user_list,
 )
@@ -130,7 +131,10 @@ def view_logs(session):
         logs = fetch_all_logs()
         if not logs:
             raise Exception("No logs found")
-        print_log_list(logs)
+        if session["role"] == "admin":
+            print_log_list(logs)
+        else:   
+            print_semi_decrypted_log_list(logs)
         flag_all_logs_as_read()
         log_event("logs viewed", username_enc=session["username_enc"])
         return
@@ -152,7 +156,7 @@ def edit_employee_account(session):
             updated_value = encrypt_value(updated_value)
             key_to_update = key_to_update + "_enc"
         save_employee_edit(employee_id, key_to_update, updated_value)
-        log_event("employee account edited", username_enc=session["username_enc"], additional_info=f"employee account edited (id: {decrypt_value(employee["user_id"])}: {key_to_update} updated to {updated_value}")
+        log_event("employee account edited", username_enc=session["username_enc"], additional_info=f"employee account edited (id: {decrypt_value(employee["user_id"])}: {key_to_update} updated to {decrypt_value(updated_value)}")
         return
     log_event("unauthorized employee account edit attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
@@ -233,7 +237,7 @@ def edit_manager_account_as_admin(session):
         updated_value = encrypt_value(updated_value)
         key_to_update = key_to_update + "_enc"
         save_manager_edit(manager_id, key_to_update, updated_value)
-        log_event("manager account edited", username_enc=session["username_enc"], additional_info=f"manager account edited (id: {manager_id}): {key_to_update} updated to {updated_value}")
+        log_event("manager account edited", username_enc=session["username_enc"], additional_info=f"manager account edited (id: {manager_id}): {key_to_update} updated to {decrypt_value(updated_value)}")
         return
     log_event("unauthorized manager account edit attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
@@ -260,7 +264,7 @@ def edit_manager_account(session):
         updated_value = encrypt_value(updated_value)
         key_to_update = key_to_update + "_enc"
         save_employee_edit(session["user_id"], key_to_update, updated_value)
-        log_event("manager account edited", username_enc=session["username_enc"], additional_info=f"manager account edited (username: {decrypt_value(session["username_enc"])}: {key_to_update} updated to {updated_value}")
+        log_event("manager account edited", username_enc=session["username_enc"], additional_info=f"manager account edited (username: {decrypt_value(session["username_enc"])}: {key_to_update} updated to {decrypt_value(updated_value)}")
         return
     log_event("unauthorized manager account edit attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
@@ -317,7 +321,7 @@ def edit_claim(session):
             updated_value = encrypt_value(updated_value)
             key_to_update = f"{key_to_update}_enc"
         save_claim_edit(claim_id, key_to_update, updated_value)
-        log_event("claim edited", username_enc=session["username_enc"], additional_info=f"claim edited (id: {claim_id}): {key_to_update} updated to {updated_value}")
+        log_event("claim edited", username_enc=session["username_enc"], additional_info=f"claim edited (id: {claim_id}): {key_to_update} updated to {decrypt_value(updated_value)}")
         return
     log_event("unauthorized claim edit attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
@@ -338,7 +342,7 @@ def edit_claim_as_manager_or_admin(session):
             updated_value = encrypt_value(updated_value)
             key_to_update = f"{key_to_update}_enc"
         save_claim_edit(claim_id, key_to_update, updated_value)
-        log_event("claim edited", username_enc=session["username_enc"], additional_info=f"claim edited (id: {claim_id}): {key_to_update} updated to {updated_value}")
+        log_event("claim edited", username_enc=session["username_enc"], additional_info=f"claim edited (id: {claim_id}): {key_to_update} updated to {decrypt_value(updated_value)}")
         print("Claim edited successfully.")
         return
     log_event("unauthorized claim edit attempt", username_enc=session["username_enc"], is_suspicious=True)

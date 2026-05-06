@@ -155,6 +155,20 @@ def print_log_list(logs):
             f"[{r['log_id']}] {when} | {act} | username={user} | additional_info={extra} "
             f"| is_suspicious={susp} | is_read={read}"
         )
+        
+def print_semi_decrypted_log_list(logs):
+    for row in logs:
+        r = dict(row)
+        when = _format_log_created_at(r["created_at"])
+        act = decrypt_value(r["activity_desc_enc"])
+        user = r["username_enc"] if r["username_enc"] is not None else "—"
+        extra = r["additional_info_enc"] if r["additional_info_enc"] else "—"
+        susp = "yes" if r["is_suspicious"] else "no"
+        read = "yes" if r["is_read"] else "no"
+        print(
+            f"[{r['log_id']}] {when} | {act} | username={user} | additional_info={extra} "
+            f"| is_suspicious={susp} | is_read={read}"
+        )
 
 
 def call_to_create_backup(session):
