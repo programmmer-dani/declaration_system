@@ -12,6 +12,7 @@ def fetch_all_logs():
         return logs
 
 def fetch_all_managers():
+    # ROLE NOW ENCRYPTED
     with get_connection() as conn:
         cur = conn.execute("SELECT * FROM users WHERE role = 'manager'")
         managers = cur.fetchall()
@@ -37,6 +38,7 @@ def fetch_logs_since_created_at(since_created_at):
         return cur.fetchall()
 
 def fetch_all_employees():
+    # ROLE NOW ENCRYPTED
     with get_connection() as conn:
         cur = conn.execute("SELECT * FROM users WHERE role = 'employee'")
         employees = cur.fetchall()
@@ -227,13 +229,13 @@ def save_claim(claim):
         conn.commit()
 
 
-def save_user(registration_date, user,):
+def save_user(registration_date, user,): # MAYBE ADD SIMPLE ROLE CHECK HERE FOR THE IF ON LINE 249
     with get_connection() as conn:
         cur = conn.execute(
-            """INSERT INTO users (role, username_enc, username_lookup, password_hash, first_name_enc, last_name_enc, registration_date, is_active)
+            """INSERT INTO users (role_enc, username_enc, username_lookup, password_hash, first_name_enc, last_name_enc, registration_date, is_active)
                VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
             (
-                user["role"],
+                user["role_enc"],
                 user["username_enc"],
                 user["username_lookup"],
                 user["password_hash"],
@@ -244,7 +246,7 @@ def save_user(registration_date, user,):
             ),
         )
         user_id = cur.lastrowid
-        if user["role"] == "employee":
+        if user["role_enc"] == "employee": # ROLE IS ALREADY ENCRYPTED
             conn.execute(
                 """INSERT INTO employees (user_id, first_name_enc, last_name_enc, birthday_enc, gender_enc, street_name_enc, house_number_enc, zip_code_enc, city_enc, email_enc, mobile_phone_enc, id_doc_type_enc, id_doc_number_enc, bsn_enc, registration_date)
                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
@@ -321,7 +323,7 @@ def create_tables(conn: sqlite3.Connection):
         """
         CREATE TABLE IF NOT EXISTS users (
             user_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            role TEXT NOT NULL CHECK (role IN ('manager', 'employee')),
+            role_enc BLOB NOT NULL,
             username_enc BLOB NOT NULL,
             username_lookup TEXT NOT NULL UNIQUE,
             password_hash TEXT NOT NULL,

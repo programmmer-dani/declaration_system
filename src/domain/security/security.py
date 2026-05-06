@@ -33,7 +33,7 @@ def secure_claim_data(session, claim_data):
 def secure_user_data(user_data):
     try:
         secured_user_data = {
-            "role": user_data["role"],
+            "role_enc": user_data["role"],# ROLE NEEDS TO GET ENCRYPTED
             "username_enc": encrypt_value(user_data["username"]),
             "username_lookup": hash_username(user_data["username"]),
             "password_hash": hash_password(user_data["password"]),
@@ -44,7 +44,7 @@ def secure_user_data(user_data):
     except ValueError as e:
         raise ValueError(f"Error securing basic user data: {e}")
     try:
-        if user_data["role"] == "employee":
+        if user_data["role"] == "employee": # ADD SIMPLE TRUE/FALSE WORKAROUND, role should already be encrypted
             secured_user_data.update(secure_employee_data(user_data))
     except ValueError as e:
         raise ValueError(f"Error securing extra employee data: {e}")

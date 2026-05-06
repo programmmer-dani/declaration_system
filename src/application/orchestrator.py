@@ -19,6 +19,7 @@ def app():
         session = login()
         
         if session:
+            # DECRYPTED, ENCRYPTED USER ROLE in session
             result = verify_user_menu(session)
             
             if result == "logout":
