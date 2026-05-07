@@ -229,7 +229,7 @@ def save_claim(claim):
         conn.commit()
 
 
-def save_user(registration_date, user,): # MAYBE ADD SIMPLE ROLE CHECK HERE FOR THE IF ON LINE 249
+def save_user(registration_date, user, role):
     with get_connection() as conn:
         cur = conn.execute(
             """INSERT INTO users (role_enc, username_enc, username_lookup, password_hash, first_name_enc, last_name_enc, registration_date, is_active)
@@ -246,7 +246,7 @@ def save_user(registration_date, user,): # MAYBE ADD SIMPLE ROLE CHECK HERE FOR 
             ),
         )
         user_id = cur.lastrowid
-        if user["role_enc"] == "employee": # ROLE IS ALREADY ENCRYPTED
+        if role == "employee":
             conn.execute(
                 """INSERT INTO employees (user_id, first_name_enc, last_name_enc, birthday_enc, gender_enc, street_name_enc, house_number_enc, zip_code_enc, city_enc, email_enc, mobile_phone_enc, id_doc_type_enc, id_doc_number_enc, bsn_enc, registration_date)
                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
