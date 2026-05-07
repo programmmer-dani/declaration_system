@@ -116,10 +116,7 @@ def print_and_select_from_list(list, message="Choose item: "):
 
 def print_user_list(users):
     for i, user in enumerate(users, 1):
-        if isinstance(user, dict) and "user" in user:
-            print(f"{i}. {user['user']}")
-        else:
-            print(f"{i}. {user['first_name']} {user['last_name']}")
+        print(f"{i}. {user['name']} ({user['username']})")
         
 def print_temp_password(temp_password):
     print(f"Temporary password: {temp_password}")

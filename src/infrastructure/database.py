@@ -2,6 +2,7 @@ import os
 import sqlite3
 
 
+from domain.security.encryption import decrypt_value
 from domain.security.hashing import hash_username
 from infrastructure.config import DATABASE_PATH
 
@@ -12,11 +13,10 @@ def fetch_all_logs():
         return logs
 
 def fetch_all_managers():
-    # ROLE NOW ENCRYPTED
     with get_connection() as conn:
-        cur = conn.execute("SELECT * FROM users WHERE role = 'manager'")
-        managers = cur.fetchall()
-        return managers
+        cur = conn.execute("SELECT * FROM users")
+        users = cur.fetchall()
+        return [user for user in users if decrypt_value(user["role_enc"]) == "manager"]
 
 def fetch_unread_suspicious_logs():
     with get_connection() as conn:
@@ -38,11 +38,10 @@ def fetch_logs_since_created_at(since_created_at):
         return cur.fetchall()
 
 def fetch_all_employees():
-    # ROLE NOW ENCRYPTED
     with get_connection() as conn:
-        cur = conn.execute("SELECT * FROM users WHERE role = 'employee'")
-        employees = cur.fetchall()
-        return employees
+        cur = conn.execute("SELECT * FROM users")
+        users = cur.fetchall()
+        return [user for user in users if decrypt_value(user["role_enc"]) == "employee"]
 
 def fetch_all_claims():
     with get_connection() as conn:
@@ -154,7 +153,7 @@ def save_claim_edit(claim_id, key_to_update, updated_value):
 def save_employee_edit(employee_id, key_to_update, updated_value):
     ALLOWED_UPDATE_COLUMNS = {"first_name_enc", "last_name_enc", 'birthday_enc', 'gender_enc', 'street_name_enc', 'house_number_enc', 'zip_code_enc', 'city_enc', 'email_enc', 'mobile_phone_enc', 'id_doc_type_enc', 'id_doc_number_enc', 'bsn_enc'}
     if key_to_update not in ALLOWED_UPDATE_COLUMNS:
-        raise ValueError("Invalid employee")
+        raise ValueError("Invalid update key")
     with get_connection() as conn:
         cur = conn.execute(f"UPDATE employees SET {key_to_update} = ? WHERE user_id = ?", (updated_value, employee_id))
         conn.commit()
@@ -162,7 +161,7 @@ def save_employee_edit(employee_id, key_to_update, updated_value):
 def save_manager_edit(manager_id, key_to_update, updated_value):
     ALLOWED_UPDATE_COLUMNS = {"first_name_enc", "last_name_enc"}
     if key_to_update not in ALLOWED_UPDATE_COLUMNS:
-        raise ValueError("Invalid manager")
+        raise ValueError("Invalid update key")
     with get_connection() as conn:
         cur = conn.execute(f"UPDATE users SET {key_to_update} = ? WHERE user_id = ?", (updated_value, manager_id))
         conn.commit()

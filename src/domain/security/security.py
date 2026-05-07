@@ -44,7 +44,7 @@ def secure_user_data(user_data):
     except ValueError as e:
         raise ValueError(f"Error securing basic user data: {e}")
     try:
-        if user_data["role"] == "employee": # ADD SIMPLE TRUE/FALSE WORKAROUND, role should already be encrypted
+        if user_data["role"] == "employee":
             secured_user_data.update(secure_employee_data(user_data))
     except ValueError as e:
         raise ValueError(f"Error securing extra employee data: {e}")

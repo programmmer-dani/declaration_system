@@ -551,7 +551,8 @@ def format_user_list(users):
     return [
         {
             "user_id": employee["user_id"],
-            "username": decrypt_value(employee['username_enc'])
+            "username": decrypt_value(employee['username_enc']),
+            "name": decrypt_value(employee['first_name_enc']) + " " + decrypt_value(employee['last_name_enc'])
         }
         for employee in users
     ]
