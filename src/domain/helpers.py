@@ -174,7 +174,7 @@ def search_claims(session):
         raise Exception("Unauthorized access")
 
     if session["role"] == "employee":
-        rows = fetch_employees_claims_with_travel(session["user_id"]) # CHECK IF THIS IS CORRECT FLOW
+        rows = fetch_employees_claims_with_travel(session["user_id"])
     elif session["role"] in ["manager", "admin"]:
         rows = fetch_all_claims()
         if not rows:
