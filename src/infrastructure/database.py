@@ -228,10 +228,10 @@ def save_claim(claim):
         conn.commit()
 
 
-def save_user(registration_date, user, role):
+def save_user(registration_date_enc, user, role):
     with get_connection() as conn:
         cur = conn.execute(
-            """INSERT INTO users (role_enc, username_enc, username_lookup, password_hash, first_name_enc, last_name_enc, registration_date)
+            """INSERT INTO users (role_enc, username_enc, username_lookup, password_hash, first_name_enc, last_name_enc, registration_date_enc)
                VALUES (?, ?, ?, ?, ?, ?, ?)""",
             (
                 user["role_enc"],
@@ -240,13 +240,13 @@ def save_user(registration_date, user, role):
                 user["password_hash"],
                 user["first_name_enc"],
                 user["last_name_enc"],
-                registration_date,
+                registration_date_enc,
             ),
         )
         user_id = cur.lastrowid
         if role == "employee":
             conn.execute(
-                """INSERT INTO employees (user_id, first_name_enc, last_name_enc, birthday_enc, gender_enc, street_name_enc, house_number_enc, zip_code_enc, city_enc, email_enc, mobile_phone_enc, id_doc_type_enc, id_doc_number_enc, bsn_enc, registration_date)
+                """INSERT INTO employees (user_id, first_name_enc, last_name_enc, birthday_enc, gender_enc, street_name_enc, house_number_enc, zip_code_enc, city_enc, email_enc, mobile_phone_enc, id_doc_type_enc, id_doc_number_enc, bsn_enc, registration_date_enc)
                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (
                     user_id,
@@ -263,7 +263,7 @@ def save_user(registration_date, user, role):
                     user["id_doc_type_enc"],
                     user["id_doc_number_enc"],
                     user["bsn_enc"],
-                    registration_date,
+                    registration_date_enc,
                 ),
             )
         conn.commit()
@@ -328,7 +328,7 @@ def create_tables(conn: sqlite3.Connection):
             is_password_temp INTEGER NOT NULL DEFAULT 0 CHECK (is_password_temp IN (0, 1)),
             first_name_enc BLOB NOT NULL,
             last_name_enc BLOB NOT NULL,
-            registration_date TEXT NOT NULL
+            registration_date_enc BLOB NOT NULL
         );
 
         CREATE TABLE IF NOT EXISTS employees (
@@ -346,7 +346,7 @@ def create_tables(conn: sqlite3.Connection):
             id_doc_type_enc BLOB NOT NULL,
             id_doc_number_enc BLOB NOT NULL,
             bsn_enc BLOB NOT NULL,
-            registration_date TEXT NOT NULL
+            registration_date_enc BLOB NOT NULL
         );
 
         CREATE TABLE IF NOT EXISTS claims (

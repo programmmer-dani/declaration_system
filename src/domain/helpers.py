@@ -487,7 +487,7 @@ def create_user(session):
         try:
             verify_existing_username(user_data["username"])
             secured_user_data = secure_user_data(user_data) 
-            save_user(now, secured_user_data, role)
+            save_user(encrypt_value(now), secured_user_data, role)
             log_event("create user success", username_enc=session["username_enc"], additional_info=f"user created: {user_data["username"]}")
             return
         except ValueError as e:
