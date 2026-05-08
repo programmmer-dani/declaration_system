@@ -231,8 +231,8 @@ def save_claim(claim):
 def save_user(registration_date, user, role):
     with get_connection() as conn:
         cur = conn.execute(
-            """INSERT INTO users (role_enc, username_enc, username_lookup, password_hash, first_name_enc, last_name_enc, registration_date, is_active)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+            """INSERT INTO users (role_enc, username_enc, username_lookup, password_hash, first_name_enc, last_name_enc, registration_date)
+               VALUES (?, ?, ?, ?, ?, ?, ?)""",
             (
                 user["role_enc"],
                 user["username_enc"],
@@ -241,7 +241,6 @@ def save_user(registration_date, user, role):
                 user["first_name_enc"],
                 user["last_name_enc"],
                 registration_date,
-                user.get("is_active", 1),
             ),
         )
         user_id = cur.lastrowid
@@ -283,7 +282,7 @@ def find_user_by_username(username):
     lookup = hash_username(username)
     with get_connection() as conn:
         cur = conn.execute(
-            "SELECT * FROM users WHERE username_lookup = ? AND is_active = 1",
+            "SELECT * FROM users WHERE username_lookup = ?",
             (lookup,),
         )
         return cur.fetchone()
@@ -292,7 +291,7 @@ def get_user_id_by_username(username):
     lookup = hash_username(username)
     with get_connection() as conn:
         cur = conn.execute(
-            "SELECT user_id FROM users WHERE username_lookup = ? AND is_active = 1",
+            "SELECT user_id FROM users WHERE username_lookup = ?",
             (lookup,),
         )
         row = cur.fetchone()
@@ -329,8 +328,7 @@ def create_tables(conn: sqlite3.Connection):
             is_password_temp INTEGER NOT NULL DEFAULT 0 CHECK (is_password_temp IN (0, 1)),
             first_name_enc BLOB NOT NULL,
             last_name_enc BLOB NOT NULL,
-            registration_date TEXT NOT NULL,
-            is_active INTEGER NOT NULL DEFAULT 1 CHECK (is_active IN (0, 1))
+            registration_date TEXT NOT NULL
         );
 
         CREATE TABLE IF NOT EXISTS employees (

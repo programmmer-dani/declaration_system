@@ -39,7 +39,6 @@ def secure_user_data(user_data):
             "password_hash": hash_password(user_data["password"]),
             "first_name_enc": encrypt_value(user_data["first_name"]),
             "last_name_enc": encrypt_value(user_data["last_name"]),
-            "is_active": 1,
         }
     except ValueError as e:
         raise ValueError(f"Error securing basic user data: {e}")
