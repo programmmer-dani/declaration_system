@@ -171,9 +171,9 @@ def print_semi_decrypted_log_list(logs):
 def call_to_create_backup(session):
     if session["role"] in ["admin", "manager"]:
         print("Creating backup...")
-        log_event("backup created from this point", username_enc=session["username_enc"])
-        backup_path = create_backup()
-        print(f"Backup created at {backup_path}")
+        backup_name = create_backup()
+        log_event("backup created from this point", username_enc=session["username_enc"], additional_info=backup_name)
+        print(f"Backup created: {backup_name}")
         return
     log_event("unauthorized backup create attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")

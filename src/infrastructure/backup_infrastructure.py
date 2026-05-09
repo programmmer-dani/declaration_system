@@ -45,7 +45,7 @@ def create_backup():
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
         zf.write(DATABASE_PATH, arcname=arcname)
         
-    return zip_path
+    return zip_name
 
 def fetch_all_backups():
     if not os.path.exists(BACKUPS_DIR):
