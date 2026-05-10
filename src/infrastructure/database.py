@@ -58,7 +58,7 @@ def fetch_all_restore_codes():
 def fetch_restore_code_by_manager_id(manager_id):
     with get_connection() as conn:
         cur = conn.execute("SELECT * FROM restore_codes WHERE manager_user_id = ?", (manager_id,))
-        restore_code = cur.fetchone()
+        restore_code = cur.fetchall()
         return restore_code
     
 def fetch_unrevoked_unused_restore_codes():
@@ -115,12 +115,12 @@ def save_rejected_claim(claim_id, rejected_by_user_id):
         cur = conn.execute("UPDATE claims SET status = 'Rejected', approved_by_user_id = ? WHERE claim_id = ?", (rejected_by_user_id, claim_id))
         conn.commit()
 
-def save_assigned_backup(manager_user_id, backup_name, restore_code_hash):
+def save_assigned_backup(manager_user_id, backup_name_enc, restore_code_hash):
     with get_connection() as conn:
         cur = conn.execute(
-            """INSERT INTO restore_codes (manager_user_id, backup_filename, code_hash)
+            """INSERT INTO restore_codes (manager_user_id, backup_filename_enc, code_hash)
                VALUES (?, ?, ?)""",
-            (manager_user_id, backup_name, restore_code_hash),
+            (manager_user_id, backup_name_enc, restore_code_hash),
         )
         conn.commit()
 
@@ -372,7 +372,7 @@ def create_tables(conn: sqlite3.Connection):
         CREATE TABLE IF NOT EXISTS restore_codes (
             restore_code_id INTEGER PRIMARY KEY AUTOINCREMENT,
             manager_user_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
-            backup_filename TEXT NOT NULL,
+            backup_filename_enc BLOB NOT NULL,
             code_hash TEXT NOT NULL UNIQUE,
             is_used INTEGER NOT NULL DEFAULT 0 CHECK (is_used IN (0, 1)),
             is_revoked INTEGER NOT NULL DEFAULT 0 CHECK (is_revoked IN (0, 1))

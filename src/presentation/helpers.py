@@ -84,12 +84,12 @@ def give_feedback(validator):
         print("Project number must be 2-10 digits.")
     elif validator == validate_travel_distance:
         print("Travel distance must be between 1 and 999 km.")
-    elif validator == validate_backup_filename: # Need to check this to prevent path traversal, null-byte attacks and other file-related vulnerabilities
+    elif validator == validate_backup_filename:
         print("Backup filename must be alphanumeric (with underscores, dots, or hyphens) and end with '.zip'.")
     elif validator == validate_salary_batch:
        print("Salary batch must be a valid YYYY-MM date within the last 12 months.")
-    elif validator == validate_restore_code: # Maybe add bruteforce protection
-        print("Restore code must be exactly 22 alphanumeric characters, underscores, or hyphens.")
+    elif validator == validate_restore_code:
+        print("Invalid restore code")
     
 
 def go_validate_menu_choice(input_message, validator, number_of_choices):

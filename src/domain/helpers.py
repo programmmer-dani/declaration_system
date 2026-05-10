@@ -509,6 +509,7 @@ def select_manager():
     return managers_dict[index]
 
 def select_backup():
+    # DEbug selecting bakup when there are no backups
     backups = fetch_all_backups()
     if not backups:
         raise Exception("No backups found")
