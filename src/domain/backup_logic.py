@@ -32,8 +32,13 @@ def restore_backup_with_code(session):
         manager_found = False
         manager_id = session["user_id"]
         managers = request_managers()
-        inputted_restore_code = input_restore_code()
         restore_code_list = fetch_restore_code_by_manager_id(manager_id)
+        
+        inputted_restore_code = input_restore_code()
+        
+        if not inputted_restore_code:
+            print_error("Invalid restore code")
+            return
         
         if not restore_code_list or len(restore_code_list) < 1:
             print_error("Invalid restore code")
@@ -73,10 +78,10 @@ def restore_backup_with_code(session):
                     managers_codes_found = False
                     if codes and len(codes) > 0:
                         for code in codes:
-                            if code["id"] == restore_code_object["id"]:
+                            if code["restore_code_id"] == restore_code_object["restore_code_id"]:
                                 managers_codes_found = True
-                                set_restore_code_used(code["id"])
-                                log_event("restore code marked as used", username_enc=session["username_enc"], additional_info=f"code id: {restore_code_object["id"]}")
+                                set_restore_code_used(code["restore_code_id"])
+                                log_event("restore code marked as used", username_enc=session["username_enc"], additional_info=f"code id: {restore_code_object["restore_code_id"]}")
                         if managers_codes_found: break
                 if manager_found: break
                 
@@ -105,6 +110,9 @@ def assign_backup(session):
 def view_restore_code_status(session):
     if session["role"] == "admin":
         restore_code = select_restore_code()
+        if not restore_code:
+            print_error("Invalid restore code")
+            return
         used = restore_code["is_used"]
         revoked = restore_code["is_revoked"]
         display_restorecode_status(used, revoked)
@@ -116,10 +124,13 @@ def view_restore_code_status(session):
 def revoke_restore_code(session):
     if session["role"] == "admin":
         verified_restorecode_object = select_restore_code()
+        if not verified_restorecode_object:
+            print_error("Invalid restore code")
+            return
         if verified_restorecode_object and not None:
             set_restore_code_revoked(verified_restorecode_object)
             print("Restore code revoked successfully.")
-            log_event("restore code revoked", username_enc=session["username_enc"], additional_info=f"restore code revoked (id: {verified_restorecode_object["id"]})")
+            log_event("restore code revoked", username_enc=session["username_enc"], additional_info=f"restore code revoked (id: {verified_restorecode_object["restore_code_id"]})")
             return
         raise Exception("Invalid restore code.")
     log_event("unauthorized restore code revoke attempt", username_enc=session["username_enc"], is_suspicious=True)

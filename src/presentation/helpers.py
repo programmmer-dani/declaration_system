@@ -47,6 +47,13 @@ def go_validate(input_message, validator):
         if validator == validate_restore_code:
             return None
 
+def go_validate_restore_code_as_admin(input_message, validator):
+    while True:
+        value = input(input_message)
+        if validator(value):
+            return value
+        give_feedback(validator)
+
 def give_feedback(validator):
     if validator == validate_username:
         print("Username must be 8-10 characters, start with a letter or _, and contain only letters, numbers, underscores, apostrophes or periods only.")
@@ -187,7 +194,7 @@ def input_search_term():
 def input_restore_code():
     restore_code = go_validate("Restore code: ", validate_restore_code)
     return restore_code
-    
+
 def display_restorecode_status(used, revoked):
     print(f"\n-- Restore code status --")
     if used == 1:

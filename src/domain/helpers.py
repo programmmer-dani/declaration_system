@@ -519,6 +519,8 @@ def select_backup():
 def select_restore_code():
     restore_codes = fetch_all_restore_codes()
     inputted_restore_code = input_restore_code()
+    if not inputted_restore_code:
+        return None
     restore_codes_dict = [dict(row) for row in restore_codes]
     for code in restore_codes_dict:
         if verify_restore_code(inputted_restore_code, code["code_hash"]):
