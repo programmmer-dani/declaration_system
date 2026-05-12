@@ -44,6 +44,8 @@ def go_validate(input_message, validator):
         if validator(value):
             return value
         give_feedback(validator)
+        if validator == validate_restore_code:
+            return None
 
 def give_feedback(validator):
     if validator == validate_username:
@@ -88,8 +90,6 @@ def give_feedback(validator):
         print("Backup filename must be alphanumeric (with underscores, dots, or hyphens) and end with '.zip'.")
     elif validator == validate_salary_batch:
        print("Salary batch must be a valid YYYY-MM date within the last 12 months.")
-    elif validator == validate_restore_code:
-        print_error("Invalid restore code")
     
 
 def go_validate_menu_choice(input_message, validator, number_of_choices):
