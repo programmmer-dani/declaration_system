@@ -53,8 +53,8 @@ def restore_backup_with_code(session):
                 
                 try: 
                     overwrite_db(decrypt_value(restore_code["backup_filename_enc"]))
-                    log_event("backup restored", username_enc=session["username_enc"], additional_info=f"backup restored: {decrypt_value(restore_code_object["backup_filename_enc"])}")
                     restore_code_object = restore_code
+                    log_event("backup restored", username_enc=session["username_enc"], additional_info=f"backup restored: {decrypt_value(restore_code_object["backup_filename_enc"])}")
                 except Exception as e:
                     print_error(f"Restoring backup failed: {e}")
                     return
@@ -62,7 +62,7 @@ def restore_backup_with_code(session):
         
         if not restore_code_found:
             print_error("Invalid restore code")
-            log_event("Invalid restore code", username_enc=session["username_enc"], additional_info=f"Invalid restorecode attempt. code: {inputted_restore_code} for manager: {manager_id}")
+            # log_event("Invalid restore code", username_enc=session["username_enc"], additional_info=f"Invalid restorecode attempt. code: {inputted_restore_code} for manager: {manager_id}")
             return
             
         if managers and len(managers) > 0 and restore_code_object:
