@@ -36,7 +36,7 @@ def restore_backup_with_code(session):
         restore_code_list = fetch_restore_code_by_manager_id(manager_id)
         
         if not restore_code_list or len(restore_code_list) < 1:
-            print_error("No restore codes found for this manager.")
+            print_error("Invalid restore code")
             return
         
         for restore_code in restore_code_list:

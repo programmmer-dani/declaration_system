@@ -89,7 +89,7 @@ def give_feedback(validator):
     elif validator == validate_salary_batch:
        print("Salary batch must be a valid YYYY-MM date within the last 12 months.")
     elif validator == validate_restore_code:
-        print("Invalid restore code")
+        print_error("Invalid restore code")
     
 
 def go_validate_menu_choice(input_message, validator, number_of_choices):
