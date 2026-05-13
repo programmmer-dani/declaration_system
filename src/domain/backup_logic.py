@@ -13,7 +13,7 @@ def restore_any_backup(session):
         backups = fetch_all_backups()
         if not backups:
             print_error("No backups found")
-            return
+            return None
         name = print_and_select_from_list(backups)
         if not name:
             return None

@@ -178,7 +178,8 @@ def search_claims(session):
     elif session["role"] in ["manager", "admin"]:
         rows = fetch_all_claims()
         if not rows:
-            raise Exception("No claims found")
+            print_error("No claims found")
+            return
     else:
         log_event("invalid role claims search attempt", username_enc=session["username_enc"], is_suspicious=True)
         raise Exception("Invalid role")
@@ -330,7 +331,8 @@ def edit_claim_as_manager_or_admin(session):
     if session["role"] in ["manager", "admin"]:
         claims = fetch_all_claims()
         if not claims:
-            raise Exception("No claims found")
+            print_error("No claims found")
+            return
 
         formatted_claims = format_claim_list(claims)
         claim = print_and_select_from_list(formatted_claims, "Select claim to edit: ")
@@ -418,7 +420,8 @@ def approve_claim(session):
     if session["role"] in ["manager", "admin"]:
         claims = fetch_pending_claims()
         if not claims:
-            raise Exception("No claims found")
+            print_error("No claims found")
+            return
         formatted_claims = format_claim_list(claims)
         claim = print_and_select_from_list(formatted_claims, "Select claim to approve: ")
         try: 
@@ -437,7 +440,8 @@ def reject_claim(session):
     if session["role"] in ["manager", "admin"]:
         claims = fetch_pending_claims()
         if not claims:
-            raise Exception("No claims found")
+            print_error("No claims found")
+            return
         formatted_claims = format_claim_list(claims)
         claim = print_and_select_from_list(formatted_claims, "Select claim to reject: ")
         save_rejected_claim(claim["claim_id"], get_user_id_by_username(decrypt_value(session["username_enc"])))
@@ -519,6 +523,8 @@ def select_backup():
 
 def select_restore_code():
     restore_codes = fetch_all_restore_codes()
+    if not restore_codes:
+        return None
     inputted_restore_code = input_restore_code()
     if not inputted_restore_code:
         return None
