@@ -499,7 +499,8 @@ def create_user(session):
 def select_manager():
     managers = request_managers()
     if not managers:
-        raise Exception("No managers found")
+        print_error("No managers found")
+        return None
     
     managers_dict = [dict(row) for row in managers]
     managers_names_enc = [manager['first_name_enc'] for manager in managers_dict]
@@ -511,7 +512,8 @@ def select_manager():
 def select_backup():
     backups = fetch_all_backups()
     if not backups:
-        raise Exception("No backups found")
+        print_error("No backups found")
+        return
     backup = print_and_select_from_list(backups)
     return backup
 

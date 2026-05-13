@@ -95,8 +95,16 @@ def assign_backup(session):
     if session["role"] == "admin":
         restore_code = generate_backup_restore_code()
         restore_code_hash = hash_restore_code(restore_code)
+        
         manager = select_manager()
-        backup_name_enc = encrypt_value(select_backup())
+        if not manager:
+            return
+        
+        backup = select_backup()
+        if not backup:
+            return
+        
+        backup_name_enc = encrypt_value(backup)
         save_assigned_backup(manager["user_id"], backup_name_enc, restore_code_hash)
         log_event("backup restore code assigned", username_enc=session["username_enc"], additional_info=f"restore code: {restore_code} for manager: {manager["user_id"]} for backup file: {decrypt_value(backup_name_enc)}")
         print(f"\n\nThe restore code is: {restore_code}")
