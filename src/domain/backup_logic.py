@@ -22,9 +22,6 @@ def restore_any_backup(session):
     raise Exception("Unauthorized access")
 
 def restore_backup_with_code(session):
-    # NEEDS ACCESSIVE DEBUGGING
-    # Wrong code
-    # Think about error throwing, returning, and logging
     
     if session["role"] == "manager":
         restore_code_object = None
@@ -67,7 +64,7 @@ def restore_backup_with_code(session):
         
         if not restore_code_found:
             print_error("Invalid restore code")
-            # log_event("Invalid restore code", username_enc=session["username_enc"], additional_info=f"Invalid restorecode attempt. code: {inputted_restore_code} for manager: {manager_id}")
+            log_event("Invalid restore code", username_enc=session["username_enc"], additional_info=f"Invalid restorecode attempt. code: {inputted_restore_code} for manager: {manager_id}")
             return
             
         if managers and len(managers) > 0 and restore_code_object:
