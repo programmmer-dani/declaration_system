@@ -141,6 +141,7 @@ def revoke_restore_code(session):
             print("Restore code revoked successfully.")
             log_event("restore code revoked", username_enc=session["username_enc"], additional_info=f"restore code revoked (id: {verified_restorecode_object["restore_code_id"]})")
             return
-        raise Exception("Invalid restore code.")
+        print_error("Invalid restore code.")
+        return
     log_event("unauthorized restore code revoke attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")

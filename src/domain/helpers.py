@@ -87,7 +87,8 @@ def reset_users_password(session):
         else:
             users = fetch_all_employees()
         if not users:
-            raise Exception("No users found")
+            print_error("No users found")
+            return
         formatted_users = format_user_list(users)
         user = print_and_select_from_list(formatted_users, "Select user to reset password: ")
         user_id = user["user_id"]
@@ -130,7 +131,8 @@ def view_logs(session):
     if session["role"] in ["manager", "admin"]:
         logs = fetch_all_logs()
         if not logs:
-            raise Exception("No logs found")
+            print_error("No logs found")
+            return
         if session["role"] == "admin":
             print_log_list(logs)
         else:   
@@ -145,7 +147,8 @@ def edit_employee_account(session):
     if session["role"] == "manager":
         employees = fetch_all_employees()
         if not employees:
-            raise Exception("No employees found")
+            print_error("No employees found")
+            return
         formatted_employees = format_user_list(employees)
         employee = print_and_select_from_list(formatted_employees, "Select employee to edit: ")
         employee_id = employee["user_id"]
@@ -196,7 +199,8 @@ def search_employees(session):
     if session["role"] in ["manager", "admin"]:
         employees = fetch_all_employees()
         if not employees:
-            raise Exception("No employees found")
+            print_error("No employees found")
+            return
         needle = _normalize_search_text(input_search_term())
         matched = [r for r in employees if _employee_row_matches_partial_search(r, needle)]
         log_event("employees searched", username_enc=session["username_enc"], additional_info=f"employees searched for {needle}")
@@ -228,7 +232,8 @@ def edit_manager_account_as_admin(session):
     if session["role"] == "admin":
         managers = fetch_all_managers()
         if not managers:
-            raise Exception("No managers found")
+            print_error("No managers found")
+            return
         formatted = format_user_list(managers)
         manager = print_and_select_from_list(formatted, "Select manager to edit: ")
         manager_id = manager["user_id"]
@@ -247,7 +252,8 @@ def delete_manager_account_as_admin(session):
     if session["role"] == "admin":
         managers = fetch_all_managers()
         if not managers:
-            raise Exception("No managers found")
+            print_error("No managers found")
+            return
         formatted = format_user_list(managers)
         manager = print_and_select_from_list(formatted, "Select manager to delete: ")
         manager_id = manager["user_id"]
@@ -282,7 +288,8 @@ def delete_employee_account(session):
     if session["role"] == "manager":
         employees = fetch_all_employees()
         if not employees:
-            raise Exception("No employees found")
+            print_error("No employees found")
+            return
         formatted_employees = format_user_list(employees)
         employee = print_and_select_from_list(formatted_employees, "Select employee to delete: ")
         employee_id = employee["user_id"]
@@ -296,7 +303,8 @@ def delete_claim(session):
     if session["role"] == "employee":
         claims = fetch_employees_claims(session["user_id"])
         if not claims:
-            raise Exception("No claims found")
+            print_error("No claims found")
+            return
         formatted_claims = format_claim_list(claims)
         claim = print_and_select_from_list(formatted_claims, "Select claim to delete: ")
         claim_id = claim["claim_id"]
@@ -428,7 +436,8 @@ def approve_claim(session):
             set_claims_salary_batch(session, claim["claim_id"])
             log_event("claims salary batch  set", username_enc=session["username_enc"], additional_info=f"claim (id: {claim["claim_id"]}) salary batch set during approve")
         except Exception as e:
-            raise Exception(f"Error setting salary-batch: {e}")
+            print_error(f"Error setting salary-batch: {e}")
+            return
         save_approved_claim(claim["claim_id"], get_user_id_by_username(decrypt_value(session["username_enc"])))
         log_event("claim approved", username_enc=session["username_enc"], additional_info=f"claim approved (id: {claim["claim_id"]})")
         print("\nClaim approved successfully.")
@@ -538,7 +547,8 @@ def request_employees_claims(session):
     if session["role"] == "employee":
         claims = fetch_employees_claims(session["user_id"])
         if not claims:
-            raise Exception("No claims found")
+            print_error("No claims found")
+            return
         print_claim_list(claims)
         log_event("employees own claims viewed", username_enc=session["username_enc"]) 
         return
@@ -571,7 +581,8 @@ def view_employee_list(session):
     if session["role"] == "manager":
         employees = request_employees()
         if not employees:
-            raise Exception("No employees found")
+            print_error("No employees found")
+            return
         employees_list = format_user_list(employees)    
         print_user_list(employees_list)
         log_event("employee list viewed", username_enc=session["username_enc"])
@@ -584,14 +595,16 @@ def view_employees_claims(session):
         employees = request_employees()
         
         if not employees:
-            raise Exception("No employees found")
+            print_error("No employees found")
+            return
         
         formatted_employees = format_user_list(employees)
         employee = print_and_select_from_list(formatted_employees, "Select employee: ")
         claims = request_claims(employee["user_id"])
         
         if not claims:
-            raise Exception("No claims found")
+            print_error("No claims found")
+            return
         
         print_claim_list(claims)
         log_event("employees claims viewed", username_enc=session["username_enc"], additional_info=f"employee: {employee['user']} claims viewed") # employee is formatted without containing username_enc
