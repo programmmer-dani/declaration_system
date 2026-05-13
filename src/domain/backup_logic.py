@@ -11,6 +11,9 @@ from presentation.helpers import display_restorecode_status, input_restore_code,
 def restore_any_backup(session):
     if session["role"] == "admin":
         backups = fetch_all_backups()
+        if not backups:
+            print_error("No backups found")
+            return
         name = print_and_select_from_list(backups)
         if not name:
             return None
@@ -109,6 +112,7 @@ def assign_backup(session):
         log_event("backup restore code assigned", username_enc=session["username_enc"], additional_info=f"restore code: {restore_code} for manager: {manager["user_id"]} for backup file: {decrypt_value(backup_name_enc)}")
         print(f"\n\nThe restore code is: {restore_code}")
         return
+    
     log_event("unauthorized backup restore code assign attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
     
