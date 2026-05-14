@@ -56,7 +56,7 @@ def overwrite_db(db):
     backup_zip_path = os.path.join(BACKUPS_DIR, db)
 
     if not os.path.exists(backup_zip_path):
-        raise FileNotFoundError(f"Backup file '{db}' does not exist in '{BACKUPS_DIR}'") # maybe gives too much info by displayiong filepath in the error?
+        raise FileNotFoundError(f"Backup file '{db}' does not exist")
 
     arcname = os.path.basename(DATABASE_PATH)
     with zipfile.ZipFile(backup_zip_path, "r") as zip_ref:
