@@ -185,7 +185,7 @@ def search_claims(session):
             return
     else:
         log_event("invalid role claims search attempt", username_enc=session["username_enc"], is_suspicious=True)
-        raise Exception("Invalid role")
+        raise Exception("Unauthorized access")
 
     needle = _normalize_search_text(input_search_term())
     log_event("claims searched", username_enc=session["username_enc"], additional_info=f"claims searched for {needle}")
@@ -501,7 +501,7 @@ def create_user(session):
         elif session_role == "manager":
             role = "employee"
         else:
-            raise Exception("Invalid role to assign to user")
+            raise Exception("Unauthorized access")
         user_data = get_user_data(role)
         now = datetime.now().strftime("%Y%m%d_%H%M%S")
         try:
@@ -514,7 +514,7 @@ def create_user(session):
             print_error(e)
             return
     log_event("invalid role create user attempt", username_enc=session["username_enc"], is_suspicious=True)
-    raise Exception("Invalid role")
+    raise Exception("Unauthorized access")
 
 def select_manager():
     managers = request_managers()
