@@ -50,7 +50,9 @@ def _run_menu(title, options, session):
                     if result == "exit":
                         return "exit"
                 except Exception as e:
-                    log_event("menu_action_crash", error=str(e), is_suspicious=(str(e) == "Unauthorized access"))
+                    if str(e) == "Unauthorized access":
+                        return "logout"
+                    log_event("menu_action_crash", error=str(e), is_suspicious=True)
                     print_error("An unexpected error occurred. Please try again.")
                 continue
             print("Not implemented yet.")

@@ -175,7 +175,6 @@ def search_claims(session):
     if session["role"] not in ["employee", "manager", "admin"]:
         log_event("unauthorized claims search attempt", username_enc=session["username_enc"], is_suspicious=True)
         raise Exception("Unauthorized access")
-
     if session["role"] == "employee":
         rows = fetch_employees_claims_with_travel(session["user_id"])
     elif session["role"] in ["manager", "admin"]:
