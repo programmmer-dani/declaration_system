@@ -419,7 +419,6 @@ def get_keys_to_update(claim_type, role=None):
         return [
             "claim_date",
             "project_number",
-            "claim_type",
             "travel_distance",
             "from_zip_code",
             "from_house_number",
@@ -430,7 +429,6 @@ def get_keys_to_update(claim_type, role=None):
         return [
             "claim_date",
             "project_number",
-            "claim_type"
         ]
 
 def approve_claim(session):
