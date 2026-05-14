@@ -26,9 +26,9 @@ from domain.security.validation import validate_menu_choice
 from logging_system import log_event, unread_suspicious_log_count
 from presentation.helpers import call_to_create_backup, go_validate_menu_choice, print_error
 
-def _run_menu(title, options, session):
+def _run_menu(options, session):
     while True:
-        print(f"\n--- {title} ---")
+        print(generate_menu_title(session))
         for i, (label, action) in enumerate(options, 1):
             print(f"  {i}. {label}")
         choice = go_validate_menu_choice("Choice: ", validate_menu_choice, len(options))
@@ -65,8 +65,6 @@ def superadmin_menu(session):
         log_event("unauthorized_menu_access", username_enc=session["username_enc"], is_suspicious=True)
         return "logout"
     
-    unread_logs = unread_suspicious_log_count()
-    
     options = [
         ("Create manager account", create_user),
         ("Backup system", call_to_create_backup),
@@ -87,14 +85,12 @@ def superadmin_menu(session):
         ("Exit system", "exit"),
     ]
     
-    return _run_menu(f"Super Admin ({unread_logs} unread suspicious logs)", options, session)
+    return _run_menu(options, session)
 
 def manager_menu(session):
     if session["role"] != "manager":
         log_event("unauthorized_menu_access", username_enc=session["username_enc"], is_suspicious=True)
         return "logout"
-    
-    unread_logs = unread_suspicious_log_count()
     
     options = [
         ("Search claim", search_claims),
@@ -118,7 +114,7 @@ def manager_menu(session):
         ("Exit system", "exit"),
     ]
     
-    return _run_menu(f"Manager ({unread_logs} unread suspicious logs)", options, session)
+    return _run_menu(options, session)
 
 
 def employee_menu(session):
@@ -137,4 +133,12 @@ def employee_menu(session):
         ("Exit system", "exit"),
     ]
     
-    return _run_menu("Employee", options, session)
+    return _run_menu(options, session)
+
+def generate_menu_title(session):
+    if session["role"] == "admin":
+        return f"\n--- Super Admin ({unread_suspicious_log_count()} unread suspicious logs) ---"
+    elif session["role"] == "manager":
+        return f"\n--- Manager ({unread_suspicious_log_count()} unread suspicious logs) ---"
+    elif session["role"] == "employee":
+        return "\n--- Employee ---"
