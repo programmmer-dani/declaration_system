@@ -318,7 +318,8 @@ def edit_claim(session):
     if session["role"] == "employee":
         claims = fetch_employees_claims(session["user_id"])
         if not claims:
-            raise Exception("No claims found")
+            print_error("No claims found")
+            return
 
         formatted_claims = format_claim_list(claims)
         claim = print_and_select_from_list(formatted_claims, "Select claim to edit: ")
@@ -329,8 +330,16 @@ def edit_claim(session):
         if is_key_value_encrypted(key_to_update):
             updated_value = encrypt_value(updated_value)
             key_to_update = f"{key_to_update}_enc"
-        save_claim_edit(claim_id, key_to_update, updated_value)
-        log_event("claim edited", username_enc=session["username_enc"], additional_info=f"claim edited (id: {claim_id}): {key_to_update} updated to {decrypt_value(updated_value)}")
+        try:
+            save_claim_edit(claim_id, key_to_update, updated_value)
+        except ValueError as e:
+            print_error(e)
+            return
+        log_event(
+            "claim edited", 
+            username_enc=session["username_enc"], 
+            additional_info=f"claim edited (id: {claim_id}): {key_to_update} updated to {decrypt_value(updated_value) if is_key_value_encrypted(key_to_update) else updated_value}"
+        )
         return
     log_event("unauthorized claim edit attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")

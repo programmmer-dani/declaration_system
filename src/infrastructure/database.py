@@ -140,7 +140,7 @@ def save_claim_edit(claim_id, key_to_update, updated_value):
     TRAVEL_CLAIM_COLUMNS = {"travel_distance_enc", "from_zip_enc", "from_house_number_enc", "to_zip_enc", "to_house_number_enc"}
 
     if key_to_update not in ALLOWED_UPDATE_COLUMNS:
-        raise ValueError("Corrupted claim data")
+        return ValueError("Corrupted claim data")
 
     table_to_update = "travel_claims" if key_to_update in TRAVEL_CLAIM_COLUMNS else "claims"
     with get_connection() as conn:
