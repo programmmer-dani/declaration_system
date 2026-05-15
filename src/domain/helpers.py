@@ -393,7 +393,7 @@ def find_validator(key_to_update):
     }
 
     if key_to_update not in validators:
-        raise Exception(f"No validator found for {key_to_update}")
+        raise Exception(f"No validator found")
     return validators[key_to_update]
     
 def is_key_value_encrypted(key_to_update):
@@ -441,7 +441,7 @@ def approve_claim(session):
         try: 
             set_claims_salary_batch(session, claim["claim_id"])
             log_event("claims salary batch  set", username_enc=session["username_enc"], additional_info=f"claim (id: {claim["claim_id"]}) salary batch set during approve")
-        except Exception as e:
+        except Exception:
             print_error(f"Error setting salary-batch")
             return
         save_approved_claim(claim["claim_id"], get_user_id_by_username(decrypt_value(session["username_enc"])))
