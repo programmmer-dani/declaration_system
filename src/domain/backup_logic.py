@@ -57,7 +57,7 @@ def restore_backup_with_code(session):
                     restore_code_object = restore_code
                     log_event("backup restored", username_enc=session["username_enc"], additional_info=f"backup restored: {decrypt_value(restore_code_object["backup_filename_enc"])}")
                 except Exception as e:
-                    print_error(f"Restoring backup failed: {e}")
+                    print_error(f"Restoring backup failed")
                     return
             if restore_code_found: break
         
