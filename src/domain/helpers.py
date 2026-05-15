@@ -39,6 +39,7 @@ from presentation.helpers import (
     print_claim_list,
     print_error,
     print_log_list,
+    print_semi_decrypted_log_list,
     print_temp_password,
     print_user_list,
 )
@@ -86,7 +87,8 @@ def reset_users_password(session):
         else:
             users = fetch_all_employees()
         if not users:
-            raise Exception("No users found")
+            print_error("No users found")
+            return
         formatted_users = format_user_list(users)
         user = print_and_select_from_list(formatted_users, "Select user to reset password: ")
         user_id = user["user_id"]
@@ -129,8 +131,12 @@ def view_logs(session):
     if session["role"] in ["manager", "admin"]:
         logs = fetch_all_logs()
         if not logs:
-            raise Exception("No logs found")
-        print_log_list(logs)
+            print_error("No logs found")
+            return
+        if session["role"] == "admin":
+            print_log_list(logs)
+        else:   
+            print_semi_decrypted_log_list(logs)
         flag_all_logs_as_read()
         log_event("logs viewed", username_enc=session["username_enc"])
         return
@@ -141,7 +147,8 @@ def edit_employee_account(session):
     if session["role"] == "manager":
         employees = fetch_all_employees()
         if not employees:
-            raise Exception("No employees found")
+            print_error("No employees found")
+            return
         formatted_employees = format_user_list(employees)
         employee = print_and_select_from_list(formatted_employees, "Select employee to edit: ")
         employee_id = employee["user_id"]
@@ -152,7 +159,7 @@ def edit_employee_account(session):
             updated_value = encrypt_value(updated_value)
             key_to_update = key_to_update + "_enc"
         save_employee_edit(employee_id, key_to_update, updated_value)
-        log_event("employee account edited", username_enc=session["username_enc"], additional_info=f"employee account edited (id: {decrypt_value(employee["user_id"])}: {key_to_update} updated to {updated_value}")
+        log_event("employee account edited", username_enc=session["username_enc"], additional_info=f"employee account edited (id: {decrypt_value(employee["user_id"])}: {key_to_update} updated to {decrypt_value(updated_value)}")
         return
     log_event("unauthorized employee account edit attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
@@ -170,11 +177,12 @@ def search_claims(session):
         raise Exception("Unauthorized access")
 
     if session["role"] == "employee":
-        rows = fetch_employees_claims_with_travel(session["user_id"]) # CHECK IF THIS IS CORRECT FLOW
+        rows = fetch_employees_claims_with_travel(session["user_id"])
     elif session["role"] in ["manager", "admin"]:
         rows = fetch_all_claims()
         if not rows:
-            raise Exception("No claims found")
+            print_error("No claims found")
+            return
     else:
         log_event("invalid role claims search attempt", username_enc=session["username_enc"], is_suspicious=True)
         raise Exception("Invalid role")
@@ -191,7 +199,8 @@ def search_employees(session):
     if session["role"] in ["manager", "admin"]:
         employees = fetch_all_employees()
         if not employees:
-            raise Exception("No employees found")
+            print_error("No employees found")
+            return
         needle = _normalize_search_text(input_search_term())
         matched = [r for r in employees if _employee_row_matches_partial_search(r, needle)]
         log_event("employees searched", username_enc=session["username_enc"], additional_info=f"employees searched for {needle}")
@@ -223,7 +232,8 @@ def edit_manager_account_as_admin(session):
     if session["role"] == "admin":
         managers = fetch_all_managers()
         if not managers:
-            raise Exception("No managers found")
+            print_error("No managers found")
+            return
         formatted = format_user_list(managers)
         manager = print_and_select_from_list(formatted, "Select manager to edit: ")
         manager_id = manager["user_id"]
@@ -233,7 +243,7 @@ def edit_manager_account_as_admin(session):
         updated_value = encrypt_value(updated_value)
         key_to_update = key_to_update + "_enc"
         save_manager_edit(manager_id, key_to_update, updated_value)
-        log_event("manager account edited", username_enc=session["username_enc"], additional_info=f"manager account edited (id: {manager_id}): {key_to_update} updated to {updated_value}")
+        log_event("manager account edited", username_enc=session["username_enc"], additional_info=f"manager account edited (id: {manager_id}): {key_to_update} updated to {decrypt_value(updated_value)}")
         return
     log_event("unauthorized manager account edit attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
@@ -242,7 +252,8 @@ def delete_manager_account_as_admin(session):
     if session["role"] == "admin":
         managers = fetch_all_managers()
         if not managers:
-            raise Exception("No managers found")
+            print_error("No managers found")
+            return
         formatted = format_user_list(managers)
         manager = print_and_select_from_list(formatted, "Select manager to delete: ")
         manager_id = manager["user_id"]
@@ -260,7 +271,7 @@ def edit_manager_account(session):
         updated_value = encrypt_value(updated_value)
         key_to_update = key_to_update + "_enc"
         save_employee_edit(session["user_id"], key_to_update, updated_value)
-        log_event("manager account edited", username_enc=session["username_enc"], additional_info=f"manager account edited (username: {decrypt_value(session["username_enc"])}: {key_to_update} updated to {updated_value}")
+        log_event("manager account edited", username_enc=session["username_enc"], additional_info=f"manager account edited (username: {decrypt_value(session["username_enc"])}: {key_to_update} updated to {decrypt_value(updated_value)}")
         return
     log_event("unauthorized manager account edit attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
@@ -277,7 +288,8 @@ def delete_employee_account(session):
     if session["role"] == "manager":
         employees = fetch_all_employees()
         if not employees:
-            raise Exception("No employees found")
+            print_error("No employees found")
+            return
         formatted_employees = format_user_list(employees)
         employee = print_and_select_from_list(formatted_employees, "Select employee to delete: ")
         employee_id = employee["user_id"]
@@ -291,7 +303,8 @@ def delete_claim(session):
     if session["role"] == "employee":
         claims = fetch_employees_claims(session["user_id"])
         if not claims:
-            raise Exception("No claims found")
+            print_error("No claims found")
+            return
         formatted_claims = format_claim_list(claims)
         claim = print_and_select_from_list(formatted_claims, "Select claim to delete: ")
         claim_id = claim["claim_id"]
@@ -317,7 +330,7 @@ def edit_claim(session):
             updated_value = encrypt_value(updated_value)
             key_to_update = f"{key_to_update}_enc"
         save_claim_edit(claim_id, key_to_update, updated_value)
-        log_event("claim edited", username_enc=session["username_enc"], additional_info=f"claim edited (id: {claim_id}): {key_to_update} updated to {updated_value}")
+        log_event("claim edited", username_enc=session["username_enc"], additional_info=f"claim edited (id: {claim_id}): {key_to_update} updated to {decrypt_value(updated_value)}")
         return
     log_event("unauthorized claim edit attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
@@ -326,7 +339,8 @@ def edit_claim_as_manager_or_admin(session):
     if session["role"] in ["manager", "admin"]:
         claims = fetch_all_claims()
         if not claims:
-            raise Exception("No claims found")
+            print_error("No claims found")
+            return
 
         formatted_claims = format_claim_list(claims)
         claim = print_and_select_from_list(formatted_claims, "Select claim to edit: ")
@@ -338,7 +352,7 @@ def edit_claim_as_manager_or_admin(session):
             updated_value = encrypt_value(updated_value)
             key_to_update = f"{key_to_update}_enc"
         save_claim_edit(claim_id, key_to_update, updated_value)
-        log_event("claim edited", username_enc=session["username_enc"], additional_info=f"claim edited (id: {claim_id}): {key_to_update} updated to {updated_value}")
+        log_event("claim edited", username_enc=session["username_enc"], additional_info=f"claim edited (id: {claim_id}): {key_to_update} updated to {decrypt_value(updated_value)}")
         print("Claim edited successfully.")
         return
     log_event("unauthorized claim edit attempt", username_enc=session["username_enc"], is_suspicious=True)
@@ -414,14 +428,16 @@ def approve_claim(session):
     if session["role"] in ["manager", "admin"]:
         claims = fetch_pending_claims()
         if not claims:
-            raise Exception("No claims found")
+            print_error("No claims found")
+            return
         formatted_claims = format_claim_list(claims)
         claim = print_and_select_from_list(formatted_claims, "Select claim to approve: ")
         try: 
             set_claims_salary_batch(session, claim["claim_id"])
             log_event("claims salary batch  set", username_enc=session["username_enc"], additional_info=f"claim (id: {claim["claim_id"]}) salary batch set during approve")
         except Exception as e:
-            raise Exception(f"Error setting salary-batch: {e}")
+            print_error(f"Error setting salary-batch: {e}")
+            return
         save_approved_claim(claim["claim_id"], get_user_id_by_username(decrypt_value(session["username_enc"])))
         log_event("claim approved", username_enc=session["username_enc"], additional_info=f"claim approved (id: {claim["claim_id"]})")
         print("\nClaim approved successfully.")
@@ -433,7 +449,8 @@ def reject_claim(session):
     if session["role"] in ["manager", "admin"]:
         claims = fetch_pending_claims()
         if not claims:
-            raise Exception("No claims found")
+            print_error("No claims found")
+            return
         formatted_claims = format_claim_list(claims)
         claim = print_and_select_from_list(formatted_claims, "Select claim to reject: ")
         save_rejected_claim(claim["claim_id"], get_user_id_by_username(decrypt_value(session["username_enc"])))
@@ -483,18 +500,20 @@ def create_user(session):
         try:
             verify_existing_username(user_data["username"])
             secured_user_data = secure_user_data(user_data) 
-            save_user(now, secured_user_data)
+            save_user(encrypt_value(now), secured_user_data, role)
             log_event("create user success", username_enc=session["username_enc"], additional_info=f"user created: {user_data["username"]}")
             return
         except ValueError as e:
-            raise Exception(e)
+            print_error(e)
+            return
     log_event("invalid role create user attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Invalid role")
 
 def select_manager():
     managers = request_managers()
     if not managers:
-        raise Exception("No managers found")
+        print_error("No managers found")
+        return None
     
     managers_dict = [dict(row) for row in managers]
     managers_names_enc = [manager['first_name_enc'] for manager in managers_dict]
@@ -506,13 +525,18 @@ def select_manager():
 def select_backup():
     backups = fetch_all_backups()
     if not backups:
-        raise Exception("No backups found")
+        print_error("No backups found")
+        return
     backup = print_and_select_from_list(backups)
     return backup
 
 def select_restore_code():
     restore_codes = fetch_all_restore_codes()
+    if not restore_codes:
+        return None
     inputted_restore_code = input_restore_code()
+    if not inputted_restore_code:
+        return None
     restore_codes_dict = [dict(row) for row in restore_codes]
     for code in restore_codes_dict:
         if verify_restore_code(inputted_restore_code, code["code_hash"]):
@@ -523,7 +547,8 @@ def request_employees_claims(session):
     if session["role"] == "employee":
         claims = fetch_employees_claims(session["user_id"])
         if not claims:
-            raise Exception("No claims found")
+            print_error("No claims found")
+            return
         print_claim_list(claims)
         log_event("employees own claims viewed", username_enc=session["username_enc"]) 
         return
@@ -546,7 +571,8 @@ def format_user_list(users):
     return [
         {
             "user_id": employee["user_id"],
-            "username": decrypt_value(employee['username_enc'])
+            "username": decrypt_value(employee['username_enc']),
+            "name": decrypt_value(employee['first_name_enc']) + " " + decrypt_value(employee['last_name_enc'])
         }
         for employee in users
     ]
@@ -555,7 +581,8 @@ def view_employee_list(session):
     if session["role"] == "manager":
         employees = request_employees()
         if not employees:
-            raise Exception("No employees found")
+            print_error("No employees found")
+            return
         employees_list = format_user_list(employees)    
         print_user_list(employees_list)
         log_event("employee list viewed", username_enc=session["username_enc"])
@@ -568,14 +595,16 @@ def view_employees_claims(session):
         employees = request_employees()
         
         if not employees:
-            raise Exception("No employees found")
+            print_error("No employees found")
+            return
         
         formatted_employees = format_user_list(employees)
         employee = print_and_select_from_list(formatted_employees, "Select employee: ")
         claims = request_claims(employee["user_id"])
         
         if not claims:
-            raise Exception("No claims found")
+            print_error("No claims found")
+            return
         
         print_claim_list(claims)
         log_event("employees claims viewed", username_enc=session["username_enc"], additional_info=f"employee: {employee['user']} claims viewed") # employee is formatted without containing username_enc

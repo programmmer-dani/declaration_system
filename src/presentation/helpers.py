@@ -44,6 +44,15 @@ def go_validate(input_message, validator):
         if validator(value):
             return value
         give_feedback(validator)
+        if validator == validate_restore_code:
+            return None
+
+def go_validate_restore_code_as_admin(input_message, validator):
+    while True:
+        value = input(input_message)
+        if validator(value):
+            return value
+        give_feedback(validator)
 
 def give_feedback(validator):
     if validator == validate_username:
@@ -84,12 +93,10 @@ def give_feedback(validator):
         print("Project number must be 2-10 digits.")
     elif validator == validate_travel_distance:
         print("Travel distance must be between 1 and 999 km.")
-    elif validator == validate_backup_filename: # Need to check this to prevent path traversal, null-byte attacks and other file-related vulnerabilities
+    elif validator == validate_backup_filename:
         print("Backup filename must be alphanumeric (with underscores, dots, or hyphens) and end with '.zip'.")
     elif validator == validate_salary_batch:
        print("Salary batch must be a valid YYYY-MM date within the last 12 months.")
-    elif validator == validate_restore_code: # Maybe add bruteforce protection
-        print("Restore code must be exactly 22 alphanumeric characters, underscores, or hyphens.")
     
 
 def go_validate_menu_choice(input_message, validator, number_of_choices):
@@ -116,10 +123,7 @@ def print_and_select_from_list(list, message="Choose item: "):
 
 def print_user_list(users):
     for i, user in enumerate(users, 1):
-        if isinstance(user, dict) and "user" in user:
-            print(f"{i}. {user['user']}")
-        else:
-            print(f"{i}. {user['first_name']} {user['last_name']}")
+        print(f"{i}. {user['name']} ({user['username']})")
         
 def print_temp_password(temp_password):
     print(f"Temporary password: {temp_password}")
@@ -155,14 +159,28 @@ def print_log_list(logs):
             f"[{r['log_id']}] {when} | {act} | username={user} | additional_info={extra} "
             f"| is_suspicious={susp} | is_read={read}"
         )
+        
+def print_semi_decrypted_log_list(logs):
+    for row in logs:
+        r = dict(row)
+        when = _format_log_created_at(r["created_at"])
+        act = decrypt_value(r["activity_desc_enc"])
+        user = r["username_enc"] if r["username_enc"] is not None else "—"
+        extra = r["additional_info_enc"] if r["additional_info_enc"] else "—"
+        susp = "yes" if r["is_suspicious"] else "no"
+        read = "yes" if r["is_read"] else "no"
+        print(
+            f"[{r['log_id']}] {when} | {act} | username={user} | additional_info={extra} "
+            f"| is_suspicious={susp} | is_read={read}"
+        )
 
 
 def call_to_create_backup(session):
     if session["role"] in ["admin", "manager"]:
         print("Creating backup...")
-        log_event("backup created from this point", username_enc=session["username_enc"])
-        backup_path = create_backup()
-        print(f"Backup created at {backup_path}")
+        backup_name = create_backup()
+        log_event("backup created from this point", username_enc=session["username_enc"], additional_info=backup_name)
+        print(f"Backup created: {backup_name}")
         return
     log_event("unauthorized backup create attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
@@ -176,7 +194,7 @@ def input_search_term():
 def input_restore_code():
     restore_code = go_validate("Restore code: ", validate_restore_code)
     return restore_code
-    
+
 def display_restorecode_status(used, revoked):
     print(f"\n-- Restore code status --")
     if used == 1:

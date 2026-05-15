@@ -72,12 +72,6 @@ def validate_name(s):
     return False
 
 
-def validate_role(s):
-    if _ok(s) and s in ("manager", "employee"):
-        return True
-    return False
-
-
 def _date_sanity(s, min_year, max_year):
     y, m, d = int(s[:4]), int(s[5:7]), int(s[8:10])
     return min_year <= y <= max_year and 1 <= m <= 12 and 1 <= d <= 31

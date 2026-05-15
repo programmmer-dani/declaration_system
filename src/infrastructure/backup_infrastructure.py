@@ -45,7 +45,7 @@ def create_backup():
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
         zf.write(DATABASE_PATH, arcname=arcname)
         
-    return zip_path
+    return zip_name
 
 def fetch_all_backups():
     if not os.path.exists(BACKUPS_DIR):
@@ -56,7 +56,7 @@ def overwrite_db(db):
     backup_zip_path = os.path.join(BACKUPS_DIR, db)
 
     if not os.path.exists(backup_zip_path):
-        raise FileNotFoundError(f"Backup file '{db}' does not exist in '{BACKUPS_DIR}'")
+        raise FileNotFoundError(f"Backup file '{db}' does not exist")
 
     arcname = os.path.basename(DATABASE_PATH)
     with zipfile.ZipFile(backup_zip_path, "r") as zip_ref:

@@ -2,6 +2,7 @@ import os
 import sqlite3
 
 
+from domain.security.encryption import decrypt_value
 from domain.security.hashing import hash_username
 from infrastructure.config import DATABASE_PATH
 
@@ -13,9 +14,9 @@ def fetch_all_logs():
 
 def fetch_all_managers():
     with get_connection() as conn:
-        cur = conn.execute("SELECT * FROM users WHERE role = 'manager'")
-        managers = cur.fetchall()
-        return managers
+        cur = conn.execute("SELECT * FROM users")
+        users = cur.fetchall()
+        return [user for user in users if decrypt_value(user["role_enc"]) == "manager"]
 
 def fetch_unread_suspicious_logs():
     with get_connection() as conn:
@@ -38,9 +39,9 @@ def fetch_logs_since_created_at(since_created_at):
 
 def fetch_all_employees():
     with get_connection() as conn:
-        cur = conn.execute("SELECT * FROM users WHERE role = 'employee'")
-        employees = cur.fetchall()
-        return employees
+        cur = conn.execute("SELECT * FROM users")
+        users = cur.fetchall()
+        return [user for user in users if decrypt_value(user["role_enc"]) == "employee"]
 
 def fetch_all_claims():
     with get_connection() as conn:
@@ -57,7 +58,7 @@ def fetch_all_restore_codes():
 def fetch_restore_code_by_manager_id(manager_id):
     with get_connection() as conn:
         cur = conn.execute("SELECT * FROM restore_codes WHERE manager_user_id = ?", (manager_id,))
-        restore_code = cur.fetchone()
+        restore_code = cur.fetchall()
         return restore_code
     
 def fetch_unrevoked_unused_restore_codes():
@@ -114,12 +115,12 @@ def save_rejected_claim(claim_id, rejected_by_user_id):
         cur = conn.execute("UPDATE claims SET status = 'Rejected', approved_by_user_id = ? WHERE claim_id = ?", (rejected_by_user_id, claim_id))
         conn.commit()
 
-def save_assigned_backup(manager_user_id, backup_name, restore_code_hash):
+def save_assigned_backup(manager_user_id, backup_name_enc, restore_code_hash):
     with get_connection() as conn:
         cur = conn.execute(
-            """INSERT INTO restore_codes (manager_user_id, backup_filename, code_hash)
+            """INSERT INTO restore_codes (manager_user_id, backup_filename_enc, code_hash)
                VALUES (?, ?, ?)""",
-            (manager_user_id, backup_name, restore_code_hash),
+            (manager_user_id, backup_name_enc, restore_code_hash),
         )
         conn.commit()
 
@@ -152,7 +153,7 @@ def save_claim_edit(claim_id, key_to_update, updated_value):
 def save_employee_edit(employee_id, key_to_update, updated_value):
     ALLOWED_UPDATE_COLUMNS = {"first_name_enc", "last_name_enc", 'birthday_enc', 'gender_enc', 'street_name_enc', 'house_number_enc', 'zip_code_enc', 'city_enc', 'email_enc', 'mobile_phone_enc', 'id_doc_type_enc', 'id_doc_number_enc', 'bsn_enc'}
     if key_to_update not in ALLOWED_UPDATE_COLUMNS:
-        raise ValueError("Invalid employee")
+        raise ValueError("Invalid update key")
     with get_connection() as conn:
         cur = conn.execute(f"UPDATE employees SET {key_to_update} = ? WHERE user_id = ?", (updated_value, employee_id))
         conn.commit()
@@ -160,7 +161,7 @@ def save_employee_edit(employee_id, key_to_update, updated_value):
 def save_manager_edit(manager_id, key_to_update, updated_value):
     ALLOWED_UPDATE_COLUMNS = {"first_name_enc", "last_name_enc"}
     if key_to_update not in ALLOWED_UPDATE_COLUMNS:
-        raise ValueError("Invalid manager")
+        raise ValueError("Invalid update key")
     with get_connection() as conn:
         cur = conn.execute(f"UPDATE users SET {key_to_update} = ? WHERE user_id = ?", (updated_value, manager_id))
         conn.commit()
@@ -227,26 +228,25 @@ def save_claim(claim):
         conn.commit()
 
 
-def save_user(registration_date, user,):
+def save_user(registration_date_enc, user, role):
     with get_connection() as conn:
         cur = conn.execute(
-            """INSERT INTO users (role, username_enc, username_lookup, password_hash, first_name_enc, last_name_enc, registration_date, is_active)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+            """INSERT INTO users (role_enc, username_enc, username_lookup, password_hash, first_name_enc, last_name_enc, registration_date_enc)
+               VALUES (?, ?, ?, ?, ?, ?, ?)""",
             (
-                user["role"],
+                user["role_enc"],
                 user["username_enc"],
                 user["username_lookup"],
                 user["password_hash"],
                 user["first_name_enc"],
                 user["last_name_enc"],
-                registration_date,
-                user.get("is_active", 1),
+                registration_date_enc,
             ),
         )
         user_id = cur.lastrowid
-        if user["role"] == "employee":
+        if role == "employee":
             conn.execute(
-                """INSERT INTO employees (user_id, first_name_enc, last_name_enc, birthday_enc, gender_enc, street_name_enc, house_number_enc, zip_code_enc, city_enc, email_enc, mobile_phone_enc, id_doc_type_enc, id_doc_number_enc, bsn_enc, registration_date)
+                """INSERT INTO employees (user_id, first_name_enc, last_name_enc, birthday_enc, gender_enc, street_name_enc, house_number_enc, zip_code_enc, city_enc, email_enc, mobile_phone_enc, id_doc_type_enc, id_doc_number_enc, bsn_enc, registration_date_enc)
                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (
                     user_id,
@@ -263,7 +263,7 @@ def save_user(registration_date, user,):
                     user["id_doc_type_enc"],
                     user["id_doc_number_enc"],
                     user["bsn_enc"],
-                    registration_date,
+                    registration_date_enc,
                 ),
             )
         conn.commit()
@@ -282,7 +282,7 @@ def find_user_by_username(username):
     lookup = hash_username(username)
     with get_connection() as conn:
         cur = conn.execute(
-            "SELECT * FROM users WHERE username_lookup = ? AND is_active = 1",
+            "SELECT * FROM users WHERE username_lookup = ?",
             (lookup,),
         )
         return cur.fetchone()
@@ -291,7 +291,7 @@ def get_user_id_by_username(username):
     lookup = hash_username(username)
     with get_connection() as conn:
         cur = conn.execute(
-            "SELECT user_id FROM users WHERE username_lookup = ? AND is_active = 1",
+            "SELECT user_id FROM users WHERE username_lookup = ?",
             (lookup,),
         )
         row = cur.fetchone()
@@ -321,15 +321,14 @@ def create_tables(conn: sqlite3.Connection):
         """
         CREATE TABLE IF NOT EXISTS users (
             user_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            role TEXT NOT NULL CHECK (role IN ('manager', 'employee')),
+            role_enc BLOB NOT NULL,
             username_enc BLOB NOT NULL,
             username_lookup TEXT NOT NULL UNIQUE,
             password_hash TEXT NOT NULL,
             is_password_temp INTEGER NOT NULL DEFAULT 0 CHECK (is_password_temp IN (0, 1)),
             first_name_enc BLOB NOT NULL,
             last_name_enc BLOB NOT NULL,
-            registration_date TEXT NOT NULL,
-            is_active INTEGER NOT NULL DEFAULT 1 CHECK (is_active IN (0, 1))
+            registration_date_enc BLOB NOT NULL
         );
 
         CREATE TABLE IF NOT EXISTS employees (
@@ -347,7 +346,7 @@ def create_tables(conn: sqlite3.Connection):
             id_doc_type_enc BLOB NOT NULL,
             id_doc_number_enc BLOB NOT NULL,
             bsn_enc BLOB NOT NULL,
-            registration_date TEXT NOT NULL
+            registration_date_enc BLOB NOT NULL
         );
 
         CREATE TABLE IF NOT EXISTS claims (
@@ -373,7 +372,7 @@ def create_tables(conn: sqlite3.Connection):
         CREATE TABLE IF NOT EXISTS restore_codes (
             restore_code_id INTEGER PRIMARY KEY AUTOINCREMENT,
             manager_user_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
-            backup_filename TEXT NOT NULL,
+            backup_filename_enc BLOB NOT NULL,
             code_hash TEXT NOT NULL UNIQUE,
             is_used INTEGER NOT NULL DEFAULT 0 CHECK (is_used IN (0, 1)),
             is_revoked INTEGER NOT NULL DEFAULT 0 CHECK (is_revoked IN (0, 1))

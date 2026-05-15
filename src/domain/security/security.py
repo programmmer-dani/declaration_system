@@ -33,13 +33,12 @@ def secure_claim_data(session, claim_data):
 def secure_user_data(user_data):
     try:
         secured_user_data = {
-            "role": user_data["role"],
+            "role_enc": encrypt_value(user_data["role"]),
             "username_enc": encrypt_value(user_data["username"]),
             "username_lookup": hash_username(user_data["username"]),
             "password_hash": hash_password(user_data["password"]),
             "first_name_enc": encrypt_value(user_data["first_name"]),
             "last_name_enc": encrypt_value(user_data["last_name"]),
-            "is_active": 1,
         }
     except ValueError as e:
         raise ValueError(f"Error securing basic user data: {e}")
@@ -83,8 +82,12 @@ def login():
             log_event("failed_login_attempt", username_enc=encrypt_value(credentials["username"]))
             dummy_hash = hash_password("against enumeration cointing time resposnes")
             return None
+        
+        user = dict(user)
+        user["role"] = decrypt_value(user["role_enc"])
     
         is_temp_password = user["is_password_temp"] == 1
+        
         if verify_password(credentials["password"], user["password_hash"]):
             log_event("successful_login", username_enc=encrypt_value(credentials["username"]))
             if is_temp_password:
