@@ -38,6 +38,7 @@ def restore_backup_with_code(session):
         
         if not inputted_restore_code or not restore_code_list or len(restore_code_list) < 1:
             print_error("Invalid restore code")
+            log_event("Invalid restore code", username_enc=session["username_enc"])
             return
         
         for restore_code in restore_code_list:
@@ -58,6 +59,7 @@ def restore_backup_with_code(session):
                     log_event("backup restored", username_enc=session["username_enc"], additional_info=f"backup restored: {decrypt_value(restore_code_object["backup_filename_enc"])}")
                 except Exception as e:
                     print_error(f"Restoring backup failed")
+                    log_event("Restoring backup failed", username_enc=session["username_enc"], additional_info=f"Restoring backup failed: {e}")
                     return
             if restore_code_found: break
         
@@ -117,6 +119,7 @@ def view_restore_code_status(session):
         restore_code = select_restore_code()
         if not restore_code:
             print_error("Invalid restore code")
+            log_event("Invalid restore code", username_enc=session["username_enc"])
             return
         used = restore_code["is_used"]
         revoked = restore_code["is_revoked"]
@@ -131,6 +134,7 @@ def revoke_restore_code(session):
         verified_restorecode_object = select_restore_code()
         if not verified_restorecode_object:
             print_error("Invalid restore code")
+            log_event("Invalid restore code", username_enc=session["username_enc"])
             return
         if verified_restorecode_object and not None:
             set_restore_code_revoked(verified_restorecode_object)
@@ -138,6 +142,7 @@ def revoke_restore_code(session):
             log_event("restore code revoked", username_enc=session["username_enc"], additional_info=f"restore code revoked (id: {verified_restorecode_object["restore_code_id"]})")
             return
         print_error("Invalid restore code.")
+        log_event("Invalid restore code", username_enc=session["username_enc"])
         return
     log_event("unauthorized restore code revoke attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")

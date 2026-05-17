@@ -333,6 +333,7 @@ def edit_claim(session):
             save_claim_edit(claim_id, key_to_update, updated_value)
         except ValueError as e:
             print_error(e)
+            log_event("Claim edit failed", username_enc=session["username_enc"], additional_info=f"Claim edit failed: {e}")
             return
         log_event(
             "claim edited", 
@@ -441,8 +442,9 @@ def approve_claim(session):
         try: 
             set_claims_salary_batch(session, claim["claim_id"])
             log_event("claims salary batch  set", username_enc=session["username_enc"], additional_info=f"claim (id: {claim["claim_id"]}) salary batch set during approve")
-        except Exception:
+        except Exception as e:
             print_error(f"Error setting salary-batch")
+            log_event("Claim salary batch set failed", username_enc=session["username_enc"], additional_info=f"Claim salary batch set failed: {e}")
             return
         save_approved_claim(claim["claim_id"], get_user_id_by_username(decrypt_value(session["username_enc"])))
         log_event("claim approved", username_enc=session["username_enc"], additional_info=f"claim approved (id: {claim["claim_id"]})")

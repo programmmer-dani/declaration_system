@@ -164,7 +164,8 @@ def print_log_list(logs):
 def print_semi_decrypted_log_list(logs):
     for row in logs:
         username_enc = row["username_enc"]
-        role = fetch_role_by_username_enc(username_enc) if username_enc is not None else None
+        if username_enc: role = fetch_role_by_username_enc(username_enc) 
+        else: role = None
         
         r = dict(row)
         when = _format_log_created_at(r["created_at"])

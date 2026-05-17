@@ -8,28 +8,34 @@ from presentation.helpers import print_error
 from presentation.menus import employee_menu, manager_menu, superadmin_menu
 
 def app():
-    init_db()
-    
-    while True:
-        if is_bruteforce_lockout_active():
-            print_error("Too many failed attempts. System locked for 1 minute.")
-            time.sleep(60)
-            continue
-
-        session = login()
+    try:
+        init_db()
         
-        if session:
-            result = verify_user_menu(session)
-            
-            if result == "logout":
-                print("Logged out.")
+        while True:
+            if is_bruteforce_lockout_active():
+                print_error("Too many failed attempts. System locked for 1 minute.")
+                log_event("bruteforce lockout", is_suspicious=True)
+                time.sleep(60)
                 continue
-            elif result == "exit":
-                print("Exiting application...")
-                exit()
-        else:
-            print_error("Invalid username or password")
 
+            session = login()
+            
+            if session:
+                result = verify_user_menu(session)
+                
+                if result == "logout":
+                    print("Logged out.")
+                    continue
+                elif result == "exit":
+                    print("Exiting application...")
+                    exit()
+            else:
+                print_error("Invalid username or password")
+                log_event("failed login attempt")
+    except Exception as e:
+        log_event("application crash", additional_info=str(e), is_suspicious=True)
+        print_error("An unexpected error occurred.")
+        exit()
     
 def verify_user_menu(session):
     if session["role"] == "admin":
