@@ -37,22 +37,24 @@ def go_validate_login(input_message, validator):
     value = input(input_message)
     if validator(value):
         return value
-    
+    log_event("Invalid login input")
     
 def go_validate(input_message, validator):
     while True:
         value = input(input_message)
         if validator(value):
             return value
-        give_feedback(validator)
+        log_event("Invalid input", additional_info=f"{validator.__name__}")
         if validator == validate_restore_code:
             return None
+        give_feedback(validator)
 
 def go_validate_restore_code_as_admin(input_message, validator):
     while True:
         value = input(input_message)
         if validator(value):
             return value
+        log_event("Invalid input", additional_info=f"{validator.__name__}")
         give_feedback(validator)
 
 def give_feedback(validator):
@@ -105,6 +107,7 @@ def go_validate_menu_choice(input_message, validator, number_of_choices):
         value = input(input_message)
         if validator(value, number_of_choices):
             return value
+        log_event("Invalid input", additional_info="Menu choice")
         print_error("Invalid input, try again.")
 
 def _menu_line(item):
