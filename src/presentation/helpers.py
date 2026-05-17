@@ -1,5 +1,6 @@
 import datetime
 
+from infrastructure.database import fetch_role_by_username_enc
 from logging_system import log_event
 from domain.security.encryption import decrypt_value
 from domain.security.validation import validate_birthday, validate_bsn, validate_city, validate_claim_date, validate_email, validate_gender, validate_house_number, validate_id_doc_number, validate_id_doc_type, validate_menu_choice, validate_mobile_phone, validate_name, validate_password, validate_restore_code, validate_street_name, validate_username, validate_zip_code, validate_backup_filename, validate_salary_batch
@@ -143,7 +144,8 @@ def _format_log_created_at(created_at):
     try:
         return datetime.datetime.strptime(created_at, log_stored_ts).strftime(log_display_ts)
     except (ValueError, TypeError):
-        return str(created_at)
+        log_event("Error formatting log created at", is_suspicious=True, additional_info=f"Error formatting log created at: {created_at}")
+        raise Exception("Error formatting log created at")
 
 
 def print_log_list(logs):
@@ -162,11 +164,29 @@ def print_log_list(logs):
         
 def print_semi_decrypted_log_list(logs):
     for row in logs:
+        username_enc = row["username_enc"]
+        if username_enc: role = fetch_role_by_username_enc(username_enc) 
+        else: role = None
+        
         r = dict(row)
         when = _format_log_created_at(r["created_at"])
         act = decrypt_value(r["activity_desc_enc"])
-        user = r["username_enc"] if r["username_enc"] is not None else "—"
-        extra = r["additional_info_enc"] if r["additional_info_enc"] else "—"
+        if r["username_enc"] is not None:
+            if role is not None and role == "employee":
+                user = decrypt_value(r["username_enc"])
+            else :
+                user = r["username_enc"]
+        else:
+            user = "—"
+            
+        if r["additional_info_enc"] is not None:
+            if role is not None and role == "employee":
+                extra = decrypt_value(r["additional_info_enc"])
+            else :
+                extra = r["additional_info_enc"]
+        else:
+            extra = "—"
+
         susp = "yes" if r["is_suspicious"] else "no"
         read = "yes" if r["is_read"] else "no"
         print(

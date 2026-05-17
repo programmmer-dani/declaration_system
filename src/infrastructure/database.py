@@ -6,6 +6,18 @@ from domain.security.encryption import decrypt_value
 from domain.security.hashing import hash_username
 from infrastructure.config import DATABASE_PATH
 
+def fetch_role_by_username_enc(username_enc):
+    if username_enc is None:
+        return None
+    lookup = hash_username(decrypt_value(username_enc))
+    with get_connection() as conn:
+        cur = conn.execute(
+            "SELECT role_enc FROM users WHERE username_lookup = ?",
+            (lookup,),
+        )
+        row = cur.fetchone()
+        return decrypt_value(row["role_enc"]) if row is not None else None
+
 def fetch_all_logs():
     with get_connection() as conn:
         cur = conn.execute("SELECT * FROM logs")
@@ -144,7 +156,7 @@ def save_claim_edit(claim_id, key_to_update, updated_value):
 
     table_to_update = "travel_claims" if key_to_update in TRAVEL_CLAIM_COLUMNS else "claims"
     with get_connection() as conn:
-        cur = conn.execute(
+        cur = conn.execute( #if updating claim type (home -> travel) it will update travel table but the claim doesn't exist there
             f"UPDATE {table_to_update} SET {key_to_update} = ? WHERE claim_id = ?",
             (updated_value, claim_id),
         )

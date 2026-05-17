@@ -175,7 +175,6 @@ def search_claims(session):
     if session["role"] not in ["employee", "manager", "admin"]:
         log_event("unauthorized claims search attempt", username_enc=session["username_enc"], is_suspicious=True)
         raise Exception("Unauthorized access")
-
     if session["role"] == "employee":
         rows = fetch_employees_claims_with_travel(session["user_id"])
     elif session["role"] in ["manager", "admin"]:
@@ -185,7 +184,7 @@ def search_claims(session):
             return
     else:
         log_event("invalid role claims search attempt", username_enc=session["username_enc"], is_suspicious=True)
-        raise Exception("Invalid role")
+        raise Exception("Unauthorized access")
 
     needle = _normalize_search_text(input_search_term())
     log_event("claims searched", username_enc=session["username_enc"], additional_info=f"claims searched for {needle}")
@@ -318,7 +317,8 @@ def edit_claim(session):
     if session["role"] == "employee":
         claims = fetch_employees_claims(session["user_id"])
         if not claims:
-            raise Exception("No claims found")
+            print_error("No claims found")
+            return
 
         formatted_claims = format_claim_list(claims)
         claim = print_and_select_from_list(formatted_claims, "Select claim to edit: ")
@@ -329,8 +329,17 @@ def edit_claim(session):
         if is_key_value_encrypted(key_to_update):
             updated_value = encrypt_value(updated_value)
             key_to_update = f"{key_to_update}_enc"
-        save_claim_edit(claim_id, key_to_update, updated_value)
-        log_event("claim edited", username_enc=session["username_enc"], additional_info=f"claim edited (id: {claim_id}): {key_to_update} updated to {decrypt_value(updated_value)}")
+        try:
+            save_claim_edit(claim_id, key_to_update, updated_value)
+        except Exception as e:
+            print_error("Claim edit failed")
+            log_event("Claim edit failed", username_enc=session["username_enc"], additional_info=f"Claim edit failed: {e}")
+            return
+        log_event(
+            "claim edited", 
+            username_enc=session["username_enc"], 
+            additional_info=f"claim edited (id: {claim_id}): {key_to_update} updated to {decrypt_value(updated_value) if is_key_value_encrypted(key_to_update) else updated_value}"
+        )
         return
     log_event("unauthorized claim edit attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
@@ -385,7 +394,8 @@ def find_validator(key_to_update):
     }
 
     if key_to_update not in validators:
-        raise Exception(f"No validator found for {key_to_update}")
+        log_event("No validator found", is_suspicious=True, additional_info=f"No validator found: {key_to_update}")
+        raise Exception(f"No validator found")
     return validators[key_to_update]
     
 def is_key_value_encrypted(key_to_update):
@@ -410,7 +420,6 @@ def get_keys_to_update(claim_type, role=None):
         return [
             "claim_date",
             "project_number",
-            "claim_type",
             "travel_distance",
             "from_zip_code",
             "from_house_number",
@@ -421,7 +430,6 @@ def get_keys_to_update(claim_type, role=None):
         return [
             "claim_date",
             "project_number",
-            "claim_type"
         ]
 
 def approve_claim(session):
@@ -436,7 +444,8 @@ def approve_claim(session):
             set_claims_salary_batch(session, claim["claim_id"])
             log_event("claims salary batch  set", username_enc=session["username_enc"], additional_info=f"claim (id: {claim["claim_id"]}) salary batch set during approve")
         except Exception as e:
-            print_error(f"Error setting salary-batch: {e}")
+            print_error(f"Error setting salary-batch")
+            log_event("Claim salary batch set failed", username_enc=session["username_enc"], additional_info=f"Claim salary batch set failed: {e}")
             return
         save_approved_claim(claim["claim_id"], get_user_id_by_username(decrypt_value(session["username_enc"])))
         log_event("claim approved", username_enc=session["username_enc"], additional_info=f"claim approved (id: {claim["claim_id"]})")
@@ -494,7 +503,7 @@ def create_user(session):
         elif session_role == "manager":
             role = "employee"
         else:
-            raise Exception("Invalid role to assign to user")
+            raise Exception("Unauthorized access")
         user_data = get_user_data(role)
         now = datetime.now().strftime("%Y%m%d_%H%M%S")
         try:
@@ -504,10 +513,11 @@ def create_user(session):
             log_event("create user success", username_enc=session["username_enc"], additional_info=f"user created: {user_data["username"]}")
             return
         except ValueError as e:
-            print_error(e)
+            print_error("Create user failed")
+            log_event("Create user failed", username_enc=session["username_enc"], additional_info=f"Create user failed: {e}")
             return
     log_event("invalid role create user attempt", username_enc=session["username_enc"], is_suspicious=True)
-    raise Exception("Invalid role")
+    raise Exception("Unauthorized access")
 
 def select_manager():
     managers = request_managers()
