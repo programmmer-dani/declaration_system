@@ -331,8 +331,8 @@ def edit_claim(session):
             key_to_update = f"{key_to_update}_enc"
         try:
             save_claim_edit(claim_id, key_to_update, updated_value)
-        except ValueError as e:
-            print_error(e)
+        except Exception as e:
+            print_error("Claim edit failed")
             log_event("Claim edit failed", username_enc=session["username_enc"], additional_info=f"Claim edit failed: {e}")
             return
         log_event(
@@ -394,6 +394,7 @@ def find_validator(key_to_update):
     }
 
     if key_to_update not in validators:
+        log_event("No validator found", is_suspicious=True, additional_info=f"No validator found: {key_to_update}")
         raise Exception(f"No validator found")
     return validators[key_to_update]
     
@@ -512,7 +513,8 @@ def create_user(session):
             log_event("create user success", username_enc=session["username_enc"], additional_info=f"user created: {user_data["username"]}")
             return
         except ValueError as e:
-            print_error(e)
+            print_error("Create user failed")
+            log_event("Create user failed", username_enc=session["username_enc"], additional_info=f"Create user failed: {e}")
             return
     log_event("invalid role create user attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")

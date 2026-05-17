@@ -41,11 +41,13 @@ def secure_user_data(user_data):
             "last_name_enc": encrypt_value(user_data["last_name"]),
         }
     except ValueError as e:
+        log_event("Error securing basic user data", is_suspicious=True, additional_info=f"Error securing basic user data: {e}")
         raise ValueError(f"Error securing basic user data")
     try:
         if user_data["role"] == "employee":
             secured_user_data.update(secure_employee_data(user_data))
     except ValueError as e:
+        log_event("Error securing extra employee data", is_suspicious=True, additional_info=f"Error securing extra employee data: {e}")
         raise ValueError(f"Error securing extra employee data")
     return secured_user_data
     

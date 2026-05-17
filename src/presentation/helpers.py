@@ -144,7 +144,8 @@ def _format_log_created_at(created_at):
     try:
         return datetime.datetime.strptime(created_at, log_stored_ts).strftime(log_display_ts)
     except (ValueError, TypeError):
-        return str(created_at)
+        log_event("Error formatting log created at", is_suspicious=True, additional_info=f"Error formatting log created at: {created_at}")
+        raise Exception("Error formatting log created at")
 
 
 def print_log_list(logs):
