@@ -11,10 +11,10 @@ from presentation.helpers import get_login_input
 def secure_claim_data(session, claim_data):
     secured_claim = {
         "user_id": session["user_id"],
-        "claim_date": claim_data["claim_date"],
+        "claim_date_enc": encrypt_value(claim_data["claim_date"]),
         "project_number_enc": encrypt_value(claim_data["project_number"]),
-        "claim_type": claim_data["claim_type"],
-        "status": "Pending",
+        "claim_type_enc": encrypt_value(claim_data["claim_type"]),
+        "status_enc": encrypt_value("Pending"),
         "approved_by_user_id": None,
         "salary_batch_enc": None,
     }
@@ -81,8 +81,7 @@ def login():
         user = find_user_by_username(credentials["username"])
     
         if user is None:
-            log_event("failed_login_attempt", username_enc=encrypt_value(credentials["username"]))
-            dummy_hash = hash_password("against enumeration cointing time resposnes")
+            log_event("failed login attempt", additional_info=f"bad username: {credentials["username"]}")
             return None
         
         user = dict(user)
@@ -95,4 +94,7 @@ def login():
             if is_temp_password:
                 update_temp_password(user)
             return user
+        else:
+            log_event("failed login attempt", additional_info=f"bad password for username: {credentials["username"]}")
+            return None
     return None

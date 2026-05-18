@@ -18,7 +18,7 @@ from domain.security.validation import (
 def get_login_input():
     username = go_validate_login("Username: ", validate_username)
     if not username:
-        log_event(f"incorrect username format",)
+        log_event(f"failed login attempt", additional_info="incorrect username format")
         input("Password: ")
         return None
     else:
@@ -26,7 +26,7 @@ def get_login_input():
         if password:
             return {"username": username, "password": password}
     
-    log_event(f"incorrect password format")
+    log_event(f"failed login attempt", additional_info="incorrect password format")
     return None
 
 
@@ -37,7 +37,6 @@ def go_validate_login(input_message, validator):
     value = input(input_message)
     if validator(value):
         return value
-    log_event("Invalid login input")
     
 def go_validate(input_message, validator):
     while True:
@@ -136,8 +135,8 @@ def print_claim_list(claims):
     print("Your claims: ")
     for claim in claims:
         print(
-            f"ID {claim['claim_id']} : {claim['claim_date']} — "
-            f"{claim['claim_type']} — {claim['status']}"
+            f"ID {claim['claim_id']} : {decrypt_value(claim['claim_date_enc'])} — "
+            f"{decrypt_value(claim['claim_type_enc'])} — {decrypt_value(claim['status_enc'])}"
         )
 
 
@@ -158,7 +157,7 @@ def print_log_list(logs):
         act = decrypt_value(r["activity_desc_enc"])
         user = decrypt_value(r["username_enc"]) if r["username_enc"] is not None else "—"
         extra = decrypt_value(r["additional_info_enc"]) if r["additional_info_enc"] else "—"
-        susp = "yes" if r["is_suspicious"] else "no"
+        susp = "yes" if decrypt_value(r["is_suspicious_enc"]) == "1" else "no"
         read = "yes" if r["is_read"] else "no"
         print(
             f"[{r['log_id']}] {when} | {act} | username={user} | additional_info={extra} "
@@ -190,7 +189,7 @@ def print_semi_decrypted_log_list(logs):
         else:
             extra = "—"
 
-        susp = "yes" if r["is_suspicious"] else "no"
+        susp = "yes" if decrypt_value(r["is_suspicious_enc"]) == "1" else "no"
         read = "yes" if r["is_read"] else "no"
         print(
             f"[{r['log_id']}] {when} | {act} | username={user} | additional_info={extra} "
@@ -202,7 +201,7 @@ def call_to_create_backup(session):
     if session["role"] in ["admin", "manager"]:
         print("Creating backup...")
         backup_name = create_backup()
-        log_event("backup created from this point", username_enc=session["username_enc"], additional_info=backup_name)
+        log_event("backup created from this point", username_enc=session["username_enc"], additional_info=backup_name,)
         print(f"Backup created: {backup_name}")
         return
     log_event("unauthorized backup create attempt", username_enc=session["username_enc"], is_suspicious=True)

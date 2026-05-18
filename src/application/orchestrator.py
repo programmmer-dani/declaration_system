@@ -13,7 +13,7 @@ def app():
         
         while True:
             if is_bruteforce_lockout_active():
-                print_error("Too many failed attempts. System locked for 1 minute.")
+                print_error("Too many failed attempts.")
                 log_event("bruteforce lockout", is_suspicious=True)
                 time.sleep(60)
                 continue
@@ -31,7 +31,6 @@ def app():
                     exit()
             else:
                 print_error("Invalid username or password")
-                log_event("failed login attempt")
     except Exception as e:
         log_event("application crash", additional_info=str(e), is_suspicious=True)
         print_error("An unexpected error occurred.")

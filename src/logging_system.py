@@ -10,7 +10,7 @@ def log_event(activity_desc, username_enc=None, additional_info=None, is_suspici
         ts,
         username_enc,
         encrypt_value(activity_desc),
-        1 if is_suspicious else 0,
+        encrypt_value("1" if is_suspicious else "0"),
         encrypt_value(additional_info) if additional_info else None,
     )
 

@@ -2,7 +2,7 @@ import os
 import sqlite3
 
 
-from domain.security.encryption import decrypt_value
+from domain.security.encryption import decrypt_value, encrypt_value
 from domain.security.hashing import hash_username
 from infrastructure.config import DATABASE_PATH
 
@@ -32,9 +32,9 @@ def fetch_all_managers():
 
 def fetch_unread_suspicious_logs():
     with get_connection() as conn:
-        cur = conn.execute("SELECT * FROM logs WHERE is_read = 0 AND is_suspicious = 1")
+        cur = conn.execute("SELECT * FROM logs WHERE is_read = 0")
         logs = cur.fetchall()
-        return logs
+        return [log for log in logs if decrypt_value(log["is_suspicious_enc"]) == "1"]
 
 def flag_all_logs_as_read():
     with get_connection() as conn:
@@ -81,9 +81,9 @@ def fetch_unrevoked_unused_restore_codes():
 
 def fetch_pending_claims():
     with get_connection() as conn:
-        cur = conn.execute("SELECT * FROM claims WHERE status = 'Pending'")
+        cur = conn.execute("SELECT * FROM claims")
         claims = cur.fetchall()
-        return claims
+        return [c for c in claims if decrypt_value(c["status_enc"]) == "Pending"]
 
 def fetch_employees_claims(user_id):
     with get_connection() as conn:
@@ -119,12 +119,18 @@ def fetch_employees_claims_with_travel(user_id):
 
 def save_approved_claim(claim_id, approved_by_user_id):
     with get_connection() as conn:
-        cur = conn.execute("UPDATE claims SET status = 'Approved', approved_by_user_id = ? WHERE claim_id = ?", (approved_by_user_id, claim_id))
+        conn.execute(
+            "UPDATE claims SET status_enc = ?, approved_by_user_id = ? WHERE claim_id = ?",
+            (encrypt_value("Approved"), approved_by_user_id, claim_id),
+        )
         conn.commit()
 
 def save_rejected_claim(claim_id, rejected_by_user_id):
     with get_connection() as conn:
-        cur = conn.execute("UPDATE claims SET status = 'Rejected', approved_by_user_id = ? WHERE claim_id = ?", (rejected_by_user_id, claim_id))
+        conn.execute(
+            "UPDATE claims SET status_enc = ?, approved_by_user_id = ? WHERE claim_id = ?",
+            (encrypt_value("Rejected"), rejected_by_user_id, claim_id),
+        )
         conn.commit()
 
 def save_assigned_backup(manager_user_id, backup_name_enc, restore_code_hash):
@@ -148,7 +154,7 @@ def set_restore_code_used(restore_code_id):
         
 
 def save_claim_edit(claim_id, key_to_update, updated_value):
-    ALLOWED_UPDATE_COLUMNS = {"status", "claim_type", "salary_batch_enc", "project_number_enc", "travel_distance_enc", "from_zip_enc", "from_house_number_enc", "to_zip_enc", "to_house_number_enc", "claim_date"}
+    ALLOWED_UPDATE_COLUMNS = {"status_enc", "claim_type_enc", "salary_batch_enc", "project_number_enc", "travel_distance_enc", "from_zip_enc", "from_house_number_enc", "to_zip_enc", "to_house_number_enc", "claim_date_enc"}
     TRAVEL_CLAIM_COLUMNS = {"travel_distance_enc", "from_zip_enc", "from_house_number_enc", "to_zip_enc", "to_house_number_enc"}
 
     if key_to_update not in ALLOWED_UPDATE_COLUMNS:
@@ -194,10 +200,10 @@ def save_claim(claim):
             """
             INSERT INTO claims (
                 user_id,
-                claim_date,
+                claim_date_enc,
                 project_number_enc,
-                claim_type,
-                status,
+                claim_type_enc,
+                status_enc,
                 approved_by_user_id,
                 salary_batch_enc
             )
@@ -205,16 +211,16 @@ def save_claim(claim):
             """,
             (
                 claim["user_id"],
-                claim["claim_date"],
+                claim["claim_date_enc"],
                 claim["project_number_enc"],
-                claim["claim_type"],
-                claim.get("status", "Pending"),
+                claim["claim_type_enc"],
+                claim["status_enc"],
                 claim.get("approved_by_user_id"),
                 claim.get("salary_batch_enc"),
             ),
         )
         claim_id = cur.lastrowid
-        if claim["claim_type"] == "Travel":
+        if decrypt_value(claim["claim_type_enc"]) == "Travel":
             conn.execute(
                 """
                 INSERT INTO travel_claims (
@@ -310,9 +316,12 @@ def get_user_id_by_username(username):
         return row["user_id"] if row is not None else None
 
 
-def save_log(ts, username_enc, activity_desc_enc, is_suspicious, additional_info_enc=None):
+def save_log(ts, username_enc, activity_desc_enc, is_suspicious_enc, additional_info_enc=None):
     with get_connection() as conn:
-        cur = conn.execute("INSERT INTO logs (created_at, username_enc, activity_desc_enc, is_suspicious, additional_info_enc) VALUES (?, ?, ?, ?, ?)", (ts, username_enc, activity_desc_enc, is_suspicious, additional_info_enc))
+        cur = conn.execute(
+            "INSERT INTO logs (created_at, username_enc, activity_desc_enc, is_suspicious_enc, additional_info_enc) VALUES (?, ?, ?, ?, ?)",
+            (ts, username_enc, activity_desc_enc, is_suspicious_enc, additional_info_enc),
+        )
         conn.commit()
 
 def get_connection():
@@ -364,10 +373,10 @@ def create_tables(conn: sqlite3.Connection):
         CREATE TABLE IF NOT EXISTS claims (
             claim_id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER NOT NULL REFERENCES employees(user_id) ON DELETE CASCADE,
-            claim_date TEXT NOT NULL CHECK (length(claim_date)=10 AND substr(claim_date,5,1)='-' AND substr(claim_date,8,1)='-'),
+            claim_date_enc BLOB NOT NULL,
             project_number_enc BLOB NOT NULL,
-            claim_type TEXT NOT NULL CHECK (claim_type IN ('Travel', 'Home Office')),
-            status TEXT NOT NULL DEFAULT 'Pending' CHECK (status IN ('Pending', 'Approved', 'Rejected')),
+            claim_type_enc BLOB NOT NULL,
+            status_enc BLOB NOT NULL,
             approved_by_user_id INTEGER REFERENCES users(user_id),
             salary_batch_enc BLOB
         );
@@ -396,12 +405,11 @@ def create_tables(conn: sqlite3.Connection):
             username_enc BLOB,
             activity_desc_enc BLOB NOT NULL,
             additional_info_enc BLOB,
-            is_suspicious INTEGER NOT NULL DEFAULT 0 CHECK (is_suspicious IN (0, 1)),
+            is_suspicious_enc BLOB NOT NULL,
             is_read INTEGER NOT NULL DEFAULT 0 CHECK (is_read IN (0, 1))
         );
 
         CREATE INDEX IF NOT EXISTS idx_claims_user_id ON claims(user_id);
-        CREATE INDEX IF NOT EXISTS idx_claims_status ON claims(status);
         """
     )
     conn.commit()
