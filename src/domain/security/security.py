@@ -81,8 +81,7 @@ def login():
         user = find_user_by_username(credentials["username"])
     
         if user is None:
-            log_event("failed_login_attempt", username_enc=encrypt_value(credentials["username"]))
-            dummy_hash = hash_password("against enumeration cointing time resposnes")
+            log_event("failed login attempt", additional_info=f"bad username: {credentials["username"]}")
             return None
         
         user = dict(user)
@@ -95,4 +94,7 @@ def login():
             if is_temp_password:
                 update_temp_password(user)
             return user
+        else:
+            log_event("failed login attempt", additional_info=f"bad password for username: {credentials["username"]}")
+            return None
     return None

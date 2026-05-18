@@ -32,9 +32,9 @@ def fetch_all_managers():
 
 def fetch_unread_suspicious_logs():
     with get_connection() as conn:
-        cur = conn.execute("SELECT * FROM logs WHERE is_read = 0 AND is_suspicious = 1")
+        cur = conn.execute("SELECT * FROM logs WHERE is_read = 0")
         logs = cur.fetchall()
-        return logs
+        return [log for log in logs if decrypt_value(log["is_suspicious_enc"]) == "1"]
 
 def flag_all_logs_as_read():
     with get_connection() as conn:
@@ -316,9 +316,12 @@ def get_user_id_by_username(username):
         return row["user_id"] if row is not None else None
 
 
-def save_log(ts, username_enc, activity_desc_enc, is_suspicious, additional_info_enc=None):
+def save_log(ts, username_enc, activity_desc_enc, is_suspicious_enc, additional_info_enc=None):
     with get_connection() as conn:
-        cur = conn.execute("INSERT INTO logs (created_at, username_enc, activity_desc_enc, is_suspicious, additional_info_enc) VALUES (?, ?, ?, ?, ?)", (ts, username_enc, activity_desc_enc, is_suspicious, additional_info_enc))
+        cur = conn.execute(
+            "INSERT INTO logs (created_at, username_enc, activity_desc_enc, is_suspicious_enc, additional_info_enc) VALUES (?, ?, ?, ?, ?)",
+            (ts, username_enc, activity_desc_enc, is_suspicious_enc, additional_info_enc),
+        )
         conn.commit()
 
 def get_connection():
@@ -402,7 +405,7 @@ def create_tables(conn: sqlite3.Connection):
             username_enc BLOB,
             activity_desc_enc BLOB NOT NULL,
             additional_info_enc BLOB,
-            is_suspicious INTEGER NOT NULL DEFAULT 0 CHECK (is_suspicious IN (0, 1)),
+            is_suspicious_enc BLOB NOT NULL,
             is_read INTEGER NOT NULL DEFAULT 0 CHECK (is_read IN (0, 1))
         );
 

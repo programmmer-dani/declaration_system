@@ -18,8 +18,8 @@ def _merge_newer_logs_from_current_into_restored(restored_db_path, current_db_pa
         conn.execute("ATTACH DATABASE ? AS curr", (current_db_path,))
         conn.execute(
             """
-            INSERT INTO logs (created_at, username_enc, activity_desc_enc, additional_info_enc, is_suspicious, is_read)
-            SELECT c.created_at, c.username_enc, c.activity_desc_enc, c.additional_info_enc, c.is_suspicious, c.is_read
+            INSERT INTO logs (created_at, username_enc, activity_desc_enc, additional_info_enc, is_suspicious_enc, is_read)
+            SELECT c.created_at, c.username_enc, c.activity_desc_enc, c.additional_info_enc, c.is_suspicious_enc, c.is_read
             FROM curr.logs AS c
             WHERE (SELECT MAX(created_at) FROM logs) IS NULL
                OR c.created_at > (SELECT MAX(created_at) FROM logs)
