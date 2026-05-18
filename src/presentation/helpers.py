@@ -136,8 +136,8 @@ def print_claim_list(claims):
     print("Your claims: ")
     for claim in claims:
         print(
-            f"ID {claim['claim_id']} : {claim['claim_date']} — "
-            f"{claim['claim_type']} — {claim['status']}"
+            f"ID {claim['claim_id']} : {decrypt_value(claim['claim_date_enc'])} — "
+            f"{decrypt_value(claim['claim_type_enc'])} — {decrypt_value(claim['status_enc'])}"
         )
 
 

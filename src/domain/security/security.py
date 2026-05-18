@@ -11,10 +11,10 @@ from presentation.helpers import get_login_input
 def secure_claim_data(session, claim_data):
     secured_claim = {
         "user_id": session["user_id"],
-        "claim_date": claim_data["claim_date"],
+        "claim_date_enc": encrypt_value(claim_data["claim_date"]),
         "project_number_enc": encrypt_value(claim_data["project_number"]),
-        "claim_type": claim_data["claim_type"],
-        "status": "Pending",
+        "claim_type_enc": encrypt_value(claim_data["claim_type"]),
+        "status_enc": encrypt_value("Pending"),
         "approved_by_user_id": None,
         "salary_batch_enc": None,
     }

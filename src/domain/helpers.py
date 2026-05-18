@@ -59,13 +59,14 @@ def _employee_row_matches_partial_search(row, needle_normalized):
     return needle_normalized in haystack
 
 def _claim_row_matches_partial_search(row, needle_normalized):
+    claim_type = decrypt_value(row["claim_type_enc"])
     parts = [
-        str(row["claim_date"] or ""),
-        str(row["claim_type"] or ""),
-        str(row["status"] or ""),
+        decrypt_value(row["claim_date_enc"]),
+        claim_type,
+        decrypt_value(row["status_enc"]),
         decrypt_value(row["project_number_enc"]),
     ]
-    if row["claim_type"] == "Travel":
+    if claim_type == "Travel":
         for key in (
             "travel_distance_enc",
             "from_zip_enc",
@@ -336,8 +337,8 @@ def edit_claim(session):
             log_event("Claim edit failed", username_enc=session["username_enc"], additional_info=f"Claim edit failed: {e}")
             return
         log_event(
-            "claim edited", 
-            username_enc=session["username_enc"], 
+            "claim edited",
+            username_enc=session["username_enc"],
             additional_info=f"claim edited (id: {claim_id}): {key_to_update} updated to {decrypt_value(updated_value) if is_key_value_encrypted(key_to_update) else updated_value}"
         )
         return
@@ -399,7 +400,7 @@ def find_validator(key_to_update):
     return validators[key_to_update]
     
 def is_key_value_encrypted(key_to_update):
-    if key_to_update in ["project_number", "travel_distance", "from_zip_code", "to_zip_code", "first_name", "last_name", "email", "mobile_phone", "birthday", "bsn", "street_name", "house_number", "zip_code", "city"]:
+    if key_to_update in ["claim_date", "claim_type", "project_number", "travel_distance", "from_zip_code", "to_zip_code", "first_name", "last_name", "email", "mobile_phone", "birthday", "bsn", "street_name", "house_number", "zip_code", "city", "from_house_number", "to_house_number", "status","salary_batch"]:
         return True
     else:
         return False
@@ -473,12 +474,12 @@ def format_claim_list(claims):
     return [
         {
             "claim_id": claim["claim_id"],
-            "claim_date": claim["claim_date"],
-            "claim_type": claim["claim_type"],
-            "status": claim["status"],
+            "claim_date": decrypt_value(claim["claim_date_enc"]),
+            "claim_type": decrypt_value(claim["claim_type_enc"]),
+            "status": decrypt_value(claim["status_enc"]),
             "label": (
-                f"ID {claim['claim_id']} : {claim['claim_date']} — "
-                f"{claim['claim_type']} — {claim['status']}"
+                f"ID {claim['claim_id']} : {decrypt_value(claim['claim_date_enc'])} — "
+                f"{decrypt_value(claim['claim_type_enc'])} — {decrypt_value(claim['status_enc'])}"
             ),
         }
         for claim in claims
