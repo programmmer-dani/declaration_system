@@ -400,10 +400,16 @@ def find_validator(key_to_update):
     return validators[key_to_update]
     
 def is_key_value_encrypted(key_to_update):
-    if key_to_update in ["claim_date", "claim_type", "project_number", "travel_distance", "from_zip_code", "to_zip_code", "first_name", "last_name", "email", "mobile_phone", "birthday", "bsn", "street_name", "house_number", "zip_code", "city", "from_house_number", "to_house_number", "status","salary_batch"]:
+    encrypted_keys = [
+        "claim_date", "claim_type", "project_number", "travel_distance",
+        "from_zip_code", "to_zip_code", "first_name", "last_name", "email",
+        "mobile_phone", "birthday", "bsn", "street_name", "house_number",
+        "zip_code", "city", "from_house_number", "to_house_number", "status",
+        "salary_batch",
+    ]
+    if key_to_update in encrypted_keys or key_to_update in [f"{key}_enc" for key in encrypted_keys]:
         return True
-    else:
-        return False
+    return False
     
 def get_keys_to_update(claim_type, role=None):
     if role == "manager_or_admin":
