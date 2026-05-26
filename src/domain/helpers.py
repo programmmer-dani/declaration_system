@@ -329,7 +329,7 @@ def edit_claim(session):
         updated_value = go_validate(f"Enter new value for {key_to_update}: ", find_validator(key_to_update))
         if is_key_value_encrypted(key_to_update):
             updated_value = encrypt_value(updated_value)
-            key_to_update = f"{key_to_update}_enc"
+            key_to_update = f"{key_to_update}_enc" # now becomes project_number_enc
         try:
             save_claim_edit(claim_id, key_to_update, updated_value)
         except Exception as e:
@@ -339,7 +339,7 @@ def edit_claim(session):
         log_event(
             "claim edited",
             username_enc=session["username_enc"],
-            additional_info=f"claim edited (id: {claim_id}): {key_to_update} updated to {decrypt_value(updated_value) if is_key_value_encrypted(key_to_update) else updated_value}"
+            additional_info=f"claim edited (id: {claim_id}): {key_to_update} updated to {decrypt_value(updated_value) if is_key_value_encrypted(key_to_update) else updated_value}" #still expects project_number so doesn't get triggered even tho it should
         )
         return
     log_event("unauthorized claim edit attempt", username_enc=session["username_enc"], is_suspicious=True)
