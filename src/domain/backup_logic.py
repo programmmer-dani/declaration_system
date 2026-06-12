@@ -116,33 +116,34 @@ def assign_backup(session):
     
 def view_restore_code_status(session):
     if session["role"] == "admin":
-        restore_code = select_restore_code()
-        if not restore_code:
+        restore_code, status = select_restore_code()
+        if status == "no_codes":
+            print_error("No restore code available")
+            return
+        if status == "not_found":
             print_error("Invalid restore code")
             log_event("Invalid restore code", username_enc=session["username_enc"])
             return
         used = restore_code["is_used"]
         revoked = restore_code["is_revoked"]
         display_restorecode_status(used, revoked)
-        log_event("restore codes statusus viewed", username_enc=session["username_enc"],)
+        log_event("restore codes status viewed", username_enc=session["username_enc"],)
         return
     log_event("unauthorized restore codes status view attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
     
 def revoke_restore_code(session):
     if session["role"] == "admin":
-        verified_restorecode_object = select_restore_code()
+        verified_restorecode_object, status = select_restore_code()
+        if status == "no_codes":
+            return
         if not verified_restorecode_object:
             print_error("Invalid restore code")
             log_event("Invalid restore code", username_enc=session["username_enc"])
             return
-        if verified_restorecode_object and not None:
-            set_restore_code_revoked(verified_restorecode_object)
-            print("Restore code revoked successfully.")
-            log_event("restore code revoked", username_enc=session["username_enc"], additional_info=f"restore code revoked (id: {verified_restorecode_object["restore_code_id"]})")
-            return
-        print_error("Invalid restore code.")
-        log_event("Invalid restore code", username_enc=session["username_enc"])
+        set_restore_code_revoked(verified_restorecode_object)
+        print("Restore code revoked successfully.")
+        log_event("restore code revoked", username_enc=session["username_enc"], additional_info=f"restore code revoked (id: {verified_restorecode_object["restore_code_id"]})")
         return
     log_event("unauthorized restore code revoke attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")

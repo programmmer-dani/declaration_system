@@ -550,15 +550,15 @@ def select_backup():
 def select_restore_code():
     restore_codes = fetch_all_restore_codes()
     if not restore_codes:
-        return None
+        return None, "no_codes"
     inputted_restore_code = input_restore_code()
     if not inputted_restore_code:
-        return None
+        return None, "no_input"
     restore_codes_dict = [dict(row) for row in restore_codes]
     for code in restore_codes_dict:
         if verify_restore_code(inputted_restore_code, code["code_hash"]):
-            return code
-    return None
+            return code, "ok"
+    return None, "not_found"
 
 def request_employees_claims(session):
     if session["role"] == "employee":
