@@ -173,7 +173,9 @@ def save_employee_edit(employee_id, key_to_update, updated_value):
     if key_to_update not in ALLOWED_UPDATE_COLUMNS:
         raise ValueError("Invalid update key")
     with get_connection() as conn:
-        cur = conn.execute(f"UPDATE employees SET {key_to_update} = ? WHERE user_id = ?", (updated_value, employee_id))
+        conn.execute(f"UPDATE employees SET {key_to_update} = ? WHERE user_id = ?", (updated_value, employee_id))
+        if key_to_update in ("first_name_enc", "last_name_enc"):
+            conn.execute(f"UPDATE users SET {key_to_update} = ? WHERE user_id = ?", (updated_value, employee_id))
         conn.commit()
 
 def save_manager_edit(manager_id, key_to_update, updated_value):

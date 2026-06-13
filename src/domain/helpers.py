@@ -160,7 +160,7 @@ def edit_employee_account(session):
             updated_value = encrypt_value(updated_value)
             key_to_update = key_to_update + "_enc"
         save_employee_edit(employee_id, key_to_update, updated_value)
-        log_event("employee account edited", username_enc=session["username_enc"], additional_info=f"employee account edited (id: {decrypt_value(employee["user_id"])}: {key_to_update} updated to {decrypt_value(updated_value)}")
+        log_event("employee account edited", username_enc=session["username_enc"], additional_info=f"employee account edited (id: {employee_id}): {key_to_update} updated to {decrypt_value(updated_value)}")
         return
     log_event("unauthorized employee account edit attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
