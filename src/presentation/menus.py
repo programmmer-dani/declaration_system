@@ -1,4 +1,10 @@
-from domain.backup_logic import assign_backup, restore_any_backup, restore_backup_with_code, revoke_restore_code, view_restore_code_status
+from domain.backup_logic import (
+    assign_backup,
+    restore_any_backup,
+    restore_backup_with_code,
+    revoke_restore_code,
+    view_restore_code_status,
+)
 from domain.helpers import (
     approve_claim,
     create_claim,
@@ -24,7 +30,13 @@ from domain.helpers import (
 )
 from domain.security.validation import validate_menu_choice
 from logging_system import log_event, unread_suspicious_log_count
-from presentation.helpers import call_to_create_backup, go_validate_menu_choice, print_error
+from presentation.back_to_menu import BackToMenu
+from presentation.helpers import (
+    call_to_create_backup,
+    go_validate_menu_choice,
+    print_error,
+)
+
 
 def _run_menu(options, session):
     while True:
@@ -49,20 +61,29 @@ def _run_menu(options, session):
                         return "logout"
                     if result == "exit":
                         return "exit"
+                except BackToMenu:
+                    continue
                 except Exception as e:
                     if str(e) == "Unauthorized access":
                         return "logout"
-                    log_event("menu action crash", additional_info=str(e), is_suspicious=True)
+                    log_event(
+                        "menu action crash", additional_info=str(e), is_suspicious=True
+                    )
                     print_error("An unexpected error occurred.")
-        except:
+        except Exception:
             print_error("Invalid input format")
             continue
-        
+
+
 def superadmin_menu(session):
     if session["role"] != "admin":
-        log_event("unauthorized_menu_access", username_enc=session["username_enc"], is_suspicious=True)
+        log_event(
+            "unauthorized_menu_access",
+            username_enc=session["username_enc"],
+            is_suspicious=True,
+        )
         return "logout"
-    
+
     options = [
         ("Create manager account", create_user),
         ("Backup system", call_to_create_backup),
@@ -79,17 +100,22 @@ def superadmin_menu(session):
         ("Delete manager account", delete_manager_account_as_admin),
         ("Reset users password", reset_users_password),
         ("View logs", view_logs),
-        ("Logout", "logout"), 
+        ("Logout", "logout"),
         ("Exit system", "exit"),
     ]
-    
+
     return _run_menu(options, session)
+
 
 def manager_menu(session):
     if session["role"] != "manager":
-        log_event("unauthorized_menu_access", username_enc=session["username_enc"], is_suspicious=True)
+        log_event(
+            "unauthorized_menu_access",
+            username_enc=session["username_enc"],
+            is_suspicious=True,
+        )
         return "logout"
-    
+
     options = [
         ("Search claim", search_claims),
         ("Search employee", search_employees),
@@ -111,15 +137,19 @@ def manager_menu(session):
         ("Logout", "logout"),
         ("Exit system", "exit"),
     ]
-    
+
     return _run_menu(options, session)
 
 
 def employee_menu(session):
     if session["role"] != "employee":
-        log_event("unauthorized_menu_access", username_enc=session["username_enc"], is_suspicious=True)
+        log_event(
+            "unauthorized_menu_access",
+            username_enc=session["username_enc"],
+            is_suspicious=True,
+        )
         return "logout"
-    
+
     options = [
         ("Search in my claims", search_claims),
         ("Submit new claim", create_claim),
@@ -130,8 +160,9 @@ def employee_menu(session):
         ("Logout", "logout"),
         ("Exit system", "exit"),
     ]
-    
+
     return _run_menu(options, session)
+
 
 def generate_menu_title(session):
     if session["role"] == "admin":
