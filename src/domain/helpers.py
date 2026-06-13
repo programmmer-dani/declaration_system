@@ -377,8 +377,17 @@ def find_validator(key_to_update):
         validate_zip_code,
         validate_house_number,
         validate_name,
+        validate_birthday,
+        validate_bsn,
+        validate_city,
+        validate_project_number,
+        validate_street_name,
+        validate_travel_distance,
+        validate_zip_code,
+        validate_email,
+        validate_mobile_phone,
     )
-
+ 
     validators = {
         "claim_date": validate_claim_date,
         "project_number": validate_project_number,
@@ -392,8 +401,16 @@ def find_validator(key_to_update):
         "travel_distance": validate_travel_distance,
         "first_name": validate_name,
         "last_name": validate_name,
+        "email": validate_email,
+        "mobile_phone": validate_mobile_phone,
+        "birthday": validate_birthday,
+        "bsn": validate_bsn,
+        "street_name": validate_street_name,
+        "house_number": validate_house_number,
+        "zip_code": validate_zip_code,
+        "city": validate_city,
     }
-
+ 
     if key_to_update not in validators:
         log_event("No validator found", is_suspicious=True, additional_info=f"No validator found: {key_to_update}")
         raise Exception(f"No validator found")
