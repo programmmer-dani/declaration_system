@@ -393,9 +393,9 @@ def find_validator(key_to_update):
         "project_number": validate_project_number,
         "claim_type": validate_claim_type,
         "travel_distance": validate_travel_distance,
-        "from_zip_code": validate_zip_code,
+        "from_zip": validate_zip_code,
         "from_house_number": validate_house_number,
-        "to_zip_code": validate_zip_code,
+        "to_zip": validate_zip_code,
         "to_house_number": validate_house_number,
         "project_number": validate_project_number,
         "travel_distance": validate_travel_distance,
@@ -419,9 +419,9 @@ def find_validator(key_to_update):
 def is_key_value_encrypted(key_to_update):
     encrypted_keys = [
         "claim_date", "claim_type", "project_number", "travel_distance",
-        "from_zip_code", "to_zip_code", "first_name", "last_name", "email",
+        "from_zip", "to_zip", "first_name", "last_name", "email",
         "mobile_phone", "birthday", "bsn", "street_name", "house_number",
-        "zip_code", "city", "from_house_number", "to_house_number", "status",
+        "zip_code", "city", "from_house_number", "to_house_number", "status", # does 'zip_code' and 'house_number' even exist in DB?
         "salary_batch",
     ]
     if key_to_update in encrypted_keys or key_to_update in [f"{key}_enc" for key in encrypted_keys]:
@@ -445,9 +445,9 @@ def get_keys_to_update(claim_type, role=None):
             "claim_date",
             "project_number",
             "travel_distance",
-            "from_zip_code",
+            "from_zip",
             "from_house_number",
-            "to_zip_code",
+            "to_zip",
             "to_house_number"
         ]
     else:
