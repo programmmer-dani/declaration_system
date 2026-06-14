@@ -348,7 +348,7 @@ def edit_claim(session):
 
 def edit_claim_as_manager_or_admin(session):
     if session["role"] in ["manager", "admin"]:
-        claims = fetch_all_claims()
+        claims = fetch_pending_claims()
         if not claims:
             print_error("No claims found")
             return

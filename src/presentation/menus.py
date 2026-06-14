@@ -57,12 +57,12 @@ def _run_menu(options, session):
         except:
             print_error("Invalid input format")
             continue
-        
+
 def superadmin_menu(session):
     if session["role"] != "admin":
         log_event("unauthorized_menu_access", username_enc=session["username_enc"], is_suspicious=True)
         return "logout"
-    
+
     options = [
         ("Create manager account", create_user),
         ("Backup system", call_to_create_backup),
@@ -70,7 +70,7 @@ def superadmin_menu(session):
         ("Restore any backup", restore_any_backup),
         ("View restore code status", view_restore_code_status),
         ("Revoke restore code", revoke_restore_code),
-        ("Edit claims project/travel distance", edit_claim_as_manager_or_admin),
+        ("Edit claims pending project/travel distance", edit_claim_as_manager_or_admin),
         ("Approve claim", approve_claim),
         ("Reject claim", reject_claim),
         ("Search claim", search_claims),
@@ -79,17 +79,17 @@ def superadmin_menu(session):
         ("Delete manager account", delete_manager_account_as_admin),
         ("Reset users password", reset_users_password),
         ("View logs", view_logs),
-        ("Logout", "logout"), 
+        ("Logout", "logout"),
         ("Exit system", "exit"),
     ]
-    
+
     return _run_menu(options, session)
 
 def manager_menu(session):
     if session["role"] != "manager":
         log_event("unauthorized_menu_access", username_enc=session["username_enc"], is_suspicious=True)
         return "logout"
-    
+
     options = [
         ("Search claim", search_claims),
         ("Search employee", search_employees),
@@ -101,7 +101,7 @@ def manager_menu(session):
         ("Restore backup with code", restore_backup_with_code),
         ("View employee list", view_employee_list),
         ("View claims submitted by employees", view_employees_claims),
-        ("Edit claims project/travel distance", edit_claim_as_manager_or_admin),
+        ("Edit claims pending project/travel distance", edit_claim_as_manager_or_admin),
         ("Approve claim", approve_claim),
         ("Reject claim", reject_claim),
         ("View logs", view_logs),
@@ -111,7 +111,7 @@ def manager_menu(session):
         ("Logout", "logout"),
         ("Exit system", "exit"),
     ]
-    
+
     return _run_menu(options, session)
 
 
@@ -119,7 +119,7 @@ def employee_menu(session):
     if session["role"] != "employee":
         log_event("unauthorized_menu_access", username_enc=session["username_enc"], is_suspicious=True)
         return "logout"
-    
+
     options = [
         ("Search in my claims", search_claims),
         ("Submit new claim", create_claim),
@@ -130,7 +130,7 @@ def employee_menu(session):
         ("Logout", "logout"),
         ("Exit system", "exit"),
     ]
-    
+
     return _run_menu(options, session)
 
 def generate_menu_title(session):
