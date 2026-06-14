@@ -104,7 +104,7 @@ def reprompt_login(session):
     password = getpass.getpass("Password: ")
     user = find_user_by_username(decrypt_value(session["username_enc"]))
     if verify_password(password, user["password_hash"]):
-        log_event("successful_login", username_enc=user["username_enc"])
+        log_event("successful_reprompt_login", username_enc=user["username_enc"])
         return user
     else:
         log_event("failed login attempt", additional_info=f"bad password for username: {decrypt_value(user["username_enc"])}")
