@@ -3,7 +3,7 @@ import random
 import string
 from datetime import datetime
 from domain.security.hashing import hash_password, verify_restore_code
-from domain.security.security import secure_claim_data, secure_user_data, verify_existing_username
+from domain.security.security import reprompt_login, secure_claim_data, secure_user_data, verify_existing_username
 from domain.security.validation import validate_password, validate_salary_batch
 from infrastructure.backup_infrastructure import fetch_all_backups
 from infrastructure.database import (
@@ -215,11 +215,9 @@ def search_employees(session):
 
 
 def update_password(session):
-    from domain.security.security import login
-
     if session["role"] in ["employee", "manager"]:
-        valid_user = login()
-        if valid_user is None:
+        current_user = reprompt_login(session)
+        if current_user is None:
             print_error("Authentication failed, user logged out")
             return "logout"
         password = go_validate_new_password("Enter new password: ")
@@ -422,7 +420,7 @@ def is_key_value_encrypted(key_to_update):
         "claim_date", "claim_type", "project_number", "travel_distance",
         "from_zip", "to_zip", "first_name", "last_name", "email",
         "mobile_phone", "birthday", "bsn", "street_name", "house_number",
-        "zip_code", "city", "from_house_number", "to_house_number", "status", # does 'zip_code' and 'house_number' even exist in DB?
+        "zip_code", "city", "from_house_number", "to_house_number", "status",
         "salary_batch",
     ]
     if key_to_update in encrypted_keys or key_to_update in [f"{key}_enc" for key in encrypted_keys]:
