@@ -18,10 +18,7 @@ def is_bruteforce_lockout_active(now=None):
             activity = decrypt_value(row["activity_desc_enc"])
         except Exception:
             continue
-        if activity in (
-            "incorrect username login attempt",
-            "incorrect password login attempt",
-        ):
+        if activity == "failed login attempt":
             count += 1
             if count >= failure_threshold:
                 return True
