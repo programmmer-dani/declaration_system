@@ -6,6 +6,7 @@ from domain.security.encryption import decrypt_value, encrypt_value
 from domain.security.hashing import hash_password, hash_username, verify_password
 from logging_system import log_event
 from presentation.helpers import get_login_input
+import getpass
 
 
 def secure_claim_data(session, claim_data):
@@ -50,8 +51,8 @@ def secure_user_data(user_data):
         log_event("Error securing extra employee data", is_suspicious=True, additional_info=f"Error securing extra employee data: {e}")
         raise ValueError(f"Error securing extra employee data")
     return secured_user_data
-    
-    
+
+
 def secure_employee_data(employee_data):
     return {
         "birthday_enc": encrypt_value(employee_data["birthday"]),
@@ -67,7 +68,7 @@ def secure_employee_data(employee_data):
         "bsn_enc": encrypt_value(employee_data["bsn"]),
     }
 
-def verify_existing_username(username): 
+def verify_existing_username(username):
     if username_exists(username):
         raise ValueError("Username already exists")
 
@@ -77,18 +78,18 @@ def login():
         if credentials["username"] == "super_admin" and credentials["password"] == "Admin_123?":
             log_event("super admin logged in")
             return {"role":"admin", "username_enc": encrypt_value(credentials["username"])}
-    
+
         user = find_user_by_username(credentials["username"])
-    
+
         if user is None:
             log_event("failed login attempt", additional_info=f"bad username: {credentials["username"]}")
             return None
-        
+
         user = dict(user)
         user["role"] = decrypt_value(user["role_enc"])
-    
+
         is_temp_password = decrypt_value(user["is_password_temp_enc"]) == "1"
-        
+
         if verify_password(credentials["password"], user["password_hash"]):
             log_event("successful_login", username_enc=encrypt_value(credentials["username"]))
             if is_temp_password:
@@ -98,3 +99,13 @@ def login():
             log_event("failed login attempt", additional_info=f"bad password for username: {credentials["username"]}")
             return None
     return None
+
+def reprompt_login(session):
+    password = getpass.getpass("Password: ")
+    user = find_user_by_username(decrypt_value(session["username_enc"]))
+    if verify_password(password, user["password_hash"]):
+        log_event("successful_reprompt_login", username_enc=user["username_enc"])
+        return user
+    else:
+        log_event("failed login attempt", additional_info=f"bad password for username: {decrypt_value(user["username_enc"])}")
+        return None

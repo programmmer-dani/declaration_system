@@ -48,7 +48,7 @@ def get_login_input():
 
 
 def print_error(error):
-    print(f"\n-----------------\nError: {error}\n-----------------\n")
+    print(f"\n-----------------\n{error}\n-----------------\n")
 
 
 def go_validate_login(input_message, validator):
