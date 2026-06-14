@@ -362,7 +362,7 @@ def edit_claim_as_manager_or_admin(session):
             updated_value = encrypt_value(updated_value)
             key_to_update = f"{key_to_update}_enc"
         save_claim_edit(claim_id, key_to_update, updated_value)
-        log_event("claim edited", username_enc=session["username_enc"], additional_info=f"claim edited (id: {claim_id}): {key_to_update} updated to {decrypt_value(updated_value)}")
+        log_event("claim edited", username_enc=session["username_enc"], additional_info=f"claim edited (claim id: {claim_id}): {key_to_update} updated to {decrypt_value(updated_value)}")
         print("Claim edited successfully.")
         return
     log_event("unauthorized claim edit attempt", username_enc=session["username_enc"], is_suspicious=True)
@@ -393,9 +393,9 @@ def find_validator(key_to_update):
         "project_number": validate_project_number,
         "claim_type": validate_claim_type,
         "travel_distance": validate_travel_distance,
-        "from_zip_code": validate_zip_code,
+        "from_zip": validate_zip_code,
         "from_house_number": validate_house_number,
-        "to_zip_code": validate_zip_code,
+        "to_zip": validate_zip_code,
         "to_house_number": validate_house_number,
         "project_number": validate_project_number,
         "travel_distance": validate_travel_distance,
@@ -419,9 +419,9 @@ def find_validator(key_to_update):
 def is_key_value_encrypted(key_to_update):
     encrypted_keys = [
         "claim_date", "claim_type", "project_number", "travel_distance",
-        "from_zip_code", "to_zip_code", "first_name", "last_name", "email",
+        "from_zip", "to_zip", "first_name", "last_name", "email",
         "mobile_phone", "birthday", "bsn", "street_name", "house_number",
-        "zip_code", "city", "from_house_number", "to_house_number", "status",
+        "zip_code", "city", "from_house_number", "to_house_number", "status", # does 'zip_code' and 'house_number' even exist in DB?
         "salary_batch",
     ]
     if key_to_update in encrypted_keys or key_to_update in [f"{key}_enc" for key in encrypted_keys]:
@@ -445,9 +445,9 @@ def get_keys_to_update(claim_type, role=None):
             "claim_date",
             "project_number",
             "travel_distance",
-            "from_zip_code",
+            "from_zip",
             "from_house_number",
-            "to_zip_code",
+            "to_zip",
             "to_house_number"
         ]
     else:
@@ -641,7 +641,7 @@ def view_employees_claims(session):
             return
         
         print_claim_list(claims)
-        log_event("employees claims viewed", username_enc=session["username_enc"], additional_info=f"employee: {employee['user']} claims viewed") # employee is formatted without containing username_enc
+        log_event("employees claims viewed", username_enc=session["username_enc"], additional_info=f"employees id: {employee['user_id']} claims viewed") # employee is formatted without containing username_enc
         return
     log_event("unauthorized employees claims view attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")

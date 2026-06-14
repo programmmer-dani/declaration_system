@@ -70,7 +70,7 @@ def restore_backup_with_code(session):
             
         if managers and len(managers) > 0 and restore_code_object:
             for manager in managers:
-                if manager["user_id"] == restore_code_object["manager_user_id"]:
+                if str(manager["user_id"]) == decrypt_value(restore_code_object["manager_user_id_enc"]):
                     manager_found = True
                     codes = fetch_restore_code_by_manager_id(manager["user_id"])
                     managers_codes_found = False
