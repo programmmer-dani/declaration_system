@@ -10,12 +10,12 @@ from presentation.helpers import get_login_input
 
 def secure_claim_data(session, claim_data):
     secured_claim = {
-        "user_id": session["user_id"],
+        "user_id_enc": encrypt_value(str(session["user_id"])),
         "claim_date_enc": encrypt_value(claim_data["claim_date"]),
         "project_number_enc": encrypt_value(claim_data["project_number"]),
         "claim_type_enc": encrypt_value(claim_data["claim_type"]),
         "status_enc": encrypt_value("Pending"),
-        "approved_by_user_id": None,
+        "approved_by_user_id_enc": None,
         "salary_batch_enc": None,
     }
 
@@ -87,7 +87,7 @@ def login():
         user = dict(user)
         user["role"] = decrypt_value(user["role_enc"])
     
-        is_temp_password = user["is_password_temp"] == 1
+        is_temp_password = decrypt_value(user["is_password_temp_enc"]) == "1"
         
         if verify_password(credentials["password"], user["password_hash"]):
             log_event("successful_login", username_enc=encrypt_value(credentials["username"]))
