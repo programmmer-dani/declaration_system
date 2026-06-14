@@ -362,7 +362,7 @@ def edit_claim_as_manager_or_admin(session):
             updated_value = encrypt_value(updated_value)
             key_to_update = f"{key_to_update}_enc"
         save_claim_edit(claim_id, key_to_update, updated_value)
-        log_event("claim edited", username_enc=session["username_enc"], additional_info=f"claim edited (id: {claim_id}): {key_to_update} updated to {decrypt_value(updated_value)}")
+        log_event("claim edited", username_enc=session["username_enc"], additional_info=f"claim edited (claim id: {claim_id}): {key_to_update} updated to {decrypt_value(updated_value)}")
         print("Claim edited successfully.")
         return
     log_event("unauthorized claim edit attempt", username_enc=session["username_enc"], is_suspicious=True)
@@ -641,7 +641,7 @@ def view_employees_claims(session):
             return
         
         print_claim_list(claims)
-        log_event("employees claims viewed", username_enc=session["username_enc"], additional_info=f"employee: {employee['user']} claims viewed") # employee is formatted without containing username_enc
+        log_event("employees claims viewed", username_enc=session["username_enc"], additional_info=f"employees id: {employee['user_id']} claims viewed") # employee is formatted without containing username_enc
         return
     log_event("unauthorized employees claims view attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
