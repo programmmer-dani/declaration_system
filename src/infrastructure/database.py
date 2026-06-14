@@ -66,13 +66,13 @@ def fetch_all_restore_codes():
         cur = conn.execute("SELECT * FROM restore_codes")
         restore_codes = cur.fetchall()
         return restore_codes
-    
+
 def fetch_restore_code_by_manager_id(manager_id):
     with get_connection() as conn:
         cur = conn.execute("SELECT * FROM restore_codes")
         rows = cur.fetchall()
         return [r for r in rows if decrypt_value(r["manager_user_id_enc"]) == str(manager_id)]
-    
+
 def fetch_unrevoked_unused_restore_codes():
     with get_connection() as conn:
         cur = conn.execute("SELECT * FROM restore_codes WHERE is_revoked = 0 AND is_used = 0")
@@ -150,7 +150,7 @@ def set_restore_code_used(restore_code_id):
     with get_connection() as conn:
         cur = conn.execute("UPDATE restore_codes SET is_used = 1 WHERE restore_code_id = ?", (restore_code_id,))
         conn.commit()
-        
+
 
 def save_claim_edit(claim_id, key_to_update, updated_value):
     ALLOWED_UPDATE_COLUMNS = {"status_enc", "claim_type_enc", "salary_batch_enc", "project_number_enc", "travel_distance_enc", "from_zip_enc", "from_house_number_enc", "to_zip_enc", "to_house_number_enc", "claim_date_enc"}
@@ -166,7 +166,7 @@ def save_claim_edit(claim_id, key_to_update, updated_value):
             (updated_value, claim_id),
         )
         conn.commit()
-        
+
 def save_employee_edit(employee_id, key_to_update, updated_value):
     ALLOWED_UPDATE_COLUMNS = {"first_name_enc", "last_name_enc", 'birthday_enc', 'gender_enc', 'street_name_enc', 'house_number_enc', 'zip_code_enc', 'city_enc', 'email_enc', 'mobile_phone_enc', 'id_doc_type_enc', 'id_doc_number_enc', 'bsn_enc'}
     if key_to_update not in ALLOWED_UPDATE_COLUMNS:
@@ -400,7 +400,7 @@ def create_tables(conn: sqlite3.Connection):
             is_used INTEGER NOT NULL DEFAULT 0 CHECK (is_used IN (0, 1)),
             is_revoked INTEGER NOT NULL DEFAULT 0 CHECK (is_revoked IN (0, 1))
         );
-        
+
         CREATE TABLE IF NOT EXISTS logs (
             log_id INTEGER PRIMARY KEY AUTOINCREMENT,
             created_at TEXT NOT NULL,

@@ -33,6 +33,7 @@ from presentation.helpers import (
     get_claim_data,
     get_user_data,
     go_validate,
+    go_validate_new_password,
     input_search_term,
     input_restore_code,
     print_and_select_from_list,
@@ -136,7 +137,7 @@ def view_logs(session):
             return
         if session["role"] == "admin":
             print_log_list(logs)
-        else:   
+        else:
             print_semi_decrypted_log_list(logs)
         flag_all_logs_as_read()
         log_event("logs viewed", username_enc=session["username_enc"])
@@ -215,13 +216,13 @@ def search_employees(session):
 
 def update_password(session):
     from domain.security.security import login
-    
+
     if session["role"] in ["employee", "manager"]:
         valid_user = login()
         if valid_user is None:
             print_error("Authentication failed, user logged out")
             return "logout"
-        password = go_validate("Enter new password: ", validate_password)
+        password = go_validate_new_password("Enter new password: ")
         save_new_password(session["user_id"], hash_password(password))
         log_event("password updated", username_enc=session["username_enc"], additional_info=f"password updated for user: {decrypt_value(session["username_enc"])}")
         return
@@ -347,7 +348,7 @@ def edit_claim(session):
 
 def edit_claim_as_manager_or_admin(session):
     if session["role"] in ["manager", "admin"]:
-        claims = fetch_all_claims()
+        claims = fetch_pending_claims()
         if not claims:
             print_error("No claims found")
             return
@@ -367,7 +368,7 @@ def edit_claim_as_manager_or_admin(session):
         return
     log_event("unauthorized claim edit attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
-    
+
 def find_validator(key_to_update):
     from domain.security.validation import (
         validate_claim_date,
@@ -387,7 +388,7 @@ def find_validator(key_to_update):
         validate_email,
         validate_mobile_phone,
     )
- 
+
     validators = {
         "claim_date": validate_claim_date,
         "project_number": validate_project_number,
@@ -410,12 +411,12 @@ def find_validator(key_to_update):
         "zip_code": validate_zip_code,
         "city": validate_city,
     }
- 
+
     if key_to_update not in validators:
         log_event("No validator found", is_suspicious=True, additional_info=f"No validator found: {key_to_update}")
         raise Exception(f"No validator found")
     return validators[key_to_update]
-    
+
 def is_key_value_encrypted(key_to_update):
     encrypted_keys = [
         "claim_date", "claim_type", "project_number", "travel_distance",
@@ -427,7 +428,7 @@ def is_key_value_encrypted(key_to_update):
     if key_to_update in encrypted_keys or key_to_update in [f"{key}_enc" for key in encrypted_keys]:
         return True
     return False
-    
+
 def get_keys_to_update(claim_type, role=None):
     if role == "manager_or_admin":
         if claim_type == "Travel":
@@ -439,7 +440,7 @@ def get_keys_to_update(claim_type, role=None):
             return [
                 "project_number"
             ]
-            
+
     if claim_type == "Travel":
         return [
             "claim_date",
@@ -464,7 +465,7 @@ def approve_claim(session):
             return
         formatted_claims = format_claim_list(claims)
         claim = print_and_select_from_list(formatted_claims, "Select claim to approve: ")
-        try: 
+        try:
             set_claims_salary_batch(session, claim["claim_id"])
             log_event("claims salary batch  set", username_enc=session["username_enc"], additional_info=f"claim (id: {claim["claim_id"]}) salary batch set during approve")
         except Exception as e:
@@ -477,7 +478,7 @@ def approve_claim(session):
         return
     log_event("unauthorized claim approve attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
-    
+
 def reject_claim(session):
     if session["role"] in ["manager", "admin"]:
         claims = fetch_pending_claims()
@@ -492,7 +493,7 @@ def reject_claim(session):
         return
     log_event("unauthorized claim reject attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
-    
+
 def format_claim_list(claims):
     return [
         {
@@ -532,7 +533,7 @@ def create_user(session):
         now = datetime.now().strftime("%Y%m%d_%H%M%S")
         try:
             verify_existing_username(user_data["username"])
-            secured_user_data = secure_user_data(user_data) 
+            secured_user_data = secure_user_data(user_data)
             save_user(encrypt_value(now), secured_user_data, role)
             log_event("create user success", username_enc=session["username_enc"], additional_info=f"user created: {user_data["username"]}")
             return
@@ -548,7 +549,7 @@ def select_manager():
     if not managers:
         print_error("No managers found")
         return None
-    
+
     managers_dict = [dict(row) for row in managers]
     managers_names_enc = [manager['first_name_enc'] for manager in managers_dict]
     managers_names = [decrypt_value(name) for name in managers_names_enc]
@@ -584,7 +585,7 @@ def request_employees_claims(session):
             print_error("No claims found")
             return
         print_claim_list(claims)
-        log_event("employees own claims viewed", username_enc=session["username_enc"]) 
+        log_event("employees own claims viewed", username_enc=session["username_enc"])
         return
     log_event("unauthorized employees claims view attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
@@ -617,7 +618,7 @@ def view_employee_list(session):
         if not employees:
             print_error("No employees found")
             return
-        employees_list = format_user_list(employees)    
+        employees_list = format_user_list(employees)
         print_user_list(employees_list)
         log_event("employee list viewed", username_enc=session["username_enc"])
         return
@@ -627,19 +628,19 @@ def view_employee_list(session):
 def view_employees_claims(session):
     if session["role"] == "manager":
         employees = request_employees()
-        
+
         if not employees:
             print_error("No employees found")
             return
-        
+
         formatted_employees = format_user_list(employees)
         employee = print_and_select_from_list(formatted_employees, "Select employee: ")
         claims = request_claims(employee["user_id"])
-        
+
         if not claims:
             print_error("No claims found")
             return
-        
+
         print_claim_list(claims)
         log_event("employees claims viewed", username_enc=session["username_enc"], additional_info=f"employees id: {employee['user_id']} claims viewed") # employee is formatted without containing username_enc
         return

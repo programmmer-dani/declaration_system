@@ -36,10 +36,10 @@ def get_login_input():
     username = go_validate_login("Username: ", validate_username)
     if not username:
         log_event(f"failed login attempt", additional_info="incorrect username format")
-        input("Password: ")
+        getpass.getpass("Password: ")
         return None
     else:
-        password = go_validate_password("Password: ", validate_password)
+        password = go_validate_password("Password: ")
         if password:
             return {"username": username, "password": password}
 
@@ -57,11 +57,18 @@ def go_validate_login(input_message, validator):
         return value
 
 
-def go_validate_password(input_message, validator):
+def go_validate_password(input_message):
     value = getpass.getpass(input_message)
-    if validator(value):
+    if validate_password(value):
         return value
 
+def go_validate_new_password(input_message):
+    while True:
+        value = getpass.getpass(input_message)
+        if validate_password(value):
+            return value
+        log_event("Invalid input", additional_info=f"{validate_password.__name__}")
+        give_feedback(validate_password)
 
 def go_validate(input_message, validator):
     while True:
@@ -336,7 +343,7 @@ def get_user_data(role):
     print("\nCreating new user...\n")
     user_data = {
         "username": go_validate("Username: ", validate_username),
-        "password": go_validate("Password: ", validate_password),
+        "password": go_validate_new_password("Password: "),
         "first_name": go_validate("First name: ", validate_name),
         "last_name": go_validate("Last name: ", validate_name),
         "role": role,
