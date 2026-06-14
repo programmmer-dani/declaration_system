@@ -179,7 +179,7 @@ def validate_claim_date(s):
 
 def validate_salary_batch(s):
     today = date.today()
-    min_first = date(today.year - 1, 1, 1).isoformat()[:7]
+    min_first = f"{today.year - 1:04d}-{today.month:02d}"
     max_first = date(today.year, today.month, 1).isoformat()[:7]
 
     if (
