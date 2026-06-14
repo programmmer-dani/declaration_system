@@ -1,19 +1,36 @@
 import datetime
+import getpass
 
+from domain.security.encryption import decrypt_value
+from domain.security.validation import (
+    validate_backup_filename,
+    validate_birthday,
+    validate_bsn,
+    validate_city,
+    validate_claim_date,
+    validate_claim_type,
+    validate_email,
+    validate_gender,
+    validate_house_number,
+    validate_id_doc_number,
+    validate_id_doc_type,
+    validate_menu_choice,
+    validate_mobile_phone,
+    validate_name,
+    validate_password,
+    validate_project_number,
+    validate_restore_code,
+    validate_salary_batch,
+    validate_search_keyword,
+    validate_street_name,
+    validate_travel_distance,
+    validate_username,
+    validate_zip_code,
+)
+from infrastructure.backup_infrastructure import create_backup
 from infrastructure.database import fetch_role_by_username_enc
 from logging_system import log_event
-from domain.security.encryption import decrypt_value
-from domain.security.validation import validate_birthday, validate_bsn, validate_city, validate_claim_date, validate_email, validate_gender, validate_house_number, validate_id_doc_number, validate_id_doc_type, validate_menu_choice, validate_mobile_phone, validate_name, validate_password, validate_restore_code, validate_street_name, validate_username, validate_zip_code, validate_backup_filename, validate_salary_batch
-from infrastructure.backup_infrastructure import create_backup
-from domain.security.validation import (
-    validate_claim_date,
-    validate_search_keyword,
-    validate_claim_type,
-    validate_project_number,
-    validate_travel_distance,
-    validate_zip_code,
-    validate_house_number,
-)
+
 
 def get_login_input():
     username = go_validate_login("Username: ", validate_username)
@@ -22,10 +39,10 @@ def get_login_input():
         input("Password: ")
         return None
     else:
-        password = go_validate_login("Password: ", validate_password)
+        password = go_validate_password("Password: ", validate_password)
         if password:
             return {"username": username, "password": password}
-    
+
     log_event(f"failed login attempt", additional_info="incorrect password format")
     return None
 
@@ -33,11 +50,19 @@ def get_login_input():
 def print_error(error):
     print(f"\n-----------------\nError: {error}\n-----------------\n")
 
+
 def go_validate_login(input_message, validator):
     value = input(input_message)
     if validator(value):
         return value
-    
+
+
+def go_validate_password(input_message, validator):
+    value = getpass.getpass(input_message)
+    if validator(value):
+        return value
+
+
 def go_validate(input_message, validator):
     while True:
         value = input(input_message)
@@ -48,6 +73,7 @@ def go_validate(input_message, validator):
             return None
         give_feedback(validator)
 
+
 def go_validate_restore_code_as_admin(input_message, validator):
     while True:
         value = input(input_message)
@@ -56,23 +82,34 @@ def go_validate_restore_code_as_admin(input_message, validator):
         log_event("Invalid input", additional_info=f"{validator.__name__}")
         give_feedback(validator)
 
+
 def give_feedback(validator):
     if validator == validate_username:
-        print("Username must be 8-10 characters, start with a letter or _, and contain only letters, numbers, underscores, apostrophes or periods only.")
+        print(
+            "Username must be 8-10 characters, start with a letter or _, and contain only letters, numbers, underscores, apostrophes or periods only."
+        )
     elif validator == validate_password:
-        print("Password must be 12-30 characters, include uppercase letters, lowercase letters, numbers and special characters.")
+        print(
+            "Password must be 12-30 characters, include uppercase letters, lowercase letters, numbers and special characters."
+        )
     elif validator == validate_name:
-        print("Name must be 1-100 characters, letters, spaces, hyphens and apostrophes allowed.")
+        print(
+            "Name must be 1-100 characters, letters, spaces, hyphens and apostrophes allowed."
+        )
     elif validator == validate_birthday:
         print("Birthday must be in format YYYY-MM-DD and a valid date.")
     elif validator == validate_gender:
         print("Gender must be 'male' or 'female'.")
     elif validator == validate_street_name:
-        print("Street name must be 1-100 characters, letters, numbers, spaces, hyphens and apostrophes allowed.")
+        print(
+            "Street name must be 1-100 characters, letters, numbers, spaces, hyphens and apostrophes allowed."
+        )
     elif validator == validate_house_number:
         print("House number must be 1-5 digits.")
     elif validator == validate_zip_code:
-        print("ZIP code must be in format DDDDLL (4 digits followed by 2 uppercase letters).")
+        print(
+            "ZIP code must be in format DDDDLL (4 digits followed by 2 uppercase letters)."
+        )
     elif validator == validate_city:
         print("City must be one of the valid cities.")
     elif validator == validate_email:
@@ -82,13 +119,19 @@ def give_feedback(validator):
     elif validator == validate_id_doc_type:
         print("ID doc type must be 'Passport' or 'ID-Card'.")
     elif validator == validate_id_doc_number:
-        print("ID doc number must be 9 characters, letters and numbers only. In either XX9999999 or X99999999 format.")
+        print(
+            "ID doc number must be 9 characters, letters and numbers only. In either XX9999999 or X99999999 format."
+        )
     elif validator == validate_bsn:
         print("BSN must be exactly 9 digits.")
     elif validator == validate_claim_date:
-        print("Claim date must be in format YYYY-MM-DD and a valid date between 60 days and 14 days from today.")
+        print(
+            "Claim date must be in format YYYY-MM-DD and a valid date between 60 days and 14 days from today."
+        )
     elif validator == validate_search_keyword:
-        print("Search term must be 1-50 characters, letters, numbers and spaces allowed.")
+        print(
+            "Search term must be 1-50 characters, letters, numbers and spaces allowed."
+        )
     elif validator == validate_claim_type:
         print("Claim type must be 'Travel' or 'Home Office'.")
     elif validator == validate_project_number:
@@ -96,10 +139,12 @@ def give_feedback(validator):
     elif validator == validate_travel_distance:
         print("Travel distance must be between 1 and 999 km.")
     elif validator == validate_backup_filename:
-        print("Backup filename must be alphanumeric (with underscores, dots, or hyphens) and end with '.zip'.")
+        print(
+            "Backup filename must be alphanumeric (with underscores, dots, or hyphens) and end with '.zip'."
+        )
     elif validator == validate_salary_batch:
-       print("Salary batch must be a valid YYYY-MM date within the last 12 months.")
-    
+        print("Salary batch must be a valid YYYY-MM date within the last 12 months.")
+
 
 def go_validate_menu_choice(input_message, validator, number_of_choices):
     while True:
@@ -108,6 +153,7 @@ def go_validate_menu_choice(input_message, validator, number_of_choices):
             return value
         log_event("Invalid input", additional_info="Menu choice")
         print_error("Invalid input, try again.")
+
 
 def _menu_line(item):
     if isinstance(item, dict):
@@ -124,13 +170,16 @@ def print_and_select_from_list(list, message="Choose item: "):
     choice = go_validate_menu_choice(message, validate_menu_choice, len(list))
     return list[int(choice) - 1]
 
+
 def print_user_list(users):
     for i, user in enumerate(users, 1):
         print(f"{i}. {user['name']} ({user['username']})")
-        
+
+
 def print_temp_password(temp_password):
     print(f"Temporary password: {temp_password}")
-        
+
+
 def print_claim_list(claims):
     print("Your claims: ")
     for claim in claims:
@@ -144,9 +193,15 @@ def _format_log_created_at(created_at):
     log_stored_ts = "%Y%m%d_%H%M%S"
     log_display_ts = "%Y-%m-%d %H:%M:%S"
     try:
-        return datetime.datetime.strptime(created_at, log_stored_ts).strftime(log_display_ts)
+        return datetime.datetime.strptime(created_at, log_stored_ts).strftime(
+            log_display_ts
+        )
     except (ValueError, TypeError):
-        log_event("Error formatting log created at", is_suspicious=True, additional_info=f"Error formatting log created at: {created_at}")
+        log_event(
+            "Error formatting log created at",
+            is_suspicious=True,
+            additional_info=f"Error formatting log created at: {created_at}",
+        )
         raise Exception("Error formatting log created at")
 
 
@@ -155,36 +210,43 @@ def print_log_list(logs):
         r = dict(row)
         when = _format_log_created_at(r["created_at"])
         act = decrypt_value(r["activity_desc_enc"])
-        user = decrypt_value(r["username_enc"]) if r["username_enc"] is not None else "—"
-        extra = decrypt_value(r["additional_info_enc"]) if r["additional_info_enc"] else "—"
+        user = (
+            decrypt_value(r["username_enc"]) if r["username_enc"] is not None else "—"
+        )
+        extra = (
+            decrypt_value(r["additional_info_enc"]) if r["additional_info_enc"] else "—"
+        )
         susp = "yes" if decrypt_value(r["is_suspicious_enc"]) == "1" else "no"
         read = "yes" if r["is_read"] else "no"
         print(
             f"[{r['log_id']}] {when} | {act} | username={user} | additional_info={extra} "
             f"| is_suspicious={susp} | is_read={read}"
         )
-        
+
+
 def print_semi_decrypted_log_list(logs):
     for row in logs:
         username_enc = row["username_enc"]
-        if username_enc: role = fetch_role_by_username_enc(username_enc) 
-        else: role = None
-        
+        if username_enc:
+            role = fetch_role_by_username_enc(username_enc)
+        else:
+            role = None
+
         r = dict(row)
         when = _format_log_created_at(r["created_at"])
         act = decrypt_value(r["activity_desc_enc"])
         if r["username_enc"] is not None:
             if role is not None and role == "employee":
                 user = decrypt_value(r["username_enc"])
-            else :
+            else:
                 user = r["username_enc"]
         else:
             user = "—"
-            
+
         if r["additional_info_enc"] is not None:
             if role is not None and role == "employee":
                 extra = decrypt_value(r["additional_info_enc"])
-            else :
+            else:
                 extra = r["additional_info_enc"]
         else:
             extra = "—"
@@ -201,21 +263,32 @@ def call_to_create_backup(session):
     if session["role"] in ["admin", "manager"]:
         print("Creating backup...")
         backup_name = create_backup()
-        log_event("backup created from this point", username_enc=session["username_enc"], additional_info=backup_name,)
+        log_event(
+            "backup created from this point",
+            username_enc=session["username_enc"],
+            additional_info=backup_name,
+        )
         print(f"Backup created: {backup_name}")
         return
-    log_event("unauthorized backup create attempt", username_enc=session["username_enc"], is_suspicious=True)
+    log_event(
+        "unauthorized backup create attempt",
+        username_enc=session["username_enc"],
+        is_suspicious=True,
+    )
     raise Exception("Unauthorized access")
-    
+
+
 def input_search_term():
     return go_validate(
         "Search: ",
         validate_search_keyword,
     )
 
+
 def input_restore_code():
     restore_code = go_validate("Restore code: ", validate_restore_code)
     return restore_code
+
 
 def display_restorecode_status(used, revoked):
     print(f"\n-- Restore code status --")
@@ -227,15 +300,17 @@ def display_restorecode_status(used, revoked):
         print(f"Revoked: Yes")
     else:
         print(f"Revoked: No")
-        
-        
+
+
 def get_claim_data():
     print("\nCreating new claim...\n")
 
     claim_data = {
         "claim_date": go_validate("Claim date (YYYY-MM-DD): ", validate_claim_date),
         "project_number": go_validate("Project number: ", validate_project_number),
-        "claim_type": go_validate("Claim type (Travel/Home Office): ", validate_claim_type),
+        "claim_type": go_validate(
+            "Claim type (Travel/Home Office): ", validate_claim_type
+        ),
     }
 
     if claim_data["claim_type"] == "Travel":
@@ -247,12 +322,15 @@ def get_claim_data():
 
 def get_travel_claim_data():
     return {
-        "travel_distance": go_validate("Travel distance in km: ", validate_travel_distance),
+        "travel_distance": go_validate(
+            "Travel distance in km: ", validate_travel_distance
+        ),
         "from_zip_code": go_validate("From ZIP code (DDDDLL): ", validate_zip_code),
         "from_house_number": go_validate("From house number: ", validate_house_number),
         "to_zip_code": go_validate("To ZIP code (DDDDLL): ", validate_zip_code),
         "to_house_number": go_validate("To house number: ", validate_house_number),
-    }        
+    }
+
 
 def get_user_data(role):
     print("\nCreating new user...\n")
@@ -268,8 +346,9 @@ def get_user_data(role):
         return {**user_data, **employee_data}
     else:
         return user_data
-    
-def get_employee_data():    
+
+
+def get_employee_data():
     return {
         "birthday": go_validate("Birthday (YYYY-MM-DD): ", validate_birthday),
         "gender": go_validate("Gender (male/female): ", validate_gender),
@@ -279,7 +358,9 @@ def get_employee_data():
         "city": go_validate("City (Start w capital letter): ", validate_city),
         "email": go_validate("Email: ", validate_email),
         "mobile_phone": go_validate("Mobile phone (8 digits): ", validate_mobile_phone),
-        "id_doc_type": go_validate("ID doc type (Passport/ID-Card): ", validate_id_doc_type),
+        "id_doc_type": go_validate(
+            "ID doc type (Passport/ID-Card): ", validate_id_doc_type
+        ),
         "id_doc_number": go_validate("ID doc number: ", validate_id_doc_number),
         "bsn": go_validate("BSN: ", validate_bsn),
     }
