@@ -69,9 +69,9 @@ def fetch_all_restore_codes():
     
 def fetch_restore_code_by_manager_id(manager_id):
     with get_connection() as conn:
-        cur = conn.execute("SELECT * FROM restore_codes WHERE manager_user_id = ?", (manager_id,))
-        restore_code = cur.fetchall()
-        return restore_code
+        cur = conn.execute("SELECT * FROM restore_codes")
+        rows = cur.fetchall()
+        return [r for r in rows if decrypt_value(r["manager_user_id_enc"]) == str(manager_id)]
     
 def fetch_unrevoked_unused_restore_codes():
     with get_connection() as conn:
@@ -87,9 +87,9 @@ def fetch_pending_claims():
 
 def fetch_employees_claims(user_id):
     with get_connection() as conn:
-        cur = conn.execute("SELECT * FROM claims WHERE user_id = ?", (user_id,))
+        cur = conn.execute("SELECT * FROM claims")
         claims = cur.fetchall()
-        return claims
+        return [c for c in claims if decrypt_value(c["user_id_enc"]) == str(user_id)]
 
 # def fetch_claims_without_salary_batch():
 #     with get_connection() as conn:
@@ -110,41 +110,40 @@ def fetch_employees_claims_with_travel(user_id):
                    tc.to_house_number_enc
             FROM claims c
             LEFT JOIN travel_claims tc ON tc.claim_id = c.claim_id
-            WHERE c.user_id = ?
-            """,
-            (user_id,),
+            """
         )
-        return cur.fetchall()
+        rows = cur.fetchall()
+        return [r for r in rows if decrypt_value(r["user_id_enc"]) == str(user_id)]
 
 
 def save_approved_claim(claim_id, approved_by_user_id):
     with get_connection() as conn:
         conn.execute(
-            "UPDATE claims SET status_enc = ?, approved_by_user_id = ? WHERE claim_id = ?",
-            (encrypt_value("Approved"), approved_by_user_id, claim_id),
+            "UPDATE claims SET status_enc = ?, approved_by_user_id_enc = ? WHERE claim_id = ?",
+            (encrypt_value("Approved"), encrypt_value(str(approved_by_user_id)), claim_id),
         )
         conn.commit()
 
 def save_rejected_claim(claim_id, rejected_by_user_id):
     with get_connection() as conn:
         conn.execute(
-            "UPDATE claims SET status_enc = ?, approved_by_user_id = ? WHERE claim_id = ?",
-            (encrypt_value("Rejected"), rejected_by_user_id, claim_id),
+            "UPDATE claims SET status_enc = ?, approved_by_user_id_enc = ? WHERE claim_id = ?",
+            (encrypt_value("Rejected"), encrypt_value(str(rejected_by_user_id)), claim_id),
         )
         conn.commit()
 
 def save_assigned_backup(manager_user_id, backup_name_enc, restore_code_hash):
     with get_connection() as conn:
         cur = conn.execute(
-            """INSERT INTO restore_codes (manager_user_id, backup_filename_enc, code_hash)
+            """INSERT INTO restore_codes (manager_user_id_enc, backup_filename_enc, code_hash)
                VALUES (?, ?, ?)""",
-            (manager_user_id, backup_name_enc, restore_code_hash),
+            (encrypt_value(str(manager_user_id)), backup_name_enc, restore_code_hash),
         )
         conn.commit()
 
 def save_new_password(user_id, hashed_password, is_password_temp=0):
     with get_connection() as conn:
-        cur = conn.execute("UPDATE users SET password_hash = ?, is_password_temp = ? WHERE user_id = ?", (hashed_password, is_password_temp, user_id))
+        cur = conn.execute("UPDATE users SET password_hash = ?, is_password_temp_enc = ? WHERE user_id = ?", (hashed_password, encrypt_value(str(is_password_temp)), user_id))
         conn.commit()
 
 def set_restore_code_used(restore_code_id):
@@ -201,23 +200,23 @@ def save_claim(claim):
         cur = conn.execute(
             """
             INSERT INTO claims (
-                user_id,
+                user_id_enc,
                 claim_date_enc,
                 project_number_enc,
                 claim_type_enc,
                 status_enc,
-                approved_by_user_id,
+                approved_by_user_id_enc,
                 salary_batch_enc
             )
             VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
             (
-                claim["user_id"],
+                claim["user_id_enc"],
                 claim["claim_date_enc"],
                 claim["project_number_enc"],
                 claim["claim_type_enc"],
                 claim["status_enc"],
-                claim.get("approved_by_user_id"),
+                claim.get("approved_by_user_id_enc"),
                 claim.get("salary_batch_enc"),
             ),
         )
@@ -251,13 +250,14 @@ def save_claim(claim):
 def save_user(registration_date_enc, user, role):
     with get_connection() as conn:
         cur = conn.execute(
-            """INSERT INTO users (role_enc, username_enc, username_lookup, password_hash, first_name_enc, last_name_enc, registration_date_enc)
-               VALUES (?, ?, ?, ?, ?, ?, ?)""",
+            """INSERT INTO users (role_enc, username_enc, username_lookup, password_hash, is_password_temp_enc, first_name_enc, last_name_enc, registration_date_enc)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 user["role_enc"],
                 user["username_enc"],
                 user["username_lookup"],
                 user["password_hash"],
+                encrypt_value("0"),
                 user["first_name_enc"],
                 user["last_name_enc"],
                 registration_date_enc,
@@ -348,7 +348,7 @@ def create_tables(conn: sqlite3.Connection):
             username_enc BLOB NOT NULL,
             username_lookup TEXT NOT NULL UNIQUE,
             password_hash TEXT NOT NULL,
-            is_password_temp INTEGER NOT NULL DEFAULT 0 CHECK (is_password_temp IN (0, 1)),
+            is_password_temp_enc BLOB NOT NULL,
             first_name_enc BLOB NOT NULL,
             last_name_enc BLOB NOT NULL,
             registration_date_enc BLOB NOT NULL
@@ -374,12 +374,12 @@ def create_tables(conn: sqlite3.Connection):
 
         CREATE TABLE IF NOT EXISTS claims (
             claim_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER NOT NULL REFERENCES employees(user_id) ON DELETE CASCADE,
+            user_id_enc BLOB NOT NULL,
             claim_date_enc BLOB NOT NULL,
             project_number_enc BLOB NOT NULL,
             claim_type_enc BLOB NOT NULL,
             status_enc BLOB NOT NULL,
-            approved_by_user_id INTEGER REFERENCES users(user_id),
+            approved_by_user_id_enc BLOB,
             salary_batch_enc BLOB
         );
 
@@ -394,7 +394,7 @@ def create_tables(conn: sqlite3.Connection):
 
         CREATE TABLE IF NOT EXISTS restore_codes (
             restore_code_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            manager_user_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+            manager_user_id_enc BLOB NOT NULL,
             backup_filename_enc BLOB NOT NULL,
             code_hash TEXT NOT NULL UNIQUE,
             is_used INTEGER NOT NULL DEFAULT 0 CHECK (is_used IN (0, 1)),
@@ -411,7 +411,6 @@ def create_tables(conn: sqlite3.Connection):
             is_read INTEGER NOT NULL DEFAULT 0 CHECK (is_read IN (0, 1))
         );
 
-        CREATE INDEX IF NOT EXISTS idx_claims_user_id ON claims(user_id);
         """
     )
     conn.commit()
