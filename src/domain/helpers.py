@@ -89,7 +89,7 @@ def reset_users_password(session):
         else:
             users = fetch_all_employees()
         if not users:
-            print_error("No users found")
+            print_error("No accounts found")
             return
         formatted_users = format_user_list(users)
         user = print_and_select_from_list(formatted_users, "Select user to reset password: ")
@@ -563,17 +563,22 @@ def select_backup():
     backup = print_and_select_from_list(backups)
     return backup
 
-def select_restore_code():
+def select_restore_code(session):
     restore_codes = fetch_all_restore_codes()
     if not restore_codes:
+        print_error("No restore codes found")
         return None
     inputted_restore_code = input_restore_code()
     if not inputted_restore_code:
+        print_error("Invalid restore code")
+        log_event("Invalid restore code", username_enc=session["username_enc"])
         return None
     restore_codes_dict = [dict(row) for row in restore_codes]
     for code in restore_codes_dict:
         if verify_restore_code(inputted_restore_code, code["code_hash"]):
             return code
+    print_error("Invalid restore code")
+    log_event("Invalid restore code", username_enc=session["username_enc"])
     return None
 
 def request_employees_claims(session):

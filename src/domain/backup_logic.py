@@ -25,7 +25,6 @@ def restore_any_backup(session):
     raise Exception("Unauthorized access")
 
 def restore_backup_with_code(session):
-    
     if session["role"] == "manager":
         restore_code_object = None
         restore_code_found = False
@@ -33,14 +32,18 @@ def restore_backup_with_code(session):
         manager_id = session["user_id"]
         managers = request_managers()
         restore_code_list = fetch_restore_code_by_manager_id(manager_id)
-        
+
         inputted_restore_code = input_restore_code()
-        
-        if not inputted_restore_code or not restore_code_list or len(restore_code_list) < 1:
+
+        if not restore_code_list or len(restore_code_list) < 1:
+            print_error("No restore codes found")
+            return
+
+        if not inputted_restore_code:
             print_error("Invalid restore code")
             log_event("Invalid restore code", username_enc=session["username_enc"])
             return
-        
+
         for restore_code in restore_code_list:
             if verify_restore_code(inputted_restore_code, restore_code["code_hash"]):
                 restore_code_found = True
@@ -52,8 +55,8 @@ def restore_backup_with_code(session):
                     print_error("Invalid restore code")
                     log_event("Invalid restore code", username_enc=session["username_enc"], additional_info=f"Revoked restorecode attempt. code: {inputted_restore_code} for manager: {manager_id}")
                     return
-                
-                try: 
+
+                try:
                     overwrite_db(decrypt_value(restore_code["backup_filename_enc"]))
                     restore_code_object = restore_code
                     log_event("backup restored", username_enc=session["username_enc"], additional_info=f"backup restored: {decrypt_value(restore_code_object["backup_filename_enc"])}")
@@ -62,12 +65,12 @@ def restore_backup_with_code(session):
                     log_event("Restoring backup failed", username_enc=session["username_enc"], additional_info=f"Restoring backup failed: {e}")
                     return
             if restore_code_found: break
-        
+
         if not restore_code_found:
             print_error("Invalid restore code")
             log_event("Invalid restore code", username_enc=session["username_enc"], additional_info=f"Invalid restorecode attempt. code: {inputted_restore_code} for manager: {manager_id}")
             return
-            
+
         if managers and len(managers) > 0 and restore_code_object:
             for manager in managers:
                 if str(manager["user_id"]) == decrypt_value(restore_code_object["manager_user_id_enc"]):
@@ -82,9 +85,9 @@ def restore_backup_with_code(session):
                                 log_event("restore code marked as used", username_enc=session["username_enc"], additional_info=f"code id: {restore_code_object["restore_code_id"]}")
                         if managers_codes_found: break
                 if manager_found: break
-                
+
         return "logout"
-    
+
     else:
         log_event("unauthorized backup restore code use attempt", username_enc=session["username_enc"], is_suspicious=True)
         raise Exception("Unauthorized access")
@@ -96,30 +99,28 @@ def assign_backup(session):
     if session["role"] == "admin":
         restore_code = generate_backup_restore_code()
         restore_code_hash = hash_restore_code(restore_code)
-        
+
         manager = select_manager()
         if not manager:
             return
-        
+
         backup = select_backup()
         if not backup:
             return
-        
+
         backup_name_enc = encrypt_value(backup)
         save_assigned_backup(manager["user_id"], backup_name_enc, restore_code_hash)
         log_event("backup restore code assigned", username_enc=session["username_enc"], additional_info=f"restore code: {restore_code} for manager: {manager["user_id"]} for backup file: {decrypt_value(backup_name_enc)}")
         print(f"\n\nThe restore code is: {restore_code}")
         return
-    
+
     log_event("unauthorized backup restore code assign attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
-    
+
 def view_restore_code_status(session):
     if session["role"] == "admin":
-        restore_code = select_restore_code()
+        restore_code = select_restore_code(session)
         if not restore_code:
-            print_error("Invalid restore code")
-            log_event("Invalid restore code", username_enc=session["username_enc"])
             return
         used = restore_code["is_used"]
         revoked = restore_code["is_revoked"]
@@ -128,13 +129,11 @@ def view_restore_code_status(session):
         return
     log_event("unauthorized restore codes status view attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
-    
+
 def revoke_restore_code(session):
     if session["role"] == "admin":
-        verified_restorecode_object = select_restore_code()
+        verified_restorecode_object = select_restore_code(session)
         if not verified_restorecode_object:
-            print_error("Invalid restore code")
-            log_event("Invalid restore code", username_enc=session["username_enc"])
             return
         if verified_restorecode_object and not None:
             set_restore_code_revoked(verified_restorecode_object)
