@@ -1,4 +1,4 @@
-from time import time
+from time import sleep
 
 from domain.security.bruteforece_detection import is_bruteforce_lockout_active
 from domain.security.security import login
@@ -15,7 +15,7 @@ def app():
             if is_bruteforce_lockout_active():
                 print_error("Too many failed attempts.")
                 log_event("bruteforce lockout", is_suspicious=True)
-                time.sleep(60)
+                sleep(60)
                 continue
 
             session = login()
