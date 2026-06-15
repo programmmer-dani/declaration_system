@@ -35,11 +35,7 @@ def restore_backup_with_code(session):
 
         inputted_restore_code = input_restore_code()
 
-        if not restore_code_list or len(restore_code_list) < 1:
-            print_error("No restore codes found")
-            return
-
-        if not inputted_restore_code:
+        if not inputted_restore_code or not restore_code_list or len(restore_code_list) < 1:
             print_error("Invalid restore code")
             log_event("Invalid restore code", username_enc=session["username_enc"])
             return
@@ -49,11 +45,11 @@ def restore_backup_with_code(session):
                 restore_code_found = True
                 if restore_code["is_used"] == 1:
                     print_error("Invalid restore code")
-                    log_event("Invalid restore code", username_enc=session["username_enc"], additional_info=f"Already used restorecode attempt. code: {inputted_restore_code} for manager: {manager_id}")
+                    log_event("Invalid restore code", username_enc=session["username_enc"], additional_info=f"Already used restore restorecode attempt")
                     return
                 if restore_code["is_revoked"] == 1:
                     print_error("Invalid restore code")
-                    log_event("Invalid restore code", username_enc=session["username_enc"], additional_info=f"Revoked restorecode attempt. code: {inputted_restore_code} for manager: {manager_id}")
+                    log_event("Invalid restore code", username_enc=session["username_enc"], additional_info=f"Revoked restorecode restore attempt")
                     return
 
                 try:
@@ -68,7 +64,7 @@ def restore_backup_with_code(session):
 
         if not restore_code_found:
             print_error("Invalid restore code")
-            log_event("Invalid restore code", username_enc=session["username_enc"], additional_info=f"Invalid restorecode attempt. code: {inputted_restore_code} for manager: {manager_id}")
+            log_event("Invalid restore code", username_enc=session["username_enc"], additional_info=f"Non existing code attempt")
             return
 
         if managers and len(managers) > 0 and restore_code_object:
@@ -110,7 +106,7 @@ def assign_backup(session):
 
         backup_name_enc = encrypt_value(backup)
         save_assigned_backup(manager["user_id"], backup_name_enc, restore_code_hash)
-        log_event("backup restore code assigned", username_enc=session["username_enc"], additional_info=f"restore code: {restore_code} for manager: {manager["user_id"]} for backup file: {decrypt_value(backup_name_enc)}")
+        log_event("backup restore code assigned", username_enc=session["username_enc"], additional_info=f"to manager: {manager["user_id"]} for backup file: {decrypt_value(backup_name_enc)}")
         print(f"\n\nThe restore code is: {restore_code}")
         return
 

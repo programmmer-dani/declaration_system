@@ -35,7 +35,7 @@ from logging_system import log_event
 def get_login_input():
     username = go_validate_login("Username: ", validate_username)
     if not username:
-        log_event(f"failed login attempt", additional_info="incorrect username format")
+        log_event(f"failed login attempt", additional_info="fialed on username format")
         getpass.getpass("Password: ")
         return None
     else:
@@ -43,7 +43,7 @@ def get_login_input():
         if password:
             return {"username": username, "password": password}
 
-    log_event(f"failed login attempt", additional_info="incorrect password format")
+    log_event(f"failed login attempt", additional_info="failed on password format")
     return None
 
 
@@ -204,11 +204,7 @@ def _format_log_created_at(created_at):
             log_display_ts
         )
     except (ValueError, TypeError):
-        log_event(
-            "Error formatting log created at",
-            is_suspicious=True,
-            additional_info=f"Error formatting log created at: {created_at}",
-        )
+        log_event("Error formatting log", is_suspicious=True, additional_info=f"created at: {created_at}")
         raise Exception("Error formatting log created at")
 
 
@@ -217,12 +213,8 @@ def print_log_list(logs):
         r = dict(row)
         when = _format_log_created_at(r["created_at"])
         act = decrypt_value(r["activity_desc_enc"])
-        user = (
-            decrypt_value(r["username_enc"]) if r["username_enc"] is not None else "—"
-        )
-        extra = (
-            decrypt_value(r["additional_info_enc"]) if r["additional_info_enc"] else "—"
-        )
+        user = (decrypt_value(r["username_enc"]) if r["username_enc"] is not None else "—")
+        extra = (decrypt_value(r["additional_info_enc"]) if r["additional_info_enc"] else "—")
         susp = "yes" if decrypt_value(r["is_suspicious_enc"]) == "1" else "no"
         read = "yes" if r["is_read"] else "no"
         print(
@@ -271,7 +263,7 @@ def call_to_create_backup(session):
         print("Creating backup...")
         backup_name = create_backup()
         log_event(
-            "backup created from this point",
+            "backup created",
             username_enc=session["username_enc"],
             additional_info=backup_name,
         )

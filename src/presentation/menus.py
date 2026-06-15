@@ -52,7 +52,7 @@ def _run_menu(options, session):
                 except Exception as e:
                     if str(e) == "Unauthorized access":
                         return "logout"
-                    log_event("menu action crash", additional_info=str(e), is_suspicious=True)
+                    log_event("menu action crash", is_suspicious=True)
                     print_error("An unexpected error occurred.")
         except:
             print_error("Invalid input format")
