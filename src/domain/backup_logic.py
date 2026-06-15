@@ -110,7 +110,7 @@ def assign_backup(session):
 
         backup_name_enc = encrypt_value(backup)
         save_assigned_backup(manager["user_id"], backup_name_enc, restore_code_hash)
-        log_event("backup restore code assigned", username_enc=session["username_enc"], additional_info=f"restore code: {restore_code} for manager: {manager["user_id"]} for backup file: {decrypt_value(backup_name_enc)}")
+        log_event("backup restore code assigned", username_enc=session["username_enc"], additional_info=f"to manager: {manager["user_id"]} for backup file: {decrypt_value(backup_name_enc)}")
         print(f"\n\nThe restore code is: {restore_code}")
         return
 
