@@ -49,11 +49,11 @@ def restore_backup_with_code(session):
                 restore_code_found = True
                 if restore_code["is_used"] == 1:
                     print_error("Invalid restore code")
-                    log_event("Invalid restore code", username_enc=session["username_enc"], additional_info=f"Already used restorecode attempt. code: {inputted_restore_code} for manager: {manager_id}")
+                    log_event("Invalid restore code", username_enc=session["username_enc"], additional_info=f"Already used restore restorecode attempt")
                     return
                 if restore_code["is_revoked"] == 1:
                     print_error("Invalid restore code")
-                    log_event("Invalid restore code", username_enc=session["username_enc"], additional_info=f"Revoked restorecode attempt. code: {inputted_restore_code} for manager: {manager_id}")
+                    log_event("Invalid restore code", username_enc=session["username_enc"], additional_info=f"Revoked restorecode restore attempt")
                     return
 
                 try:
@@ -68,7 +68,7 @@ def restore_backup_with_code(session):
 
         if not restore_code_found:
             print_error("Invalid restore code")
-            log_event("Invalid restore code", username_enc=session["username_enc"], additional_info=f"Invalid restorecode attempt. code: {inputted_restore_code} for manager: {manager_id}")
+            log_event("Invalid restore code", username_enc=session["username_enc"], additional_info=f"Non existing code attempt")
             return
 
         if managers and len(managers) > 0 and restore_code_object:

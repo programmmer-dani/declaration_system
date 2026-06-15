@@ -100,11 +100,7 @@ def reset_users_password(session):
         temp_password_hash = hash_password(temp_password)
         save_new_password(user_id, temp_password_hash, is_password_temp=1)
         print_temp_password(temp_password)
-        log_event(
-            "users password reset",
-            username_enc=session["username_enc"],
-            additional_info=f"id: {user['user_id']}",
-        )
+        log_event("users password reset", username_enc=session["username_enc"], additional_info=f"id: {user['user_id']}",)
         return
     log_event("unauthorized users password reset attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
@@ -163,7 +159,7 @@ def edit_employee_account(session):
             updated_value = encrypt_value(updated_value)
             key_to_update = key_to_update + "_enc"
         save_employee_edit(employee_id, key_to_update, updated_value)
-        log_event("employee account edited", username_enc=session["username_enc"], additional_info=f"employee account edited (id: {employee_id}): {key_to_update} updated to {decrypt_value(updated_value)}")
+        log_event("employee account edited", username_enc=session["username_enc"], additional_info=f"key edited: {key_to_update}")
         return
     log_event("unauthorized employee account edit attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
@@ -191,7 +187,7 @@ def search_claims(session):
         raise Exception("Unauthorized access")
 
     needle = _normalize_search_text(input_search_term())
-    log_event("claims searched", username_enc=session["username_enc"], additional_info=f"claims searched for {needle}")
+    log_event("claims searched", username_enc=session["username_enc"])
     matched = [r for r in rows if _claim_row_matches_partial_search(r, needle)]
     if not matched:
         print_error("No claims match that search.")
@@ -206,7 +202,7 @@ def search_employees(session):
             return
         needle = _normalize_search_text(input_search_term())
         matched = [r for r in employees if _employee_row_matches_partial_search(r, needle)]
-        log_event("employees searched", username_enc=session["username_enc"], additional_info=f"employees searched for {needle}")
+        log_event("employees searched", username_enc=session["username_enc"])
         if not matched:
             print_error("No employees match that search.")
             return
@@ -224,7 +220,7 @@ def update_password(session):
             return "logout"
         password = go_validate_new_password("Enter new password: ")
         save_new_password(session["user_id"], hash_password(password))
-        log_event("password updated", username_enc=session["username_enc"], additional_info=f"password updated for user: {decrypt_value(session["username_enc"])}")
+        log_event("password updated", username_enc=session["username_enc"])
         return
     log_event("unauthorized password update attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
@@ -244,7 +240,7 @@ def edit_manager_account_as_admin(session):
         updated_value = encrypt_value(updated_value)
         key_to_update = key_to_update + "_enc"
         save_manager_edit(manager_id, key_to_update, updated_value)
-        log_event("manager account edited", username_enc=session["username_enc"], additional_info=f"manager account edited (id: {manager_id}): {key_to_update} updated to {decrypt_value(updated_value)}")
+        log_event("manager account edited", username_enc=session["username_enc"], additional_info=f"key edited: {key_to_update}")
         return
     log_event("unauthorized manager account edit attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
@@ -259,7 +255,7 @@ def delete_manager_account_as_admin(session):
         manager = print_and_select_from_list(formatted, "Select manager to delete: ")
         manager_id = manager["user_id"]
         delete_employee_from_db(manager_id)
-        log_event("manager account deleted", username_enc=session["username_enc"], additional_info=f"manager account deleted (id: {manager['user_id']})")
+        log_event("manager account deleted", username_enc=session["username_enc"], additional_info=f"id: {manager['user_id']})")
         return
     log_event("unauthorized manager account delete attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
@@ -272,7 +268,7 @@ def edit_manager_account(session):
         updated_value = encrypt_value(updated_value)
         key_to_update = key_to_update + "_enc"
         save_employee_edit(session["user_id"], key_to_update, updated_value)
-        log_event("manager account edited", username_enc=session["username_enc"], additional_info=f"manager account edited (username: {decrypt_value(session["username_enc"])}: {key_to_update} updated to {decrypt_value(updated_value)}")
+        log_event("manager account edited", username_enc=session["username_enc"], additional_info=f"key edited: {key_to_update}")
         return
     log_event("unauthorized manager account edit attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
@@ -280,7 +276,7 @@ def edit_manager_account(session):
 def delete_manager_account(session):
     if session["role"] == "manager":
         delete_employee_from_db(session["user_id"])
-        log_event("manager account deleted", username_enc=session["username_enc"], additional_info=f"manager account deleted (id: {session['user_id']})")
+        log_event("manager account deleted", username_enc=session["username_enc"], additional_info=f"id: {session['user_id']}")
         return "logout"
     log_event("unauthorized manager account delete attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
@@ -295,7 +291,7 @@ def delete_employee_account(session):
         employee = print_and_select_from_list(formatted_employees, "Select employee to delete: ")
         employee_id = employee["user_id"]
         delete_employee_from_db(employee_id)
-        log_event("employee account deleted", username_enc=session["username_enc"], additional_info=f"employee account deleted (id: {employee['user_id']})")
+        log_event("employee account deleted", username_enc=session["username_enc"], additional_info=f"id: {employee['user_id']}")
         return
     log_event("unauthorized employee account delete attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
@@ -310,7 +306,7 @@ def delete_claim(session):
         claim = print_and_select_from_list(formatted_claims, "Select claim to delete: ")
         claim_id = claim["claim_id"]
         delete_claim_from_db(claim_id)
-        log_event("claim deleted", username_enc=session["username_enc"], additional_info=f"claim deleted (id: {claim_id})")
+        log_event("claim deleted", username_enc=session["username_enc"], additional_info=f"id: {claim_id}")
         return
     log_event("unauthorized claim delete attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
@@ -335,13 +331,9 @@ def edit_claim(session):
             save_claim_edit(claim_id, key_to_update, updated_value)
         except Exception as e:
             print_error("Claim edit failed")
-            log_event("Claim edit failed", username_enc=session["username_enc"], additional_info=f"Claim edit failed: {e}")
+            log_event("Claim edit failed", username_enc=session["username_enc"])
             return
-        log_event(
-            "claim edited",
-            username_enc=session["username_enc"],
-            additional_info=f"claim edited (id: {claim_id}): {key_to_update} updated to {decrypt_value(updated_value) if is_key_value_encrypted(key_to_update) else updated_value}" #still expects project_number so doesn't get triggered even tho it should
-        )
+        log_event("claim edited", username_enc=session["username_enc"], additional_info=f"claim id: {claim_id}, key edited: {key_to_update}")
         return
     log_event("unauthorized claim edit attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
@@ -363,7 +355,7 @@ def edit_claim_as_manager_or_admin(session):
             updated_value = encrypt_value(updated_value)
             key_to_update = f"{key_to_update}_enc"
         save_claim_edit(claim_id, key_to_update, updated_value)
-        log_event("claim edited", username_enc=session["username_enc"], additional_info=f"claim edited (claim id: {claim_id}): {key_to_update} updated to {decrypt_value(updated_value)}")
+        log_event("claim edited", username_enc=session["username_enc"], additional_info=f"claim id: {claim_id}, key edited: {key_to_update}")
         print("Claim edited successfully.")
         return
     log_event("unauthorized claim edit attempt", username_enc=session["username_enc"], is_suspicious=True)
@@ -413,7 +405,7 @@ def find_validator(key_to_update):
     }
 
     if key_to_update not in validators:
-        log_event("No validator found", is_suspicious=True, additional_info=f"No validator found: {key_to_update}")
+        log_event("No validator found", is_suspicious=True, additional_info=f"No validator found for: {key_to_update}")
         raise Exception(f"No validator found")
     return validators[key_to_update]
 
@@ -467,13 +459,13 @@ def approve_claim(session):
         claim = print_and_select_from_list(formatted_claims, "Select claim to approve: ")
         try:
             set_claims_salary_batch(session, claim["claim_id"])
-            log_event("claims salary batch  set", username_enc=session["username_enc"], additional_info=f"claim (id: {claim["claim_id"]}) salary batch set during approve")
+            log_event("claims salary batch set", username_enc=session["username_enc"], additional_info=f"claim id: {claim["claim_id"]} salary batch set during approve")
         except Exception as e:
             print_error(f"Error setting salary-batch")
-            log_event("Claim salary batch set failed", username_enc=session["username_enc"], additional_info=f"Claim salary batch set failed: {e}")
+            log_event("Claim salary batch set failed", username_enc=session["username_enc"])
             return
         save_approved_claim(claim["claim_id"], get_user_id_by_username(decrypt_value(session["username_enc"])))
-        log_event("claim approved", username_enc=session["username_enc"], additional_info=f"claim approved (id: {claim["claim_id"]})")
+        log_event("claim approved", username_enc=session["username_enc"], additional_info=f"claim id: {claim["claim_id"]}")
         print("\nClaim approved successfully.")
         return
     log_event("unauthorized claim approve attempt", username_enc=session["username_enc"], is_suspicious=True)
@@ -488,7 +480,7 @@ def reject_claim(session):
         formatted_claims = format_claim_list(claims)
         claim = print_and_select_from_list(formatted_claims, "Select claim to reject: ")
         save_rejected_claim(claim["claim_id"], get_user_id_by_username(decrypt_value(session["username_enc"])))
-        log_event("claim rejected", username_enc=session["username_enc"], additional_info=f"claim rejected (id: {claim["claim_id"]})")
+        log_event("claim rejected", username_enc=session["username_enc"], additional_info=f"claim id: {claim["claim_id"]}")
         print("\nClaim rejected successfully.")
         return
     log_event("unauthorized claim reject attempt", username_enc=session["username_enc"], is_suspicious=True)
@@ -539,7 +531,7 @@ def create_user(session):
             return
         except ValueError as e:
             print_error("Create user failed")
-            log_event("Create user failed", username_enc=session["username_enc"], additional_info=f"Create user failed: {e}")
+            log_event("Create user failed", username_enc=session["username_enc"], additional_info=f"Create user failed")
             return
     log_event("invalid role create user attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")
@@ -647,7 +639,7 @@ def view_employees_claims(session):
             return
 
         print_claim_list(claims)
-        log_event("employees claims viewed", username_enc=session["username_enc"], additional_info=f"employees id: {employee['user_id']} claims viewed") # employee is formatted without containing username_enc
+        log_event("employees claims viewed", username_enc=session["username_enc"], additional_info=f"employees id: {employee['user_id']}, claims viewed") # employee is formatted without containing username_enc
         return
     log_event("unauthorized employees claims view attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")

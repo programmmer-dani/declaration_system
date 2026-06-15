@@ -42,13 +42,13 @@ def secure_user_data(user_data):
             "last_name_enc": encrypt_value(user_data["last_name"]),
         }
     except ValueError as e:
-        log_event("Error securing basic user data", is_suspicious=True, additional_info=f"Error securing basic user data: {e}")
+        log_event("Error securing basic user data", is_suspicious=True)
         raise ValueError(f"Error securing basic user data")
     try:
         if user_data["role"] == "employee":
             secured_user_data.update(secure_employee_data(user_data))
     except ValueError as e:
-        log_event("Error securing extra employee data", is_suspicious=True, additional_info=f"Error securing extra employee data: {e}")
+        log_event("Error securing extra employee data", is_suspicious=True)
         raise ValueError(f"Error securing extra employee data")
     return secured_user_data
 
@@ -82,7 +82,7 @@ def login():
         user = find_user_by_username(credentials["username"])
 
         if user is None:
-            log_event("failed login attempt", additional_info=f"bad username: {credentials["username"]}")
+            log_event("failed login attempt", additional_info=f"failed on username")
             return None
 
         user = dict(user)
@@ -96,7 +96,7 @@ def login():
                 update_temp_password(user)
             return user
         else:
-            log_event("failed login attempt", additional_info=f"bad password for username: {credentials["username"]}")
+            log_event("failed login attempt", additional_info=f"failed on password")
             return None
     return None
 
