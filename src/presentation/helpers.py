@@ -67,7 +67,7 @@ def go_validate_new_password(input_message):
         value = getpass.getpass(input_message)
         if validate_password(value):
             return value
-        log_event("Invalid input", additional_info=f"{validate_password.__name__}") # TOBI, PLEASE CHECK THIS
+        log_event("Invalid input", additional_info=f"{validate_password.__name__}")
         give_feedback(validate_password)
 
 def go_validate(input_message, validator):
@@ -75,7 +75,7 @@ def go_validate(input_message, validator):
         value = input(input_message)
         if validator(value):
             return value
-        log_event("Invalid input", additional_info=f"{validator.__name__}") # TOBI, PLEASE CHECK THIS
+        log_event("Invalid input", additional_info=f"{validator.__name__}")
         if validator == validate_restore_code:
             return None
         give_feedback(validator)
@@ -86,7 +86,7 @@ def go_validate_restore_code_as_admin(input_message, validator):
         value = input(input_message)
         if validator(value):
             return value
-        log_event("Invalid input", additional_info=f"{validator.__name__}") # TOBI, PLEASE CHECK THIS
+        log_event("Invalid input", additional_info=f"{validator.__name__}")
         give_feedback(validator)
 
 

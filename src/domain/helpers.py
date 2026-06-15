@@ -326,7 +326,7 @@ def edit_claim(session):
         updated_value = go_validate(f"Enter new value for {key_to_update}: ", find_validator(key_to_update))
         if is_key_value_encrypted(key_to_update):
             updated_value = encrypt_value(updated_value)
-            key_to_update = f"{key_to_update}_enc" # now becomes project_number_enc
+            key_to_update = f"{key_to_update}_enc"
         try:
             save_claim_edit(claim_id, key_to_update, updated_value)
         except Exception as e:
@@ -639,7 +639,7 @@ def view_employees_claims(session):
             return
 
         print_claim_list(claims)
-        log_event("employees claims viewed", username_enc=session["username_enc"], additional_info=f"employees id: {employee['user_id']}, claims viewed") # employee is formatted without containing username_enc
+        log_event("employees claims viewed", username_enc=session["username_enc"], additional_info=f"employees id: {employee['user_id']}, claims viewed")
         return
     log_event("unauthorized employees claims view attempt", username_enc=session["username_enc"], is_suspicious=True)
     raise Exception("Unauthorized access")

@@ -35,11 +35,7 @@ def restore_backup_with_code(session):
 
         inputted_restore_code = input_restore_code()
 
-        if not restore_code_list or len(restore_code_list) < 1:
-            print_error("No restore codes found")
-            return
-
-        if not inputted_restore_code:
+        if not inputted_restore_code or not restore_code_list or len(restore_code_list) < 1:
             print_error("Invalid restore code")
             log_event("Invalid restore code", username_enc=session["username_enc"])
             return
