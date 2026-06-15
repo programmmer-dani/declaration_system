@@ -14,7 +14,9 @@ from infrastructure.database import (
     fetch_all_logs,
     fetch_all_managers,
     fetch_all_restore_codes,
+    fetch_claims_without_salary_batch,
     fetch_employees_claims,
+    fetch_pending_employee_claims,
     fetch_employees_claims_with_travel,
     fetch_pending_claims,
     flag_all_logs_as_read,
@@ -315,9 +317,9 @@ def delete_claim(session):
 
 def edit_claim(session):
     if session["role"] == "employee":
-        claims = fetch_employees_claims(session["user_id"])
+        claims = fetch_pending_employee_claims(session["user_id"])
         if not claims:
-            print_error("No claims found")
+            print_error("No claims to be edited")
             return
 
         formatted_claims = format_claim_list(claims)
@@ -457,7 +459,7 @@ def get_keys_to_update(claim_type, role=None):
 
 def approve_claim(session):
     if session["role"] in ["manager", "admin"]:
-        claims = fetch_pending_claims()
+        claims = fetch_claims_without_salary_batch()
         if not claims:
             print_error("No claims found")
             return
