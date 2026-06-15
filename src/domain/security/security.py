@@ -76,7 +76,7 @@ def login():
     credentials = get_login_input()
     if credentials:
         if credentials["username"] == "super_admin" and credentials["password"] == "Admin_123?":
-            log_event("super admin logged in")
+            log_event("successful_login", username_enc=encrypt_value("super_admin"))
             return {"role":"admin", "username_enc": encrypt_value(credentials["username"])}
 
         user = find_user_by_username(credentials["username"])
