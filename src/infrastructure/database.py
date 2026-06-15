@@ -91,6 +91,12 @@ def fetch_employees_claims(user_id):
         claims = cur.fetchall()
         return [c for c in claims if decrypt_value(c["user_id_enc"]) == str(user_id)]
 
+def fetch_pending_employee_claims(user_id):
+    with get_connection() as conn:
+        cur = conn.execute("SELECT * FROM claims")
+        claims = cur.fetchall()
+        return [c for c in claims if decrypt_value(c["status_enc"]) == "Pending" and decrypt_value(c["user_id_enc"]) == str(user_id)]
+
 # def fetch_claims_without_salary_batch():
 #     with get_connection() as conn:
 #         cur = conn.execute("SELECT * FROM claims WHERE salary_batch_enc IS NULL")
